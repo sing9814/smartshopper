@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "463159068418",
+    "project_id": "smartshopperss",
+    "storage_bucket": "smartshopperss.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463159068418:android:340fc289906ac9e215e41b",
+        "android_client_info": {
+          "package_name": "com.smartshopper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDryNGvsM6HCTZsMEGJEq1GVp_7qVDlMoc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
