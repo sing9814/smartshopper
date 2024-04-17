@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../utils/colors';
 import AddPurchaseScreen from '../screens/AddPurchaseScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import { StyleSheet } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -12,6 +13,15 @@ function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: '#fff',
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          height: 60,
+        },
+        headerShown: false,
+
         tabBarIcon: ({ focused, color }) => {
           let iconName;
 
@@ -25,12 +35,15 @@ function MainTabNavigator() {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={22} color={color} />;
+          return <Ionicons name={iconName} size={26} color={color} />;
         },
       })}
       tabBarOptions={{
         activeTintColor: colors.primary,
-        inactiveTintColor: 'gray',
+        inactiveTintColor: colors.lightGrey,
+        labelStyle: {
+          display: 'none',
+        },
       }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
