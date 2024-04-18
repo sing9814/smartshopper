@@ -1,15 +1,19 @@
 import React from 'react';
-import { TouchableHighlight, Text, StyleSheet } from 'react-native';
+import { TouchableHighlight, Text, StyleSheet, View } from 'react-native';
 import colors from '../utils/colors';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const CustomButton = ({ onPress, title, buttonStyle }) => {
+const CustomButton = ({ onPress, title, buttonStyle, icon = null }) => {
   return (
     <TouchableHighlight
       underlayColor={colors.primaryDark}
       onPress={onPress}
       style={[styles.button, buttonStyle]}
     >
-      <Text style={styles.text}>{title}</Text>
+      <View style={styles.innerContainer}>
+        {icon ? <Ionicons name={icon} size={20} color={colors.white} /> : null}
+        <Text style={styles.text}>{title}</Text>
+      </View>
     </TouchableHighlight>
   );
 };
@@ -21,6 +25,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
+  },
+  innerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   text: {
     color: colors.white,

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
+import CustomButton from '../components/button';
+import colors from '../utils/colors';
+import AddButton from '../components/addButton';
+import CustomInput from '../components/textInput';
 
 // Field: itemName (String)
 // Field: description (String, optional)
@@ -16,15 +20,16 @@ import DatePicker from 'react-native-date-picker';
 const AddPurchaseScreen = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-
-  const [purchaseDate, setPurchaseDate] = useState('');
-
+  const [date, setDate] = useState(new Date());
+  const formattedDate = date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  const [open, setOpen] = useState(false);
   const [regularPrice, setRegularPrice] = useState('');
   const [salePrices, setSalePrices] = useState([]);
   const [paidPrice, setPaidPrice] = useState('');
-
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
 
   const handleAddSalePrice = () => {
     setSalePrices([...salePrices, '']);
@@ -44,24 +49,6 @@ const AddPurchaseScreen = () => {
     setSalePrices(updatedSalePrices);
   };
 
-  const renderSalePriceInputs = () => {
-    return salePrices.map((price, index) => (
-      <TextInput
-        style={styles.blackText}
-        key={index}
-        value={price}
-        onChangeText={(value) => handleSalePriceChange(index, value)}
-        placeholder="Enter sale price"
-        placeholderTextColor={'gray'}
-        keyboardType="numeric"
-      />
-    ));
-  };
-
-  const handlePaidPriceChange = (value) => {
-    setPaidPrice(value);
-  };
-
   const addPurchase = async () => {
     const userRef = firestore().collection('users').doc(auth().currentUser.uid);
     await userRef.collection('Purchases').add({
@@ -69,18 +56,25 @@ const AddPurchaseScreen = () => {
       regularPrice: regularPrice,
       salePrices: salePrices,
       paidPrice: paidPrice,
+      datePurchased: date,
       dateCreated: firestore.FieldValue.serverTimestamp(),
     });
+    setName('');
+    setDescription('');
     setRegularPrice('');
     setSalePrices([]);
     setPaidPrice('');
+    setDate(new Date());
   };
 
   return (
-    <View>
-      <View>
-        <Button title="Open" onPress={() => setOpen(true)} />
-        <Text style={styles.blackText}>{date.toString()}</Text>
+    <View style={styles.container}>
+      <View style={styles.innerContainer}>
+        <CustomInput label="Item" value={name} onChangeText={setName} />
+
+        <CustomInput label="Description" value={description} onChangeText={setDescription} />
+
+        <CustomButton onPress={() => setOpen(true)} title={formattedDate} icon="calendar" />
         <DatePicker
           modal
           open={open}
@@ -95,36 +89,28 @@ const AddPurchaseScreen = () => {
           mode={'date'}
         />
 
-        <TextInput
-          style={styles.blackText}
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter name"
-          placeholderTextColor={'gray'}
-        />
-        <TextInput
-          style={styles.blackText}
-          value={regularPrice}
-          onChangeText={setRegularPrice}
-          placeholder="Enter regular price"
-          placeholderTextColor={'gray'}
-          keyboardType="numeric"
-        />
+        <View style={styles.regPriceContainer}>
+          <CustomInput
+            label="Regular price"
+            value={regularPrice}
+            onChangeText={setRegularPrice}
+            type="numeric"
+          />
+          <AddButton onPress={handleAddSalePrice} size={24} />
+        </View>
 
-        {renderSalePriceInputs()}
-
-        <Button title="Add Sale Price" onPress={handleAddSalePrice} />
-
-        <TextInput
-          style={styles.blackText}
-          value={paidPrice}
-          onChangeText={handlePaidPriceChange}
-          placeholder="Enter paid price"
-          placeholderTextColor={'gray'}
-          keyboardType="numeric"
-        />
+        {salePrices.map((price, index) => (
+          <CustomInput
+            key={index}
+            label={`Sale price ${index + 1}`}
+            value={price}
+            onChangeText={(value) => handleSalePriceChange(index, value)}
+            type="numeric"
+          />
+        ))}
       </View>
-      <Button title="Add" onPress={addPurchase} />
+      <Text>{paidPrice || 0}</Text>
+      <CustomButton buttonStyle={styles.button} onPress={addPurchase} title="Submit" />
     </View>
   );
 };
@@ -132,6 +118,33 @@ const AddPurchaseScreen = () => {
 const styles = StyleSheet.create({
   blackText: {
     color: 'black',
+    backgroundColor: colors.bg,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    // width: '100%',
+    // flex: 1,
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    // paddingHorizontal: 16,
+  },
+  innerContainer: {
+    width: '100%',
+    padding: 16,
+    backgroundColor: colors.white,
+    gap: 16,
+    marginTop: 10,
+  },
+  button: {
+    position: 'absolute',
+    bottom: 75,
+  },
+  regPriceContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
 });
 

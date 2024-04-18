@@ -57,7 +57,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '500',
     color: colors.white,
-    // letterSpacing: 0.5,
+  },
+  email: {
+    color: colors.white,
   },
   innerContainer: {
     width: '100%',
