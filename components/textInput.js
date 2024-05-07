@@ -7,7 +7,7 @@ const CustomInput = ({ label, value, onChangeText, type = 'default' }) => {
 
   useEffect(() => {
     Animated.timing(animatedValue, {
-      toValue: value !== '' ? 1 : 0,
+      toValue: value ? 1 : 0,
       duration: 150,
       useNativeDriver: false,
     }).start();
@@ -35,7 +35,7 @@ const CustomInput = ({ label, value, onChangeText, type = 'default' }) => {
         keyboardType={type}
         maxLength={type === 'numeric' ? 8 : 40}
       />
-      {value !== '' && <Animated.Text style={labelStyle}>{label}</Animated.Text>}
+      {value && <Animated.Text style={labelStyle}>{label}</Animated.Text>}
     </View>
   );
 };
@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: 'red',
   },
 
   input: {

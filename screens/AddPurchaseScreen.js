@@ -7,19 +7,15 @@ import CustomButton from '../components/button';
 import colors from '../utils/colors';
 import AddButton from '../components/addButton';
 import CustomInput from '../components/textInput';
-
-// Field: itemName (String)
-// Field: description (String, optional)
-// Field: regularPrice (Number)
-// Field: markdownPrices (Array of Numbers)
-// Field: paidPrice (Number)
-// Field: purchaseDate (Date or Timestamp)
-// Field: entryDate (Timestamp, set to the current time when saving)
-// Field: imageUrl (String, optional)
+import { Dropdown } from 'react-native-element-dropdown';
+import CustomDropdown from '../components/dropdown';
+import { brands } from '../assets/json/brands';
+import Error from '../components/error';
 
 const AddPurchaseScreen = () => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [itemName, setItemName] = useState(null);
+  const [description, setDescription] = useState(null);
+  const [brand, setBrand] = useState(null);
   const [date, setDate] = useState(new Date());
   const formattedDate = date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -27,11 +23,37 @@ const AddPurchaseScreen = () => {
     day: 'numeric',
   });
   const [open, setOpen] = useState(false);
-  const [regularPrice, setRegularPrice] = useState('');
+  const [regularPrice, setRegularPrice] = useState(null);
   const [salePrices, setSalePrices] = useState([]);
-  const [paidPrice, setPaidPrice] = useState('');
+  const [paidPrice, setPaidPrice] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+
+  // const brands = [
+  //   {
+  //     // label: 'He',
+  //     name: 'A|X Armani Exchange',
+  //     image:
+  //       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwGjXf1ZswJLlxBtf4r3ei125dpxuaol__v9aE5PdtgvuS4KvPXquknArLgEw&s',
+  //   },
+  //   {
+  //     // label: 'He',
+  //     name: 'adidas',
+  //     image:
+  //       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvOqr1CSBSGnG_GyX9Kk6fXdIhz52ubsSTzR_QvmZmUBz4WSRGK8FQxxFNtw&s',
+  //   },
+  // ];
+
+  const handleSelect = (selectedValue) => {
+    setBrand(selectedValue);
+    console.log('Selected value:', selectedValue);
+    // Add your logic here to handle the selected item
+  };
 
   const handleAddSalePrice = () => {
+    if (salePrices.length > 1) {
+      setDisabled(true);
+    }
     setSalePrices([...salePrices, '']);
   };
 
@@ -50,29 +72,52 @@ const AddPurchaseScreen = () => {
   };
 
   const addPurchase = async () => {
-    const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-    await userRef.collection('Purchases').add({
-      name: name,
-      regularPrice: regularPrice,
-      salePrices: salePrices,
-      paidPrice: paidPrice,
-      datePurchased: date,
-      dateCreated: firestore.FieldValue.serverTimestamp(),
-    });
-    setName('');
-    setDescription('');
-    setRegularPrice('');
-    setSalePrices([]);
-    setPaidPrice('');
-    setDate(new Date());
+    if (
+      itemName === null ||
+      description === null ||
+      brand === null ||
+      regularPrice === null ||
+      paidPrice === null
+    ) {
+      setShowError(true);
+    } else {
+      setShowError(false);
+      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
+      await userRef.collection('Purchases').add({
+        name: itemName,
+        description: description,
+        brand: brand,
+        regularPrice: regularPrice,
+        salePrices: salePrices,
+        paidPrice: paidPrice,
+        datePurchased: date,
+        dateCreated: firestore.FieldValue.serverTimestamp(),
+      });
+      setItemName(null);
+      setDescription(null);
+      setBrand(null);
+      setRegularPrice(null);
+      setSalePrices([]);
+      setPaidPrice(null);
+      setDate(new Date());
+    }
   };
 
   return (
     <View style={styles.container}>
+      {showError && <Error title={'Please fill in all missing fields'}></Error>}
+
       <View style={styles.innerContainer}>
-        <CustomInput label="Item" value={name} onChangeText={setName} />
+        <CustomInput label="Item" value={itemName} onChangeText={setItemName} />
 
         <CustomInput label="Description" value={description} onChangeText={setDescription} />
+
+        <CustomDropdown
+          items={brands}
+          onSelect={handleSelect}
+          selectedItem={brand}
+          setSelectedItem={setBrand}
+        />
 
         <CustomButton onPress={() => setOpen(true)} title={formattedDate} icon="calendar" />
         <DatePicker
@@ -96,7 +141,7 @@ const AddPurchaseScreen = () => {
             onChangeText={setRegularPrice}
             type="numeric"
           />
-          <AddButton onPress={handleAddSalePrice} size={24} />
+          <AddButton onPress={handleAddSalePrice} size={24} disabled={disabled} />
         </View>
 
         {salePrices.map((price, index) => (
@@ -127,14 +172,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    // paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   innerContainer: {
     width: '100%',
     padding: 16,
     backgroundColor: colors.white,
     gap: 16,
-    marginTop: 10,
+    marginTop: 12,
   },
   button: {
     position: 'absolute',

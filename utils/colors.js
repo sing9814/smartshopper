@@ -7,6 +7,7 @@ const colors = {
   white: '#fff',
   lightGrey: '#C3C7D2',
   bg: '#F6F6F6',
+  error: '#bd413d',
 };
 
 export default colors;
