@@ -13,8 +13,8 @@ import { brands } from '../assets/json/brands';
 import Error from '../components/error';
 
 const AddPurchaseScreen = () => {
-  const [itemName, setItemName] = useState(null);
-  const [description, setDescription] = useState(null);
+  const [itemName, setItemName] = useState('');
+  const [description, setDescription] = useState('');
   const [brand, setBrand] = useState(null);
   const [date, setDate] = useState(new Date());
   const formattedDate = date.toLocaleDateString('en-US', {
@@ -23,7 +23,7 @@ const AddPurchaseScreen = () => {
     day: 'numeric',
   });
   const [open, setOpen] = useState(false);
-  const [regularPrice, setRegularPrice] = useState(null);
+  const [regularPrice, setRegularPrice] = useState('');
   const [salePrices, setSalePrices] = useState([]);
   const [paidPrice, setPaidPrice] = useState(null);
   const [showError, setShowError] = useState(false);
@@ -72,13 +72,7 @@ const AddPurchaseScreen = () => {
   };
 
   const addPurchase = async () => {
-    if (
-      itemName === null ||
-      description === null ||
-      brand === null ||
-      regularPrice === null ||
-      paidPrice === null
-    ) {
+    if (itemName === '' || regularPrice === '') {
       setShowError(true);
     } else {
       setShowError(false);
@@ -93,22 +87,24 @@ const AddPurchaseScreen = () => {
         datePurchased: date,
         dateCreated: firestore.FieldValue.serverTimestamp(),
       });
-      setItemName(null);
-      setDescription(null);
+      setItemName('');
+      setDescription('');
       setBrand(null);
-      setRegularPrice(null);
+      setRegularPrice('');
       setSalePrices([]);
       setPaidPrice(null);
       setDate(new Date());
     }
   };
 
+  // console.log(regularPrice);
+
   return (
     <View style={styles.container}>
       {showError && <Error title={'Please fill in all missing fields'}></Error>}
 
       <View style={styles.innerContainer}>
-        <CustomInput label="Item" value={itemName} onChangeText={setItemName} />
+        <CustomInput label="Item name*" value={itemName} onChangeText={setItemName} />
 
         <CustomInput label="Description" value={description} onChangeText={setDescription} />
 
@@ -136,7 +132,7 @@ const AddPurchaseScreen = () => {
 
         <View style={styles.regPriceContainer}>
           <CustomInput
-            label="Regular price"
+            label="Regular price*"
             value={regularPrice}
             onChangeText={setRegularPrice}
             type="numeric"
@@ -154,7 +150,7 @@ const AddPurchaseScreen = () => {
           />
         ))}
       </View>
-      <Text>{paidPrice || 0}</Text>
+      {/* <Text>{paidPrice || 0}</Text> */}
       <CustomButton buttonStyle={styles.button} onPress={addPurchase} title="Submit" />
     </View>
   );

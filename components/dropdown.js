@@ -57,7 +57,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
     if (selectedItem) {
       return selectedItem.name;
     } else {
-      return 'Select an item';
+      return 'Brand';
     }
   };
 
