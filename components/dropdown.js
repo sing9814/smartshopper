@@ -49,7 +49,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
         setVisible(false);
       }}
     >
-      <Text>{item.name}</Text>
+      <Text style={styles.text}>{item.name}</Text>
     </TouchableOpacity>
   );
 
@@ -64,13 +64,14 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   return (
     <View>
       <TouchableOpacity style={styles.container} onPress={() => setVisible(true)}>
-        <Text>{renderDropdownText()}</Text>
+        <Text style={styles.text}>{renderDropdownText()}</Text>
       </TouchableOpacity>
       <Modal visible={visible} animationType="slide">
         <View style={styles.modal}>
           <TextInput
             style={styles.input}
             placeholder="Search..."
+            placeholderTextColor={'gray'}
             value={search}
             onChangeText={setSearch}
           />
@@ -80,7 +81,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
             keyExtractor={(item) => item.name.toString()}
           />
           <TouchableOpacity onPress={() => setVisible(false)}>
-            <Text>Close</Text>
+            <Text style={styles.text}>Close</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -90,6 +91,9 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
 };
 
 const styles = StyleSheet.create({
+  text: {
+    color: 'gray',
+  },
   container: {
     color: colors.black,
     backgroundColor: colors.bg,

@@ -1,87 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import { brands } from '../assets/json/brands';
+import React, { useRef, useEffect } from 'react';
+import {
+  View,
+  Animated,
+  Dimensions,
+  Text,
+  StyleSheet,
+  TouchableHighlight,
+  Image,
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../utils/colors';
-import BagSVG from '../assets/bags';
-import { fetchPurchases } from '../utils/firebase';
 import { formatDate } from '../utils/date';
 
-const PurchaseHistoryScreen = () => {
-  const [purchases, setPurchases] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const getImageColor = async () => {
-    try {
-      const { width, height } = await new Promise((resolve, reject) => {
-        Image.getSize(
-          'path_to_your_image',
-          (width, height) => {
-            resolve({ width, height });
-          },
-          reject
-        );
-      });
-
-      const scaledWidth = width * PixelRatio.get();
-      const scaledHeight = height * PixelRatio.get();
-
-      // Prefetch the image
-      await Image.prefetch('path_to_your_image');
-
-      // Get the first pixel color
-      const pixelData = await new Promise((resolve, reject) => {
-        ImageEditor.cropImage(
-          'path_to_your_image',
-          {
-            offset: { x: 0, y: 0 },
-            size: { width: 1, height: 1 },
-            displaySize: { width: scaledWidth, height: scaledHeight },
-            resizeMode: 'contain',
-          },
-          resolve,
-          reject
-        );
-      });
-
-      const firstPixelColor = pixelData ? pixelData[0] : null;
-      console.log('Color of first pixel:', firstPixelColor);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+const BottomOverlay = ({ selectedDate, setSelectedDate, list }) => {
+  const height = Dimensions.get('window').height * 0.5;
+  const translateY = useRef(new Animated.Value(height)).current;
 
   useEffect(() => {
-    const fetchData = async () => {
-      const purchasesArray = await fetchPurchases();
-      setPurchases(purchasesArray);
-      setLoading(false);
-    };
-
-    fetchData();
-
-    return () => {};
-  }, []);
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
-  const renderFooter = () => (
-    <View style={{ padding: 8, alignItems: 'center' }}>
-      <Text style={styles.description}>No more data to show</Text>
-    </View>
-  );
+    if (selectedDate) {
+      Animated.spring(translateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        bounciness: 6,
+      }).start();
+    } else {
+      Animated.spring(translateY, {
+        toValue: height,
+        useNativeDriver: true,
+        bounciness: 4,
+      }).start();
+    }
+  }, [selectedDate, height]);
 
   return (
-    <View>
-      <FlatList
-        data={purchases}
-        contentContainerStyle={styles.list}
-        ListFooterComponent={renderFooter}
-        renderItem={({ item }) => (
-          <View style={styles.container}>
+    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+      <View style={styles.topContainer}>
+        <Text style={styles.title}>{selectedDate}</Text>
+        <TouchableHighlight
+          style={styles.x}
+          onPress={() => setSelectedDate(null)}
+          underlayColor={colors.lightGrey}
+        >
+          <Ionicons name={'close'} size={16} color={colors.white} />
+        </TouchableHighlight>
+      </View>
+      {list.map((item, index) => (
+        <View key={index}>
+          <View style={styles.mapContainer}>
             <View style={styles.imageContainer}>
               <Image
                 style={styles.image}
@@ -114,18 +79,44 @@ const PurchaseHistoryScreen = () => {
               </View>
             </View>
           </View>
-        )}
-      />
-    </View>
+        </View>
+      ))}
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  list: {
-    paddingBottom: 65,
-    flexGrow: 0,
-  },
   container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.white,
+    height: '50%',
+    padding: 12,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  topContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.black,
+  },
+  x: {
+    backgroundColor: 'gray',
+    borderRadius: 50,
+    height: 25,
+    width: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  mapContainer: {
     backgroundColor: 'white',
     flexDirection: 'row',
     padding: 10,
@@ -193,4 +184,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PurchaseHistoryScreen;
+export default BottomOverlay;

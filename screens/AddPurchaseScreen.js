@@ -7,7 +7,6 @@ import CustomButton from '../components/button';
 import colors from '../utils/colors';
 import AddButton from '../components/addButton';
 import CustomInput from '../components/textInput';
-import { Dropdown } from 'react-native-element-dropdown';
 import CustomDropdown from '../components/dropdown';
 import { brands } from '../assets/json/brands';
 import Error from '../components/error';
@@ -84,7 +83,7 @@ const AddPurchaseScreen = () => {
         regularPrice: regularPrice,
         salePrices: salePrices,
         paidPrice: paidPrice,
-        datePurchased: date,
+        datePurchased: date.toISOString().split('T')[0],
         dateCreated: firestore.FieldValue.serverTimestamp(),
       });
       setItemName('');
@@ -96,8 +95,6 @@ const AddPurchaseScreen = () => {
       setDate(new Date());
     }
   };
-
-  // console.log(regularPrice);
 
   return (
     <View style={styles.container}>

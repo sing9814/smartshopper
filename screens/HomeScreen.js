@@ -1,63 +1,90 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-  ContributionGraph,
-  StackedBarChart,
-} from 'react-native-chart-kit';
+import { View, Text, StyleSheet } from 'react-native';
+
+import { Calendar } from 'react-native-calendars';
+import { useState, useEffect } from 'react';
+import colors from '../utils/colors';
+import BottomOverlay from '../components/overlay';
+import { fetchPurchases } from '../utils/firebase';
 
 const HomeScreen = () => {
-  const data = [
-    {
-      name: 'Apples',
-      population: 2000,
-      color: '#FF6384',
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 15,
-    },
-    {
-      name: 'Bananas',
-      population: 100,
-      color: '#36A2EB',
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 15,
-    },
-    {
-      name: 'Grapes',
-      population: 1000,
-      color: '#FFCE56',
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 15,
-    },
-  ];
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [purchases, setPurchases] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const purchasesArray = await fetchPurchases();
+      setPurchases(purchasesArray);
+      setLoading(false);
+    };
+    fetchData();
+
+    return () => {};
+  }, []);
+
+  const getMarkedDates = () => {
+    if (!loading) {
+      const markedDates = {};
+      if (selectedDate) {
+        markedDates[selectedDate] = {
+          selected: true,
+        };
+      }
+      purchases.forEach((item) => {
+        if (!markedDates[item.datePurchased]) {
+          markedDates[item.datePurchased] = { marked: true };
+        }
+      });
+      return markedDates;
+    }
+  };
 
   return (
-    <View>
+    <View style={styles.container}>
       <Text>Welcome to the Home screen!</Text>
-      <PieChart
-        data={data}
-        width={300}
-        height={220}
-        chartConfig={{
-          backgroundColor: '#1cc910',
-          backgroundGradientFrom: '#eff3ff',
-          backgroundGradientTo: '#efefef',
-          decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
+
+      <Calendar
+        theme={{
+          backgroundColor: '#000',
+          calendarBackground: '#ffffff',
+          textSectionTitleColor: '#b6c1cd',
+          selectedDayBackgroundColor: colors.lightGrey,
+          selectedDayTextColor: '#ffffff',
+          todayTextColor: colors.white,
+          dayTextColor: '#2d4150',
+          textDisabledColor: '#a1a1a1',
+          arrowColor: colors.black,
+          todayBackgroundColor: colors.primary,
+          todayDotColor: colors.white,
+          dotColor: colors.primary,
+          // today: '2024-05-15',
         }}
-        accessor="population"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute
+        style={styles.calendar}
+        onDayPress={(day) => {
+          setSelectedDate(day.dateString);
+        }}
+        markedDates={getMarkedDates()}
+      />
+      <BottomOverlay
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        list={
+          selectedDate ? purchases.filter((product) => product.datePurchased === selectedDate) : []
+        }
       />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  calendar: {
+    marginHorizontal: 12,
+    borderRadius: 10,
+  },
+});
 
 export default HomeScreen;
