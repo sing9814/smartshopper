@@ -5,9 +5,16 @@ import AuthStackNavigator from './navigation/AuthStackNavigator';
 import MainTabNavigator from './navigation/MainTabNavigator';
 import { StatusBar } from 'react-native';
 import colors from './utils/colors';
+import SplashScreen from 'react-native-splash-screen';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (SplashScreen) {
+      SplashScreen.hide();
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged((user) => {
