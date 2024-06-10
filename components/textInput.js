@@ -15,12 +15,15 @@ const CustomInput = ({ label, value, onChangeText, type = 'default' }) => {
 
   const labelStyle = {
     position: 'absolute',
-    left: 16,
+    left: animatedValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16, 12],
+    }),
     top: animatedValue.interpolate({
       inputRange: [0, 1],
-      outputRange: [16, -8],
+      outputRange: [16, -10],
     }),
-    fontSize: 12,
+    fontSize: 13,
     color: colors.primary,
   };
 

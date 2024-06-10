@@ -35,7 +35,7 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list }) => {
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
       <View style={styles.topContainer}>
-        <Text style={styles.title}>{selectedDate}</Text>
+        <Text style={styles.title}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
         <TouchableHighlight
           style={styles.x}
           onPress={() => setSelectedDate(null)}
@@ -44,43 +44,47 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list }) => {
           <Ionicons name={'close'} size={16} color={colors.white} />
         </TouchableHighlight>
       </View>
-      {list.map((item, index) => (
-        <View key={index}>
-          <View style={styles.mapContainer}>
-            <View style={styles.imageContainer}>
-              <Image
-                style={styles.image}
-                source={
-                  item.brand?.image
-                    ? {
-                        uri: item.brand.image,
-                      }
-                    : require('../assets/bag.png')
-                }
-              ></Image>
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={styles.item}>{item.name}</Text>
-                <Text style={styles.date}>• 0 wears</Text>
+      {list.length > 0 ? (
+        list.map((item, index) => (
+          <View key={index}>
+            <View style={styles.mapContainer}>
+              <View style={styles.imageContainer}>
+                <Image
+                  style={styles.image}
+                  source={
+                    item.brand?.image
+                      ? {
+                          uri: item.brand.image,
+                        }
+                      : require('../assets/bag.png')
+                  }
+                ></Image>
               </View>
+              <View style={styles.textContainer}>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.item}>{item.name}</Text>
+                  <Text style={styles.date}>• 0 wears</Text>
+                </View>
 
-              <Text style={styles.description}>
-                {item.description ? item.description : '(no description)'}
-              </Text>
-            </View>
-            <View style={styles.rightContainer}>
-              <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.paidPrice}>${item.paidPrice}</Text>
-                {item.paidPrice !== item.regularPrice && (
-                  <Text style={styles.regularPrice}>${item.regularPrice}</Text>
-                )}
+                <Text style={styles.description}>
+                  {item.description ? item.description : '(no description)'}
+                </Text>
+              </View>
+              <View style={styles.rightContainer}>
+                <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.paidPrice}>${item.paidPrice}</Text>
+                  {item.paidPrice !== item.regularPrice && (
+                    <Text style={styles.regularPrice}>${item.regularPrice}</Text>
+                  )}
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      ))}
+        ))
+      ) : (
+        <Text style={styles.description}>No items purchased today</Text>
+      )}
     </Animated.View>
   );
 };

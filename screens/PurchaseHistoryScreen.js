@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import { brands } from '../assets/json/brands';
+import { View, Text, FlatList, StyleSheet, Image, RefreshControl } from 'react-native';
 import colors from '../utils/colors';
 import BagSVG from '../assets/bags';
 import { fetchPurchases } from '../utils/firebase';
@@ -11,58 +8,23 @@ import { formatDate } from '../utils/date';
 const PurchaseHistoryScreen = () => {
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const getImageColor = async () => {
-    try {
-      const { width, height } = await new Promise((resolve, reject) => {
-        Image.getSize(
-          'path_to_your_image',
-          (width, height) => {
-            resolve({ width, height });
-          },
-          reject
-        );
-      });
-
-      const scaledWidth = width * PixelRatio.get();
-      const scaledHeight = height * PixelRatio.get();
-
-      // Prefetch the image
-      await Image.prefetch('path_to_your_image');
-
-      // Get the first pixel color
-      const pixelData = await new Promise((resolve, reject) => {
-        ImageEditor.cropImage(
-          'path_to_your_image',
-          {
-            offset: { x: 0, y: 0 },
-            size: { width: 1, height: 1 },
-            displaySize: { width: scaledWidth, height: scaledHeight },
-            resizeMode: 'contain',
-          },
-          resolve,
-          reject
-        );
-      });
-
-      const firstPixelColor = pixelData ? pixelData[0] : null;
-      console.log('Color of first pixel:', firstPixelColor);
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  const fetchData = async () => {
+    const purchasesArray = await fetchPurchases();
+    setPurchases(purchasesArray);
+    setLoading(false);
+    setRefreshing(false);
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const purchasesArray = await fetchPurchases();
-      setPurchases(purchasesArray);
-      setLoading(false);
-    };
-
     fetchData();
-
-    return () => {};
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
 
   if (loading) {
     return <Text>Loading...</Text>;
@@ -80,6 +42,7 @@ const PurchaseHistoryScreen = () => {
         data={purchases}
         contentContainerStyle={styles.list}
         ListFooterComponent={renderFooter}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         renderItem={({ item }) => (
           <View style={styles.container}>
             <View style={styles.imageContainer}>
@@ -97,7 +60,9 @@ const PurchaseHistoryScreen = () => {
             <View style={styles.textContainer}>
               <View style={styles.priceContainer}>
                 <Text style={styles.item}>{item.name}</Text>
-                <Text style={styles.date}>• 0 wears</Text>
+                <Text style={styles.date}>
+                  • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
+                </Text>
               </View>
 
               <Text style={styles.description}>
@@ -130,7 +95,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     borderBottomColor: colors.bg,
-    // borderBottomWidth: 3,
     marginBottom: 2,
   },
   item: {
@@ -149,7 +113,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 100,
     overflow: 'hidden',
   },
   image: {

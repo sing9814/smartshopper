@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Animated,
   View,
@@ -7,19 +7,31 @@ import {
   Modal,
   FlatList,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   StyleSheet,
+  Pressable,
 } from 'react-native';
 import colors from '../utils/colors';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
+const CustomDropdown = ({ onSelect, selectedItem, setSelectedItem }) => {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const items = [
+    'Tops',
+    'Bottoms',
+    'One piece',
+    'Outerwear',
+    'Intimates',
+    'Footwear',
+    'Accessories',
+    'Other',
+  ];
 
-  const animatedValue = useState(new Animated.Value(0))[0];
+  const filteredItems = items.filter((item) => item.toLowerCase().includes(search.toLowerCase()));
+
+  const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -36,87 +48,110 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
       inputRange: [0, 1],
       outputRange: [16, -8],
     }),
-    fontSize: 12,
+    fontSize: 13,
     color: colors.primary,
   };
 
-  const renderItem = ({ item }) => (
+  const handleSelect = (item) => {
+    onSelect(item);
+    setSelectedItem(item);
+    setVisible(false);
+  };
+
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity
-      style={styles.item}
-      onPress={() => {
-        onSelect(item.name);
-        setSelectedItem(item);
-        setVisible(false);
-      }}
+      style={[styles.lastItem, index !== filteredItems.length - 1 && styles.item]}
+      onPress={() => handleSelect(item)}
     >
-      <Text style={styles.text}>{item.name}</Text>
+      <Text style={styles.text}>{item}</Text>
     </TouchableOpacity>
   );
 
-  const renderDropdownText = () => {
-    if (selectedItem) {
-      return selectedItem.name;
-    } else {
-      return 'Brand';
-    }
-  };
-
   return (
     <View>
-      <TouchableOpacity style={styles.container} onPress={() => setVisible(true)}>
-        <Text style={styles.text}>{renderDropdownText()}</Text>
-      </TouchableOpacity>
-      <Modal visible={visible} animationType="slide">
-        <View style={styles.modal}>
-          <TextInput
-            style={styles.input}
-            placeholder="Search..."
-            placeholderTextColor={'gray'}
-            value={search}
-            onChangeText={setSearch}
-          />
-          <FlatList
-            data={filteredItems}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.name.toString()}
-          />
-          <TouchableOpacity onPress={() => setVisible(false)}>
-            <Text style={styles.text}>Close</Text>
-          </TouchableOpacity>
-        </View>
+      <Pressable style={styles.container} onPress={() => setVisible(true)}>
+        <Text style={[styles.text, { color: selectedItem ? 'black' : 'gray' }]}>
+          {selectedItem || 'Category'}
+        </Text>
+        <Ionicons
+          style={visible && styles.arrow}
+          name={'caret-down-outline'}
+          size={16}
+          color={colors.black}
+        />
+      </Pressable>
+      <Modal visible={visible} animationType="fade" transparent={true}>
+        <TouchableWithoutFeedback onPress={() => setVisible(false)}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <TextInput
+                style={styles.input}
+                placeholder="Search or add custom"
+                placeholderTextColor={'gray'}
+                value={search}
+                onChangeText={setSearch}
+              />
+              <FlatList
+                data={filteredItems}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.toString()}
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
-      {selectedItem && <Animated.Text style={labelStyle}>Brand</Animated.Text>}
+      {selectedItem && <Animated.Text style={labelStyle}>Category</Animated.Text>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  arrow: {
+    transform: [{ rotate: '180deg' }],
+  },
   text: {
     color: 'gray',
   },
+
   container: {
-    color: colors.black,
     backgroundColor: colors.bg,
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  modal: {
+  modalContainer: {
     flex: 1,
-    marginTop: 50,
-    padding: 20,
+    paddingTop: 150,
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '93%',
+    maxHeight: 300,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+    elevation: 2,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.lightGrey,
     padding: 10,
     marginBottom: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    color: 'black',
+  },
+  lastItem: {
+    padding: 10,
   },
   item: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#eee',
   },
 });
 

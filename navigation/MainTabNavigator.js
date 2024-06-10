@@ -21,7 +21,11 @@ function MainTabNavigator() {
           height: 60,
         },
         headerShown: false,
-
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.lightGrey,
+        tabBarLabelStyle: {
+          display: 'none',
+        },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
 
@@ -38,13 +42,6 @@ function MainTabNavigator() {
           return <Ionicons name={iconName} size={26} color={color} />;
         },
       })}
-      tabBarOptions={{
-        activeTintColor: colors.primary,
-        inactiveTintColor: colors.lightGrey,
-        labelStyle: {
-          display: 'none',
-        },
-      }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Add" component={AddPurchaseScreen} />

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
@@ -13,8 +13,9 @@ import Error from '../components/error';
 
 const AddPurchaseScreen = () => {
   const [itemName, setItemName] = useState('');
-  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState(null);
   const [brand, setBrand] = useState(null);
+  const [note, setNote] = useState(null);
   const [date, setDate] = useState(new Date());
   const formattedDate = date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -22,9 +23,10 @@ const AddPurchaseScreen = () => {
     day: 'numeric',
   });
   const [open, setOpen] = useState(false);
-  const [regularPrice, setRegularPrice] = useState('');
+  const [regularPrice, setRegularPrice] = useState(null);
   const [salePrices, setSalePrices] = useState([]);
-  const [paidPrice, setPaidPrice] = useState(null);
+  const [store, setStore] = useState(null);
+  const [compareAtPrice, setCompareAtPrice] = useState(null);
   const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
 
@@ -44,9 +46,7 @@ const AddPurchaseScreen = () => {
   // ];
 
   const handleSelect = (selectedValue) => {
-    setBrand(selectedValue);
-    console.log('Selected value:', selectedValue);
-    // Add your logic here to handle the selected item
+    setCategory(selectedValue);
   };
 
   const handleAddSalePrice = () => {
@@ -56,14 +56,6 @@ const AddPurchaseScreen = () => {
     setSalePrices([...salePrices, '']);
   };
 
-  useEffect(() => {
-    if (salePrices.length === 0) {
-      setPaidPrice(regularPrice);
-    } else {
-      setPaidPrice(salePrices[salePrices.length - 1]);
-    }
-  }, [salePrices, regularPrice]);
-
   const handleSalePriceChange = (index, value) => {
     const updatedSalePrices = [...salePrices];
     updatedSalePrices[index] = value;
@@ -71,28 +63,35 @@ const AddPurchaseScreen = () => {
   };
 
   const addPurchase = async () => {
-    if (itemName === '' || regularPrice === '') {
+    if (itemName === '' || regularPrice === null || category === null) {
       setShowError(true);
     } else {
       setShowError(false);
       const userRef = firestore().collection('users').doc(auth().currentUser.uid);
       await userRef.collection('Purchases').add({
         name: itemName,
-        description: description,
+        category: category,
+        note: note,
+        wears: 0,
         brand: brand,
         regularPrice: regularPrice,
         salePrices: salePrices,
-        paidPrice: paidPrice,
+        paidPrice: salePrices.length === 0 ? regularPrice : salePrices[salePrices.length - 1],
+        store: store,
+        compareAtPrice: compareAtPrice,
         datePurchased: date.toISOString().split('T')[0],
         dateCreated: firestore.FieldValue.serverTimestamp(),
       });
       setItemName('');
-      setDescription('');
-      setBrand(null);
+      setCategory(null);
+      setNote('');
+      setBrand('');
       setRegularPrice('');
       setSalePrices([]);
-      setPaidPrice(null);
+      setStore('');
+      setCompareAtPrice(null);
       setDate(new Date());
+      setDisabled(false);
     }
   };
 
@@ -101,16 +100,16 @@ const AddPurchaseScreen = () => {
       {showError && <Error title={'Please fill in all missing fields'}></Error>}
 
       <View style={styles.innerContainer}>
-        <CustomInput label="Item name*" value={itemName} onChangeText={setItemName} />
-
-        <CustomInput label="Description" value={description} onChangeText={setDescription} />
+        <CustomInput label="Item name" value={itemName} onChangeText={setItemName} />
 
         <CustomDropdown
           items={brands}
           onSelect={handleSelect}
-          selectedItem={brand}
-          setSelectedItem={setBrand}
+          selectedItem={category}
+          setSelectedItem={setCategory}
         />
+
+        <CustomInput label="Brand (optional)" value={brand} onChangeText={setBrand} />
 
         <CustomButton onPress={() => setOpen(true)} title={formattedDate} icon="calendar" />
         <DatePicker
@@ -129,7 +128,7 @@ const AddPurchaseScreen = () => {
 
         <View style={styles.regPriceContainer}>
           <CustomInput
-            label="Regular price*"
+            label="Regular price"
             value={regularPrice}
             onChangeText={setRegularPrice}
             type="numeric"
@@ -146,8 +145,16 @@ const AddPurchaseScreen = () => {
             type="numeric"
           />
         ))}
+
+        <CustomInput label="Note (optional)" value={note} onChangeText={setNote} />
+        <CustomInput label="Store (optional)" value={store} onChangeText={setStore} />
+        <CustomInput
+          label="Compare at price (optional)"
+          value={compareAtPrice}
+          onChangeText={setCompareAtPrice}
+          type="numeric"
+        />
       </View>
-      {/* <Text>{paidPrice || 0}</Text> */}
       <CustomButton buttonStyle={styles.button} onPress={addPurchase} title="Submit" />
     </View>
   );
@@ -173,6 +180,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     gap: 16,
     marginTop: 12,
+    borderRadius: 10,
   },
   button: {
     position: 'absolute',

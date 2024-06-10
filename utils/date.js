@@ -1,5 +1,7 @@
 export const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
+  const [year, month, day] = date.split('-');
+  const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+  return dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
