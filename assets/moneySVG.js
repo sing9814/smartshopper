@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 const MoneySVG = () => {
@@ -20,13 +19,5 @@ const MoneySVG = () => {
     </Svg>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-});
 
 export default MoneySVG;

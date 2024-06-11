@@ -19,12 +19,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginTop: 12,
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: 15,
     gap: 5,
+    elevation: 1,
+    borderRadius: 10,
   },
   text: {
     color: colors.white,
-    paddingVertical: 15,
+    marginLeft: 3,
+    marginRight: 20,
     fontWeight: '400',
   },
 });
