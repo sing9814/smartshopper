@@ -3,9 +3,9 @@ import { Text, StyleSheet, View } from 'react-native';
 import colors from '../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Error = ({ title }) => {
+const Error = ({ title, margin = true }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, margin && { marginTop: 12 }]}>
       <Ionicons name="alert-circle-outline" size={20} color={colors.white} />
       <Text style={styles.text}>{title}</Text>
     </View>
@@ -17,7 +17,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.error,
     paddingHorizontal: 12,
-    marginTop: 12,
     flexDirection: 'row',
     paddingVertical: 15,
     gap: 5,
@@ -27,7 +26,7 @@ const styles = StyleSheet.create({
   text: {
     color: colors.white,
     marginLeft: 3,
-    marginRight: 20,
+    marginRight: 25,
     fontWeight: '400',
   },
 });

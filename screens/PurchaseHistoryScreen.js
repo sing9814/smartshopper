@@ -38,49 +38,55 @@ const PurchaseHistoryScreen = () => {
 
   return (
     <View>
-      <FlatList
-        data={purchases}
-        contentContainerStyle={styles.list}
-        ListFooterComponent={renderFooter}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        renderItem={({ item }) => (
-          <View style={styles.container}>
-            <View style={styles.imageContainer}>
-              <Image
-                style={styles.image}
-                source={
-                  item.brand?.image
-                    ? {
-                        uri: item.brand.image,
-                      }
-                    : require('../assets/bag.png')
-                }
-              ></Image>
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={styles.item}>{item.name}</Text>
-                <Text style={styles.date}>
-                  • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
+      {purchases.length > 0 ? (
+        <FlatList
+          data={purchases}
+          contentContainerStyle={styles.list}
+          ListFooterComponent={renderFooter}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          renderItem={({ item }) => (
+            <View style={styles.container}>
+              <View style={styles.imageContainer}>
+                <Image
+                  style={styles.image}
+                  source={
+                    item.brand?.image
+                      ? {
+                          uri: item.brand.image,
+                        }
+                      : require('../assets/bag.png')
+                  }
+                ></Image>
+              </View>
+              <View style={styles.textContainer}>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.item}>{item.name}</Text>
+                  <Text style={styles.date}>
+                    • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
+                  </Text>
+                </View>
+
+                <Text style={styles.description}>
+                  {item.description ? item.description : '(no description)'}
                 </Text>
               </View>
-
-              <Text style={styles.description}>
-                {item.description ? item.description : '(no description)'}
-              </Text>
-            </View>
-            <View style={styles.rightContainer}>
-              <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.paidPrice}>${item.paidPrice}</Text>
-                {item.paidPrice !== item.regularPrice && (
-                  <Text style={styles.regularPrice}>${item.regularPrice}</Text>
-                )}
+              <View style={styles.rightContainer}>
+                <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.paidPrice}>${item.paidPrice}</Text>
+                  {item.paidPrice !== item.regularPrice && (
+                    <Text style={styles.regularPrice}>${item.regularPrice}</Text>
+                  )}
+                </View>
               </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
+      ) : (
+        <View style={{ padding: 8, alignItems: 'center' }}>
+          <Text style={styles.description}>No data to show</Text>
+        </View>
+      )}
     </View>
   );
 };

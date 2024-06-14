@@ -6,21 +6,51 @@ import CustomInput from '../components/textInput';
 import Error from '../components/error';
 import Logo from '../assets/logo';
 import colors from '../utils/colors';
+import firestore from '@react-native-firebase/firestore';
 
 const LoginScreen = ({ navigation }) => {
+  const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const resetStates = () => {
+    setEmail('');
+    setName('');
+    setPassword('');
+    setErrorMessage(null);
+  };
+
   const handleLogin = async () => {
-    try {
-      if (!email || !password) {
-        setErrorMessage('Email or password is empty');
-      } else {
-        await auth().signInWithEmailAndPassword(email, password);
+    if (isSignUp) {
+      try {
+        if (!email || !name || !password) {
+          setErrorMessage('Please fill in all fields');
+        } else {
+          const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+          const user = userCredential.user;
+          console.log(email, name);
+          await firestore().collection('users').doc(user.uid).set({
+            email: email,
+            name: name,
+            registrationDate: firestore.FieldValue.serverTimestamp(),
+          });
+          console.log('sucees');
+        }
+      } catch (error) {
+        setErrorMessage(error.message);
       }
-    } catch (error) {
-      setErrorMessage(error.message);
+    } else {
+      try {
+        if (!email || !password) {
+          setErrorMessage('Email or password is empty');
+        } else {
+          await auth().signInWithEmailAndPassword(email, password);
+        }
+      } catch (error) {
+        setErrorMessage(error.message);
+      }
     }
   };
 
@@ -31,19 +61,28 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.innerContainer}>
-        {errorMessage && <Error title={errorMessage}></Error>}
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Enter your details below</Text>
+        <View style={[styles.textContainer, errorMessage == null && { marginBottom: 16 }]}>
+          <Text style={styles.title}>{isSignUp ? 'Create an account' : 'Welcome back'}</Text>
+          <Text style={styles.subtitle}>
+            {isSignUp ? 'To start tracking your spending!' : 'Enter your details below'}
+          </Text>
         </View>
+        {errorMessage && <Error title={errorMessage} margin={false}></Error>}
 
         <CustomInput label="Email" value={email} onChangeText={setEmail} />
-        <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
-        <CustomButton onPress={handleLogin} title={'Sign in'} />
+        {isSignUp && <CustomInput label="Name" value={name} onChangeText={setName} />}
 
-        <Pressable style={styles.linkContainer} onPress={() => navigation.navigate('SignUp')}>
-          <Text style={styles.bottomText}>Don't have an account?</Text>
-          <Text style={styles.link}>Create one!</Text>
+        <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
+        <CustomButton onPress={handleLogin} title={isSignUp ? 'Register' : 'Sign in'} />
+
+        <Pressable
+          style={styles.linkContainer}
+          onPress={() => [setIsSignUp(!isSignUp), resetStates()]}
+        >
+          <Text style={styles.bottomText}>
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+          </Text>
+          <Text style={styles.link}>{isSignUp ? 'Sign in' : 'Create one!'}</Text>
         </Pressable>
       </View>
     </View>
@@ -61,8 +100,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     backgroundColor: colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 36,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     gap: 16,
@@ -75,7 +114,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     gap: 5,
-    marginBottom: 16,
+    // marginBottom: 16,
   },
   title: {
     color: colors.black,

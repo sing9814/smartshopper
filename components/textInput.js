@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Animated, TextInput, View, StyleSheet } from 'react-native';
 import colors from '../utils/colors';
 
-const CustomInput = ({ label, value, onChangeText, type = 'default' }) => {
+const CustomInput = ({ label, value, onChangeText, secureTextEntry, type = 'default' }) => {
   const animatedValue = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -37,6 +37,7 @@ const CustomInput = ({ label, value, onChangeText, type = 'default' }) => {
         placeholderTextColor="gray"
         keyboardType={type}
         maxLength={type === 'numeric' ? 8 : 40}
+        secureTextEntry={secureTextEntry}
       />
       {value && <Animated.Text style={labelStyle}>{label}</Animated.Text>}
     </View>

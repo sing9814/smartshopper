@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
@@ -6,17 +6,30 @@ import colors from '../utils/colors';
 import WomanSVG from '../assets/womanSVG';
 import PigSVG from '../assets/pigSVG';
 import MoneySVG from '../assets/moneySVG';
+import { fetchAccountDetails } from '../utils/firebase';
 
 const ProfileScreen = () => {
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const handleSignOut = async () => {
     auth().signOut();
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const accountDetails = await fetchAccountDetails();
+      setUserDetails(accountDetails);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.topbar}>
-        <Text style={styles.name}>Rita</Text>
-        <Text style={styles.email}>{auth().currentUser.email}</Text>
+        <Text style={styles.name}>{!loading && userDetails.name}</Text>
+        <Text style={styles.email}>{!loading && userDetails.email}</Text>
       </View>
       <View style={styles.innerContainer}>
         <View style={styles.cardContainer}>
@@ -63,7 +76,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     width: '100%',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     flex: 1,
   },
   button: {
