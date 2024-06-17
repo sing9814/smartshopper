@@ -1,20 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Image,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import colors from '../utils/colors';
-import BagSVG from '../assets/bags';
-import { fetchPurchases } from '../utils/firebase';
+import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
 import { formatDate } from '../utils/date';
+import ConfirmationPopup from '../components/confirmationPopup';
 
 const PurchaseHistoryScreen = () => {
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState(false);
 
   const fetchData = async () => {
     const purchasesArray = await fetchPurchases();
     setPurchases(purchasesArray);
     setLoading(false);
     setRefreshing(false);
+  };
+
+  const showPopup = (item) => {
+    setPopupMessage(`Wear added to ${item}!`);
+    setPopupVisible(true);
+    setTimeout(() => {
+      setPopupVisible(false);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -24,6 +42,19 @@ const PurchaseHistoryScreen = () => {
   const onRefresh = () => {
     setRefreshing(true);
     fetchData();
+  };
+
+  const incrementWears = async (item) => {
+    const newWears = (item.wears || 0) + 1;
+
+    const updatedPurchases = purchases.map((purchase) =>
+      purchase.key === item.key ? { ...purchase, wears: newWears } : purchase
+    );
+
+    setPurchases(updatedPurchases);
+
+    await updatePurchaseWears(item.key, newWears);
+    showPopup(item.name);
   };
 
   if (loading) {
@@ -38,6 +69,7 @@ const PurchaseHistoryScreen = () => {
 
   return (
     <View>
+      <ConfirmationPopup visible={popupVisible} message={popupMessage} />
       {purchases.length > 0 ? (
         <FlatList
           data={purchases}
@@ -45,7 +77,7 @@ const PurchaseHistoryScreen = () => {
           ListFooterComponent={renderFooter}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           renderItem={({ item }) => (
-            <View style={styles.container}>
+            <TouchableOpacity onLongPress={() => incrementWears(item)} style={styles.container}>
               <View style={styles.imageContainer}>
                 <Image
                   style={styles.image}
@@ -56,7 +88,7 @@ const PurchaseHistoryScreen = () => {
                         }
                       : require('../assets/bag.png')
                   }
-                ></Image>
+                />
               </View>
               <View style={styles.textContainer}>
                 <View style={styles.priceContainer}>
@@ -65,7 +97,6 @@ const PurchaseHistoryScreen = () => {
                     • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
                   </Text>
                 </View>
-
                 <Text style={styles.description}>
                   {item.description ? item.description : '(no description)'}
                 </Text>
@@ -79,7 +110,7 @@ const PurchaseHistoryScreen = () => {
                   )}
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       ) : (
@@ -149,7 +180,7 @@ const styles = StyleSheet.create({
   paidPrice: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#42c229',
+    color: colors.green,
     marginRight: 2,
   },
   regularPrice: {

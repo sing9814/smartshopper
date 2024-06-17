@@ -47,3 +47,22 @@ export const fetchUserDataAndPurchases = async () => {
 
   return { userData, purchaseData };
 };
+
+export const updatePurchaseWears = async (purchaseId, newWears) => {
+  const user = auth().currentUser;
+  if (user) {
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('Purchases')
+        .doc(purchaseId)
+        .update({
+          wears: newWears,
+        });
+      console.log('Wears updated successfully');
+    } catch (error) {
+      console.error('Error updating wears:', error);
+    }
+  }
+};
