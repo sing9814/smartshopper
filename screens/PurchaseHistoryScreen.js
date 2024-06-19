@@ -100,16 +100,14 @@ const PurchaseHistoryScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, elevation: 1 }}>
-        {popups.map((popup, index) => (
-          <ConfirmationPopup
-            style={{ top: index * 56 }}
-            key={popup.id}
-            message={popup.message}
-            index={index}
-          />
-        ))}
-      </View>
+      {popups.map((popup, index) => (
+        <ConfirmationPopup
+          style={{ top: index * 56 }}
+          key={popup.id}
+          message={popup.message}
+          index={index}
+        />
+      ))}
       {purchases.length > 0 ? (
         <FlatList
           data={purchases}

@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     flexDirection: 'row',
     marginTop: 10,
+    zIndex: 1000,
   },
   message: {
     color: 'white',

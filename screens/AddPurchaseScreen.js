@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -10,6 +10,7 @@ import CustomInput from '../components/textInput';
 import CustomDropdown from '../components/dropdown';
 import { brands } from '../assets/json/brands';
 import Error from '../components/error';
+import ConfirmationPopup from '../components/confirmationPopup';
 
 const AddPurchaseScreen = () => {
   const [itemName, setItemName] = useState('');
@@ -27,8 +28,9 @@ const AddPurchaseScreen = () => {
   const [salePrices, setSalePrices] = useState([]);
   const [store, setStore] = useState(null);
   const [compareAtPrice, setCompareAtPrice] = useState(null);
-  const [showError, setShowError] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // const brands = [
   //   {
@@ -44,6 +46,15 @@ const AddPurchaseScreen = () => {
   //       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvOqr1CSBSGnG_GyX9Kk6fXdIhz52ubsSTzR_QvmZmUBz4WSRGK8FQxxFNtw&s',
   //   },
   // ];
+
+  useEffect(() => {
+    if (showConfirmation) {
+      const timer = setTimeout(() => {
+        setShowConfirmation(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfirmation]);
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
@@ -92,12 +103,14 @@ const AddPurchaseScreen = () => {
       setCompareAtPrice(null);
       setDate(new Date());
       setDisabled(false);
+      setShowConfirmation(true);
     }
   };
 
   return (
     <View style={styles.container}>
       {showError && <Error title={'Please fill in all missing fields'}></Error>}
+      {showConfirmation && <ConfirmationPopup message="Purchase added sucessfully!" />}
 
       <View style={styles.innerContainer}>
         <CustomInput label="Item name" value={itemName} onChangeText={setItemName} />
