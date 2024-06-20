@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import colors from '../utils/colors';
 import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
-import { formatDate } from '../utils/date';
+import { formatDateShort } from '../utils/date';
 import ConfirmationPopup from '../components/confirmationPopup';
 
-const PurchaseHistoryScreen = () => {
+const PurchaseHistoryScreen = ({ navigation }) => {
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -99,7 +99,11 @@ const PurchaseHistoryScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
+      <View style={styles.topbar}>
+        <Text style={styles.topbarTitle}>History</Text>
+        {/* <Text style={styles.email}>w</Text> */}
+      </View>
       {popups.map((popup, index) => (
         <ConfirmationPopup
           style={{ top: index * 56 }}
@@ -115,7 +119,11 @@ const PurchaseHistoryScreen = () => {
           ListFooterComponent={renderFooter}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           renderItem={({ item }) => (
-            <TouchableOpacity onLongPress={() => incrementWears(item)} style={styles.container}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Details', { purchase: item })}
+              onLongPress={() => incrementWears(item)}
+              style={styles.listContainer}
+            >
               <View style={styles.imageContainer}>
                 <Image
                   style={styles.image}
@@ -136,11 +144,11 @@ const PurchaseHistoryScreen = () => {
                   </Text>
                 </View>
                 <Text style={styles.description}>
-                  {item.description ? item.description : '(no description)'}
+                  {item.description ? item.description : '(no note)'}
                 </Text>
               </View>
               <View style={styles.rightContainer}>
-                <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
+                <Text style={styles.date}>{formatDateShort(item.datePurchased)}</Text>
                 <View style={styles.priceContainer}>
                   <Text style={styles.paidPrice}>${item.paidPrice}</Text>
                   {item.paidPrice !== item.regularPrice && (
@@ -161,16 +169,37 @@ const PurchaseHistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  topbar: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    gap: 6,
+    paddingTop: 15,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    // borderBottomLeftRadius: 16,
+    // borderBottomRightRadius: 16,
+    marginBottom: 6,
+  },
+  topbarTitle: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: colors.white,
+  },
   list: {
     paddingBottom: 65,
     flexGrow: 0,
+    marginHorizontal: 4,
   },
   container: {
+    flex: 1,
+  },
+  listContainer: {
     backgroundColor: 'white',
     flexDirection: 'row',
     padding: 10,
     borderBottomColor: colors.bg,
     marginBottom: 2,
+    borderRadius: 10,
   },
   item: {
     color: colors.black,

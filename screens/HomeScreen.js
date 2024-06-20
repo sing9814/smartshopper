@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
 import { Calendar } from 'react-native-calendars';
 import { useState, useEffect } from 'react';
 import colors from '../utils/colors';
@@ -42,7 +41,10 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Welcome to the Home screen!</Text>
+      <View style={styles.topbar}>
+        <Text style={styles.name}>Welcome Rita!</Text>
+        {/* <Text style={styles.email}>w</Text> */}
+      </View>
 
       <Calendar
         theme={{
@@ -78,6 +80,24 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  topbar: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    gap: 6,
+    paddingTop: 15,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: colors.white,
+  },
+  email: {
+    color: colors.white,
+  },
   container: {
     flex: 1,
   },

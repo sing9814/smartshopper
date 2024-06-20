@@ -3,10 +3,16 @@ import { TouchableHighlight, Text, StyleSheet, View } from 'react-native';
 import colors from '../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const CustomButton = ({ onPress, title, buttonStyle, icon = null }) => {
+const CustomButton = ({
+  onPress,
+  title,
+  buttonStyle,
+  underlayColor = colors.primaryDark,
+  icon = null,
+}) => {
   return (
     <TouchableHighlight
-      underlayColor={colors.primaryDark}
+      underlayColor={underlayColor}
       onPress={onPress}
       style={[styles.button, buttonStyle]}
     >

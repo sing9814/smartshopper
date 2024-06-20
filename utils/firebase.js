@@ -66,3 +66,21 @@ export const updatePurchaseWears = async (purchaseId, newWears) => {
     }
   }
 };
+
+export const deletePurchase = async (purchaseId) => {
+  const user = auth().currentUser;
+  if (user) {
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('Purchases')
+        .doc(purchaseId)
+        .delete();
+
+      console.log('Purchase deleted successfully');
+    } catch (error) {
+      console.error('Error deleting purchase:', error);
+    }
+  }
+};

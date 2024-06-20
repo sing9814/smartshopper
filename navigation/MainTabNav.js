@@ -9,7 +9,7 @@ import { StyleSheet } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
-function MainTabNavigator() {
+function MainTabNav() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -51,4 +51,4 @@ function MainTabNavigator() {
   );
 }
 
-export default MainTabNavigator;
+export default MainTabNav;

@@ -4,7 +4,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 
 const AuthStack = createNativeStackNavigator();
 
-function AuthStackNavigator() {
+function AuthStackNav() {
   return (
     <AuthStack.Navigator
       screenOptions={() => ({
@@ -17,4 +17,4 @@ function AuthStackNavigator() {
   );
 }
 
-export default AuthStackNavigator;
+export default AuthStackNav;

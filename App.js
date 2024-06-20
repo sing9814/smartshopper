@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
-import AuthStackNavigator from './navigation/AuthStackNavigator';
-import MainTabNavigator from './navigation/MainTabNavigator';
+import AuthStackNav from './navigation/AuthStackNav';
 import { StatusBar } from 'react-native';
 import colors from './utils/colors';
 import SplashScreen from 'react-native-splash-screen';
+import MainStackNav from './navigation/MainStackNav';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,7 +27,7 @@ function App() {
   return (
     <NavigationContainer>
       <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-      {isAuthenticated ? <MainTabNavigator /> : <AuthStackNavigator />}
+      {isAuthenticated ? <MainStackNav /> : <AuthStackNav />}
     </NavigationContainer>
   );
 }
