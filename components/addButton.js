@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableHighlight, Text, StyleSheet } from 'react-native';
+import { TouchableHighlight, StyleSheet } from 'react-native';
 import colors from '../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -18,10 +18,8 @@ const AddButton = ({ onPress, size, disabled = false }) => {
 
 const styles = StyleSheet.create({
   button: {
-    // width: '100%',
-    height: 50,
-    width: 50,
-    padding: 12,
+    height: 40,
+    width: 40,
     borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',

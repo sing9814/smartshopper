@@ -2,7 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Animated, TextInput, View, StyleSheet } from 'react-native';
 import colors from '../utils/colors';
 
-const CustomInput = ({ label, value, onChangeText, secureTextEntry, type = 'default' }) => {
+const CustomInput = ({
+  label,
+  value,
+  onChangeText,
+  secureTextEntry,
+  type = 'default',
+  multiline,
+  component,
+}) => {
   const animatedValue = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -29,45 +37,38 @@ const CustomInput = ({ label, value, onChangeText, secureTextEntry, type = 'defa
 
   return (
     <View>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={label}
-        placeholderTextColor="gray"
-        keyboardType={type}
-        maxLength={type === 'numeric' ? 8 : 40}
-        secureTextEntry={secureTextEntry}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={label}
+          placeholderTextColor="gray"
+          keyboardType={type}
+          maxLength={type === 'numeric' ? 8 : 40}
+          secureTextEntry={secureTextEntry}
+          multiline={multiline}
+        />
+        {component}
+      </View>
+
       {value && <Animated.Text style={labelStyle}>{label}</Animated.Text>}
     </View>
   );
 };
-{
-  /* <TextInput
-        editable
-        multiline
-        numberOfLines={4}
-        maxLength={40}
-        onChangeText={text => onChangeText(text)}
-        value={value}
-        style={{padding: 10}}
-      /> */
-}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-
-  input: {
-    color: colors.black,
+  inputContainer: {
     backgroundColor: colors.bg,
     borderRadius: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  input: {
+    color: colors.black,
+    flex: 1,
   },
 });
 

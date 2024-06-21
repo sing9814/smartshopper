@@ -1,14 +1,13 @@
 import React from 'react';
 import { TouchableHighlight, Text, StyleSheet, View } from 'react-native';
 import colors from '../utils/colors';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CustomButton = ({
   onPress,
   title,
   buttonStyle,
   underlayColor = colors.primaryDark,
-  icon = null,
+  icon,
 }) => {
   return (
     <TouchableHighlight
@@ -17,7 +16,7 @@ const CustomButton = ({
       style={[styles.button, buttonStyle]}
     >
       <View style={styles.innerContainer}>
-        {icon ? <Ionicons name={icon} size={20} color={colors.white} /> : null}
+        {icon}
         <Text style={styles.text}>{title}</Text>
       </View>
     </TouchableHighlight>
