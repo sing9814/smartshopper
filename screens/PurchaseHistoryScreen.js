@@ -150,10 +150,10 @@ const PurchaseHistoryScreen = ({ navigation }) => {
               <View style={styles.rightContainer}>
                 <Text style={styles.date}>{formatDateShort(item.datePurchased)}</Text>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.paidPrice}>${item.paidPrice}</Text>
-                  {item.paidPrice !== item.regularPrice && (
-                    <Text style={styles.regularPrice}>${item.regularPrice}</Text>
-                  )}
+                  <Text style={styles.paidPrice}>
+                    ${item.paidPrice ? item.paidPrice : item.regularPrice}
+                  </Text>
+                  {item.paidPrice && <Text style={styles.regularPrice}>${item.regularPrice}</Text>}
                 </View>
               </View>
             </TouchableOpacity>
@@ -176,8 +176,6 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    // borderBottomLeftRadius: 16,
-    // borderBottomRightRadius: 16,
     marginBottom: 6,
   },
   topbarTitle: {

@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginLeft: 3,
     marginRight: 25,
-    fontWeight: '400',
+    lineHeight: 22,
   },
 });
 

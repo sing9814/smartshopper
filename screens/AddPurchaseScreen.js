@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, TouchableWithoutFeedback, Text } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
@@ -16,7 +16,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const AddPurchaseScreen = () => {
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
-  const [note, setNote] = useState(null);
   const [date, setDate] = useState(new Date());
   const formattedDate = date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -26,8 +25,9 @@ const AddPurchaseScreen = () => {
   const [open, setOpen] = useState(false);
   const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
+  const [note, setNote] = useState(null);
   const [disabled, setDisabled] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
@@ -48,11 +48,28 @@ const AddPurchaseScreen = () => {
     setPaidPrice('');
   };
 
+  const validatePrice = (price) => {
+    const regex = /^\d+(\.\d{1,2})?$/;
+    return regex.test(price);
+  };
+
+  const validateFields = () => {
+    setErrorMessage(null);
+    if (itemName === '' || regularPrice === null || category === null) {
+      return setErrorMessage('Please fill in all missing fields');
+    }
+    if (!validatePrice(regularPrice) || (paidPrice && !validatePrice(paidPrice))) {
+      return setErrorMessage('Prices must be a valid number with up to 2 decimal places');
+    }
+    if (paidPrice && paidPrice >= regularPrice) {
+      return setErrorMessage('Sale price must be less than regular price');
+    }
+    setErrorMessage(null);
+    return true;
+  };
+
   const addPurchase = async () => {
-    if (itemName === '' || paidPrice === null || category === null) {
-      setShowError(true);
-    } else {
-      setShowError(false);
+    if (validateFields()) {
       const userRef = firestore().collection('users').doc(auth().currentUser.uid);
       await userRef.collection('Purchases').add({
         name: itemName,
@@ -75,69 +92,90 @@ const AddPurchaseScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {showError && <Error title={'Please fill in all missing fields'}></Error>}
+    <View style={{ flex: 1 }}>
+      <View style={styles.topbar}>
+        <Text style={styles.topbarTitle}>Add Purchase</Text>
+      </View>
       {showConfirmation && <ConfirmationPopup message="Purchase added sucessfully!" />}
+      <View style={styles.container}>
+        {errorMessage && <Error title={errorMessage} style={{ marginTop: 12 }}></Error>}
 
-      <View style={styles.innerContainer}>
-        <CustomInput label="Item name" value={itemName} onChangeText={setItemName} />
+        <View style={styles.innerContainer}>
+          <CustomInput label="Item name" value={itemName} onChangeText={setItemName} />
 
-        <CustomDropdown
-          items={brands}
-          onSelect={handleSelect}
-          selectedItem={category}
-          setSelectedItem={setCategory}
-        />
+          <CustomDropdown
+            items={brands}
+            onSelect={handleSelect}
+            selectedItem={category}
+            setSelectedItem={setCategory}
+          />
 
-        <CustomButton
-          onPress={() => setOpen(true)}
-          title={formattedDate}
-          icon={<Ionicons name={'calendar'} size={20} color={colors.white} />}
-        />
-        <DatePicker
-          modal
-          open={open}
-          date={date}
-          onConfirm={(date) => {
-            setOpen(false);
-            setDate(date);
-          }}
-          onCancel={() => {
-            setOpen(false);
-          }}
-          mode={'date'}
-        />
+          <CustomButton
+            onPress={() => setOpen(true)}
+            title={formattedDate}
+            icon={<Ionicons name={'calendar'} size={20} color={colors.white} />}
+          />
+          <DatePicker
+            modal
+            open={open}
+            date={date}
+            onConfirm={(date) => {
+              setOpen(false);
+              setDate(date);
+            }}
+            onCancel={() => {
+              setOpen(false);
+            }}
+            mode={'date'}
+          />
 
-        <CustomInput
-          label="Regular price"
-          value={regularPrice}
-          onChangeText={setRegularPrice}
-          type="numeric"
-          component={<AddButton onPress={() => setDisabled(true)} size={20} disabled={disabled} />}
-        />
-
-        {disabled && (
           <CustomInput
-            label={`Sale price`}
-            value={paidPrice}
-            onChangeText={setPaidPrice}
+            label="Regular price"
+            value={regularPrice}
+            onChangeText={setRegularPrice}
             type="numeric"
             component={
-              <TouchableWithoutFeedback onPress={removeSalePrice}>
-                <Ionicons style={styles.icon} name={'remove-outline'} size={16} color={'gray'} />
-              </TouchableWithoutFeedback>
+              <AddButton onPress={() => setDisabled(true)} size={20} disabled={disabled} />
             }
           />
-        )}
 
-        <CustomInput label="Note (optional)" value={note} onChangeText={setNote} multiline />
+          {disabled && (
+            <CustomInput
+              label={`Sale price`}
+              value={paidPrice}
+              onChangeText={setPaidPrice}
+              type="numeric"
+              component={
+                <TouchableWithoutFeedback onPress={removeSalePrice}>
+                  <Ionicons style={styles.icon} name={'remove-outline'} size={16} color={'gray'} />
+                </TouchableWithoutFeedback>
+              }
+            />
+          )}
+
+          <CustomInput label="Note (optional)" value={note} onChangeText={setNote} multiline />
+        </View>
+        <CustomButton buttonStyle={styles.button} onPress={addPurchase} title="Submit" />
       </View>
-      <CustomButton buttonStyle={styles.button} onPress={addPurchase} title="Submit" />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  topbar: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    gap: 6,
+    paddingTop: 15,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    marginBottom: 6,
+  },
+  topbarTitle: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: colors.white,
+  },
   container: {
     flex: 1,
     alignItems: 'center',

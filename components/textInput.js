@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Animated, TextInput, View, StyleSheet } from 'react-native';
+import { Animated, TextInput, View, StyleSheet, ScrollView } from 'react-native';
 import colors from '../utils/colors';
 
 const CustomInput = ({
@@ -35,20 +35,31 @@ const CustomInput = ({
     color: colors.primary,
   };
 
+  const length = () => {
+    if (type === 'numeric') {
+      return 8;
+    } else if (multiline) {
+      return 200;
+    }
+    return 40;
+  };
+
   return (
     <View>
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={label}
-          placeholderTextColor="gray"
-          keyboardType={type}
-          maxLength={type === 'numeric' ? 8 : 40}
-          secureTextEntry={secureTextEntry}
-          multiline={multiline}
-        />
+        <ScrollView>
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={label}
+            placeholderTextColor="gray"
+            keyboardType={type}
+            maxLength={length()}
+            secureTextEntry={secureTextEntry}
+            multiline={multiline}
+          />
+        </ScrollView>
         {component}
       </View>
 
@@ -68,7 +79,8 @@ const styles = StyleSheet.create({
   },
   input: {
     color: colors.black,
-    flex: 1,
+    maxHeight: 200,
+    lineHeight: 26,
   },
 });
 
