@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Animated,
   View,
@@ -14,22 +14,17 @@ import {
 import colors from '../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const CustomDropdown = ({ onSelect, selectedItem, setSelectedItem }) => {
+const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
 
-  const items = [
-    'Tops',
-    'Bottoms',
-    'One piece',
-    'Outerwear',
-    'Intimates',
-    'Footwear',
-    'Accessories',
-    'Other',
-  ];
+  const flatItems = items.flatMap((brand) => [brand.name, ...brand.details]);
 
-  const filteredItems = items.filter((item) => item.toLowerCase().includes(search.toLowerCase()));
+  const categoryNames = new Set(items.map((brand) => brand.name));
+
+  const filteredItems = flatItems.filter((item) =>
+    item.toLowerCase().includes(search.toLowerCase())
+  );
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -58,14 +53,18 @@ const CustomDropdown = ({ onSelect, selectedItem, setSelectedItem }) => {
     setVisible(false);
   };
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = useCallback(({ item, index }) => (
     <TouchableOpacity
-      style={[styles.lastItem, index !== filteredItems.length - 1 && styles.item]}
+      style={[
+        styles.lastItem,
+        index !== filteredItems.length - 1 && styles.item,
+        !categoryNames.has(item) && styles.detailItem,
+      ]}
       onPress={() => handleSelect(item)}
     >
       <Text style={styles.text}>{item}</Text>
     </TouchableOpacity>
-  );
+  ));
 
   return (
     <View>
@@ -94,7 +93,7 @@ const CustomDropdown = ({ onSelect, selectedItem, setSelectedItem }) => {
               <FlatList
                 data={filteredItems}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.toString()}
+                keyExtractor={(item, index) => `${item}-${index}`}
               />
             </View>
           </View>
@@ -152,6 +151,9 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  detailItem: {
+    paddingLeft: 20,
   },
 });
 

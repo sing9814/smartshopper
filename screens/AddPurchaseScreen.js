@@ -8,7 +8,7 @@ import colors from '../utils/colors';
 import AddButton from '../components/addButton';
 import CustomInput from '../components/textInput';
 import CustomDropdown from '../components/dropdown';
-import { brands } from '../assets/json/brands';
+import { categories } from '../assets/json/categories';
 import Error from '../components/error';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -104,7 +104,7 @@ const AddPurchaseScreen = () => {
           <CustomInput label="Item name" value={itemName} onChangeText={setItemName} />
 
           <CustomDropdown
-            items={brands}
+            items={categories}
             onSelect={handleSelect}
             selectedItem={category}
             setSelectedItem={setCategory}
