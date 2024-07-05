@@ -12,6 +12,7 @@ import { categories } from '../assets/json/categories';
 import Error from '../components/error';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Header from '../components/header';
 
 const AddPurchaseScreen = () => {
   const [itemName, setItemName] = useState('');
@@ -55,7 +56,7 @@ const AddPurchaseScreen = () => {
 
   const validateFields = () => {
     setErrorMessage(null);
-    if (itemName === '' || regularPrice === null || category === null) {
+    if (itemName === '' || regularPrice === null || category?.category === null) {
       return setErrorMessage('Please fill in all missing fields');
     }
     if (!validatePrice(regularPrice) || (paidPrice && !validatePrice(paidPrice))) {
@@ -70,32 +71,35 @@ const AddPurchaseScreen = () => {
 
   const addPurchase = async () => {
     if (validateFields()) {
-      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-      await userRef.collection('Purchases').add({
-        name: itemName,
-        category: category,
-        note: note,
-        wears: 0,
-        regularPrice: regularPrice,
-        paidPrice: paidPrice,
-        datePurchased: date.toISOString().split('T')[0],
-        dateCreated: firestore.FieldValue.serverTimestamp(),
-      });
-      setItemName('');
-      setCategory(null);
-      setNote('');
-      setRegularPrice('');
-      setPaidPrice();
-      setDate(new Date());
-      setShowConfirmation(true);
+      try {
+        const userRef = firestore().collection('users').doc(auth().currentUser.uid);
+        await userRef.collection('Purchases').add({
+          name: itemName,
+          category: category,
+          note: note,
+          wears: 0,
+          regularPrice: regularPrice,
+          paidPrice: paidPrice,
+          datePurchased: date.toISOString().split('T')[0],
+          dateCreated: firestore.FieldValue.serverTimestamp(),
+        });
+        setItemName('');
+        setCategory(null);
+        setNote('');
+        setRegularPrice('');
+        setPaidPrice(null);
+        setDate(new Date());
+        setShowConfirmation(true);
+      } catch (error) {
+        console.error('Error adding purchase: ', error);
+        setErrorMessage('An error occurred while adding the purchase. Please try again.');
+      }
     }
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.topbar}>
-        <Text style={styles.topbarTitle}>Add Purchase</Text>
-      </View>
+      <Header title={'Add Purchase'}></Header>
       {showConfirmation && <ConfirmationPopup message="Purchase added sucessfully!" />}
       <View style={styles.container}>
         {errorMessage && <Error title={errorMessage} style={{ marginTop: 12 }}></Error>}
@@ -162,20 +166,6 @@ const AddPurchaseScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 15,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    marginBottom: 6,
-  },
-  topbarTitle: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: colors.white,
-  },
   container: {
     flex: 1,
     alignItems: 'center',

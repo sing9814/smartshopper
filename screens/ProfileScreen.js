@@ -7,6 +7,7 @@ import WomanSVG from '../assets/womanSVG';
 import PigSVG from '../assets/pigSVG';
 import MoneySVG from '../assets/moneySVG';
 import { fetchAccountDetails } from '../utils/firebase';
+import Header from '../components/header';
 
 const ProfileScreen = () => {
   const [userDetails, setUserDetails] = useState(null);
@@ -27,10 +28,12 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topbar}>
-        <Text style={styles.name}>{!loading && userDetails.name}</Text>
-        <Text style={styles.email}>{!loading && userDetails.email}</Text>
-      </View>
+      <Header
+        title={!loading && userDetails.name}
+        subtitle={!loading && userDetails.email}
+        rounded
+        padding
+      ></Header>
       <View style={styles.innerContainer}>
         <View style={styles.cardContainer}>
           <View style={styles.card}>
@@ -57,24 +60,6 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     alignItems: 'center',
-  },
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 25,
-    paddingBottom: 30,
-    paddingHorizontal: 30,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: colors.white,
-  },
-  email: {
-    color: colors.white,
   },
   innerContainer: {
     width: '100%',

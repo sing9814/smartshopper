@@ -9,6 +9,33 @@ const colors = {
   bg: '#F6F6F6',
   error: '#bd413d',
   green: '#42c229',
+
+  // Tops: '#007BFF',
+  // Bottoms: '#28A745',
+  // One: '#6F42C1',
+  // Outerwear: '#DC3545',
+  // Intimates: '#E83E8C',
+  // Footwear: '#FD7E14',
+  // Accessories: '#20C997',
+  // Other: '#6C757D',
+
+  // Tops: '#66A3FF',
+  // Bottoms: '#66D285',
+  // One: '#9973D9',
+  // Outerwear: '#E98085',
+  // Intimates: '#F099B4',
+  // Footwear: '#FEB380',
+  // Accessories: '#80E3C1',
+  // Other: '#A6B1B5',
+
+  Tops: '#3399FF',
+  Bottoms: '#4CCB6B',
+  One: '#8A5ECD',
+  Outerwear: '#E2616B',
+  Intimates: '#ED6B9F',
+  Footwear: '#FFA348',
+  Accessories: '#4ED8A8',
+  Other: '#8A9399',
 };
 
 export default colors;

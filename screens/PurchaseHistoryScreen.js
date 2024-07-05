@@ -12,6 +12,7 @@ import colors from '../utils/colors';
 import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
 import { formatDateShort } from '../utils/date';
 import ConfirmationPopup from '../components/confirmationPopup';
+import Header from '../components/header';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const [purchases, setPurchases] = useState([]);
@@ -92,6 +93,17 @@ const PurchaseHistoryScreen = ({ navigation }) => {
     return <Text>Loading...</Text>;
   }
 
+  const displayCategoryName = (item) => {
+    if (item?.subCategory) {
+      const akaIndex = item.subCategory.toLowerCase().indexOf('aka');
+      if (akaIndex !== -1) {
+        return item.subCategory.substring(0, akaIndex);
+      }
+      return item.subCategory;
+    }
+    return item.category;
+  };
+
   const renderFooter = () => (
     <View style={{ padding: 8, alignItems: 'center' }}>
       <Text style={styles.description}>No more data to show</Text>
@@ -100,10 +112,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topbar}>
-        <Text style={styles.topbarTitle}>History</Text>
-        {/* <Text style={styles.email}>w</Text> */}
-      </View>
+      <Header title={'History'}></Header>
       {popups.map((popup, index) => (
         <ConfirmationPopup
           style={{ top: index * 56 }}
@@ -124,7 +133,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
               onLongPress={() => incrementWears(item)}
               style={styles.listContainer}
             >
-              <View style={styles.imageContainer}>
+              {/* <View style={styles.imageContainer}>
                 <Image
                   style={styles.image}
                   source={
@@ -135,25 +144,37 @@ const PurchaseHistoryScreen = ({ navigation }) => {
                       : require('../assets/bag.png')
                   }
                 />
-              </View>
+              </View> */}
               <View style={styles.textContainer}>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.item}>{item.name}</Text>
-                  <Text style={styles.date}>
-                    • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
-                  </Text>
+                <View style={styles.row}>
+                  <View style={styles.group}>
+                    <Text style={styles.title}>{item.name}</Text>
+                    {item.category?.category && (
+                      <Text
+                        style={[
+                          styles.category,
+                          { backgroundColor: colors[item.category?.category.split(' ')[0]] },
+                        ]}
+                      >
+                        {displayCategoryName(item.category)}
+                      </Text>
+                    )}
+                    <Text style={styles.date}>
+                      • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
+                    </Text>
+                  </View>
+                  <Text style={styles.date}>{formatDateShort(item.datePurchased)}</Text>
                 </View>
-                <Text style={styles.description}>
-                  {item.description ? item.description : '(no note)'}
-                </Text>
-              </View>
-              <View style={styles.rightContainer}>
-                <Text style={styles.date}>{formatDateShort(item.datePurchased)}</Text>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.paidPrice}>
-                    ${item.paidPrice ? item.paidPrice : item.regularPrice}
-                  </Text>
-                  {item.paidPrice && <Text style={styles.regularPrice}>${item.regularPrice}</Text>}
+
+                <View style={styles.row}>
+                  <Text style={styles.description}>{item.description || '(no note)'}</Text>
+
+                  <View style={styles.group}>
+                    <Text style={styles.paidPrice}>${item.paidPrice || item.regularPrice}</Text>
+                    {item.paidPrice && (
+                      <Text style={styles.regularPrice}>${item.regularPrice}</Text>
+                    )}
+                  </View>
                 </View>
               </View>
             </TouchableOpacity>
@@ -169,20 +190,6 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 15,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    marginBottom: 6,
-  },
-  topbarTitle: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: colors.white,
-  },
   list: {
     paddingBottom: 65,
     flexGrow: 0,
@@ -199,10 +206,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     borderRadius: 10,
   },
-  item: {
+  title: {
     color: colors.black,
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
   },
   description: {
     color: 'gray',
@@ -223,24 +230,30 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
   },
   textContainer: {
+    flex: 1,
     justifyContent: 'center',
     gap: 4,
     marginLeft: 10,
   },
-  rightContainer: {
-    position: 'absolute',
-    height: '100%',
-    right: 0,
-    marginRight: 16,
-    alignSelf: 'center',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  priceContainer: {
+  group: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
+  },
+  row: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  category: {
+    backgroundColor: 'red',
+    color: 'white',
+    paddingVertical: 3,
+    paddingBottom: 5,
+    paddingHorizontal: 8,
+    borderRadius: 50,
+    fontSize: 14,
   },
   paidPrice: {
     fontSize: 24,
@@ -253,7 +266,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   date: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#adadad',
   },
 });

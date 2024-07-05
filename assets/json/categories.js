@@ -74,7 +74,7 @@ export const categories = [
     ],
   },
   {
-    name: 'One pieces',
+    name: 'One piece',
     details: [
       'Coveralls',
       'Dresses',
@@ -176,8 +176,7 @@ export const categories = [
       'Moccasins',
       'Sandals',
       'Slippers',
-      'Sneakers ',
-      'Aka Trainers / runners / teny shoes (the south) / creps (Jamaica) / running shoes / tennis shoes / joggers (Australia)',
+      'Sneakers Aka Trainers / runners / teny shoes (the south) / creps (Jamaica) / running shoes / tennis shoes / joggers (Australia)',
       'Canvas sneakers aka plimsoles / chucks',
       'Hi-top sneakers',
       'Platform sneakers',
@@ -251,7 +250,7 @@ export const categories = [
     ],
   },
   {
-    name: 'Miscellaneous Items',
+    name: 'Other',
     details: [
       'Apron',
       'Flak jacket',

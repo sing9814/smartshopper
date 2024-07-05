@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import colors from '../utils/colors';
 import BottomOverlay from '../components/overlay';
 import { fetchPurchases } from '../utils/firebase';
+import Header from '../components/header';
 
 const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -41,10 +42,7 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topbar}>
-        <Text style={styles.name}>Welcome Rita!</Text>
-        {/* <Text style={styles.email}>w</Text> */}
-      </View>
+      <Header title={'Welcome Rita!'} rounded></Header>
 
       <Calendar
         theme={{
@@ -80,24 +78,6 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 15,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: colors.white,
-  },
-  email: {
-    color: colors.white,
-  },
   container: {
     flex: 1,
   },

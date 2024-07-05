@@ -48,8 +48,13 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   };
 
   const handleSelect = (item) => {
-    onSelect(item);
-    setSelectedItem(item);
+    const category = categoryNames.has(item) ? item : null;
+    const subCategory = category ? null : item;
+    const selectedCategory =
+      category || items.find(({ details }) => details.includes(subCategory))?.name;
+    const selectedItem = { category: selectedCategory, subCategory };
+    onSelect(selectedItem);
+    setSelectedItem(selectedItem);
     setVisible(false);
   };
 
@@ -70,7 +75,11 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
     <View>
       <Pressable style={styles.container} onPress={() => setVisible(true)}>
         <Text style={[styles.text, { color: selectedItem ? 'black' : 'gray' }]}>
-          {selectedItem || 'Category'}
+          {selectedItem
+            ? `${selectedItem.category}${
+                selectedItem.subCategory ? ` - ${selectedItem.subCategory}` : ''
+              }`
+            : 'Category'}
         </Text>
         <Ionicons
           style={visible && styles.arrow}
