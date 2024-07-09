@@ -1,20 +1,21 @@
-import React, { useRef, useEffect } from 'react';
-import {
-  View,
-  Animated,
-  Dimensions,
-  Text,
-  StyleSheet,
-  TouchableHighlight,
-  Image,
-} from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Animated, Dimensions, Text, StyleSheet, TouchableHighlight } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../utils/colors';
 import { formatDate } from '../utils/date';
+import PurchaseList from './purchaseList';
+import CustomInput from './textInput';
+import AddButton from './addButton';
 
-const BottomOverlay = ({ selectedDate, setSelectedDate, list }) => {
+const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
+  const [name, setName] = useState('');
+
   const height = Dimensions.get('window').height * 0.5;
   const translateY = useRef(new Animated.Value(height)).current;
+
+  useEffect(() => {
+    setName('');
+  }, [selectedDate]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -44,47 +45,26 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list }) => {
           <Ionicons name={'close'} size={16} color={colors.white} />
         </TouchableHighlight>
       </View>
-      {list.length > 0 ? (
-        list.map((item, index) => (
-          <View key={index}>
-            <View style={styles.mapContainer}>
-              <View style={styles.imageContainer}>
-                <Image
-                  style={styles.image}
-                  source={
-                    item.brand?.image
-                      ? {
-                          uri: item.brand.image,
-                        }
-                      : require('../assets/bag.png')
-                  }
-                ></Image>
-              </View>
-              <View style={styles.textContainer}>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.item}>{item.name}</Text>
-                  <Text style={styles.date}>• 0 wears</Text>
-                </View>
-
-                <Text style={styles.description}>
-                  {item.description ? item.description : '(no description)'}
-                </Text>
-              </View>
-              <View style={styles.rightContainer}>
-                <Text style={styles.date}>{formatDate(item.datePurchased)}</Text>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.paidPrice}>${item.paidPrice}</Text>
-                  {item.paidPrice !== item.regularPrice && (
-                    <Text style={styles.regularPrice}>${item.regularPrice}</Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          </View>
-        ))
-      ) : (
-        <Text style={styles.description}>No items purchased today</Text>
-      )}
+      <View style={styles.input}>
+        <CustomInput
+          label="Add item"
+          value={name}
+          onChangeText={setName}
+          component={
+            <AddButton
+              onPress={() => [navigation.navigate('Add', { name: name }), setName('')]}
+              size={20}
+            />
+          }
+        />
+      </View>
+      <PurchaseList
+        purchases={list}
+        refreshing={false}
+        onRefresh={() => {}}
+        onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
+        onItemLongPress={() => {}}
+      />
     </Animated.View>
   );
 };
@@ -100,11 +80,15 @@ const styles = StyleSheet.create({
     padding: 12,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+    elevation: 10,
   },
   topContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginVertical: 6,
+    backgroundColor: 'white',
+    marginBottom: 16,
   },
   title: {
     fontSize: 22,
@@ -119,72 +103,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  mapContainer: {
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    padding: 10,
-    borderBottomColor: colors.bg,
-    // borderBottomWidth: 3,
-    marginBottom: 2,
-  },
-  item: {
-    color: colors.black,
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  description: {
-    color: 'gray',
-  },
-  imageContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 100,
-    padding: 10,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 100,
-    overflow: 'hidden',
-  },
-  image: {
-    height: '100%',
-    width: '100%',
-    objectFit: 'contain',
-  },
-  textContainer: {
-    justifyContent: 'center',
-    gap: 4,
-    marginLeft: 10,
-  },
-  rightContainer: {
-    position: 'absolute',
-    height: '100%',
-    right: 0,
-    marginRight: 16,
-    alignSelf: 'center',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  priceContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  paidPrice: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#42c229',
-    marginRight: 2,
-  },
-  regularPrice: {
-    textDecorationLine: 'line-through',
-    color: 'gray',
-  },
-  date: {
-    fontSize: 13,
-    color: '#adadad',
+  input: {
+    marginBottom: 12,
   },
 });
 

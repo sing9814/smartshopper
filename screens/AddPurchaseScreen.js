@@ -14,7 +14,8 @@ import ConfirmationPopup from '../components/confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from '../components/header';
 
-const AddPurchaseScreen = () => {
+const AddPurchaseScreen = ({ route }) => {
+  const { name = '' } = route.params || {};
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
   const [date, setDate] = useState(new Date());
@@ -30,6 +31,12 @@ const AddPurchaseScreen = () => {
   const [disabled, setDisabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (name) {
+      setItemName(name);
+    }
+  }, [name]);
 
   useEffect(() => {
     if (showConfirmation) {

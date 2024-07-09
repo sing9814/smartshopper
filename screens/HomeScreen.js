@@ -7,7 +7,7 @@ import BottomOverlay from '../components/overlay';
 import { fetchPurchases } from '../utils/firebase';
 import Header from '../components/header';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [purchases, setPurchases] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +69,7 @@ const HomeScreen = () => {
       <BottomOverlay
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
+        navigation={navigation}
         list={
           selectedDate ? purchases.filter((product) => product.datePurchased === selectedDate) : []
         }
