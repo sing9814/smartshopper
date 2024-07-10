@@ -6,10 +6,9 @@
     <ImageView
         android:layout_width="122dp"
         android:layout_height="110dp"
+        android:layout_centerInParent="true"
         android:layout_centerHorizontal="true"
         android:src="@drawable/launch_screen"
         android:layout_marginTop="290dp"
         />
 </RelativeLayout>
-
-<!--    android:layout_centerInParent="true"-->

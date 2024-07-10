@@ -17,14 +17,33 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
-
-  const flatItems = items.flatMap((brand) => [brand.name, ...brand.details]);
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
 
   const categoryNames = new Set(items.map((brand) => brand.name));
 
-  const filteredItems = flatItems.filter((item) =>
-    item.toLowerCase().includes(search.toLowerCase())
-  );
+  const getFilteredItems = () => {
+    return items
+      .filter((brand) => {
+        const nameMatches = brand.name.toLowerCase().includes(search.toLowerCase());
+        const detailsMatch = brand.details.some((detail) =>
+          detail.toLowerCase().includes(search.toLowerCase())
+        );
+        return nameMatches || detailsMatch;
+      })
+      .flatMap((brand) => {
+        if (expandedCategories.has(brand.name) || search) {
+          return [
+            brand.name,
+            ...brand.details
+              .filter((detail) => detail.toLowerCase().includes(search.toLowerCase()))
+              .map((detail) => `${brand.name} - ${detail}`),
+          ];
+        }
+        return [brand.name];
+      });
+  };
+
+  const filteredItems = getFilteredItems();
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -48,28 +67,53 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   };
 
   const handleSelect = (item) => {
-    const category = categoryNames.has(item) ? item : null;
-    const subCategory = category ? null : item;
-    const selectedCategory =
-      category || items.find(({ details }) => details.includes(subCategory))?.name;
+    const [category, subCategory] = item.split(' - ');
+    const selectedCategory = categoryNames.has(category) ? category : null;
     const selectedItem = { category: selectedCategory, subCategory };
     onSelect(selectedItem);
     setSelectedItem(selectedItem);
     setVisible(false);
   };
 
-  const renderItem = useCallback(({ item, index }) => (
-    <TouchableOpacity
-      style={[
-        styles.lastItem,
-        index !== filteredItems.length - 1 && styles.item,
-        !categoryNames.has(item) && styles.detailItem,
-      ]}
-      onPress={() => handleSelect(item)}
-    >
-      <Text style={styles.text}>{item}</Text>
-    </TouchableOpacity>
-  ));
+  const handleToggleCategory = (category) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      const isCategory = categoryNames.has(item);
+      const isExpanded = expandedCategories.has(item.split(' - ')[0]);
+      return (
+        <TouchableOpacity
+          key={`${item}-${index}`}
+          style={[
+            index !== filteredItems.length - 1 ? styles.item : styles.lastItem,
+            !isCategory && styles.detailItem,
+          ]}
+          onPress={() => (isCategory ? handleToggleCategory(item) : handleSelect(item))}
+        >
+          <Text style={styles.text}>{item}</Text>
+          {isCategory && !search && (
+            <Ionicons
+              style={isExpanded && styles.arrow}
+              name={'caret-down-outline'}
+              size={16}
+              color={colors.black}
+            />
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [expandedCategories, filteredItems, search]
+  );
 
   return (
     <View>
@@ -120,7 +164,6 @@ const styles = StyleSheet.create({
   text: {
     color: 'gray',
   },
-
   container: {
     backgroundColor: colors.bg,
     borderRadius: 10,
@@ -155,11 +198,17 @@ const styles = StyleSheet.create({
   },
   lastItem: {
     padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   item: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   detailItem: {
     paddingLeft: 20,

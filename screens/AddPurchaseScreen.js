@@ -61,15 +61,20 @@ const AddPurchaseScreen = ({ route }) => {
     return regex.test(price);
   };
 
+  const validateName = (name) => {
+    const regex = /^(?=.*[A-Za-z0-9]).+$/;
+    return regex.test(name);
+  };
+
   const validateFields = () => {
     setErrorMessage(null);
-    if (itemName === '' || regularPrice === null || category?.category === null) {
+    if (!validateName(itemName) || regularPrice === null || category?.category === null) {
       return setErrorMessage('Please fill in all missing fields');
     }
     if (!validatePrice(regularPrice) || (paidPrice && !validatePrice(paidPrice))) {
       return setErrorMessage('Prices must be a valid number with up to 2 decimal places');
     }
-    if (paidPrice && paidPrice >= regularPrice) {
+    if (paidPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
       return setErrorMessage('Sale price must be less than regular price');
     }
     setErrorMessage(null);

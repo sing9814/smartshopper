@@ -60,8 +60,7 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
       </View>
       <PurchaseList
         purchases={list}
-        refreshing={false}
-        onRefresh={() => {}}
+        overlay
         onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
         onItemLongPress={() => {}}
       />
@@ -91,9 +90,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.black,
+    marginLeft: 6,
   },
   x: {
     backgroundColor: 'gray',

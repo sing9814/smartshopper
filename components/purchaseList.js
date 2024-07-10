@@ -3,10 +3,17 @@ import { View, Text, FlatList, RefreshControl, TouchableOpacity, StyleSheet } fr
 import colors from '../utils/colors';
 import { formatDateShort } from '../utils/date';
 
-const PurchaseList = ({ purchases, refreshing, onRefresh, onItemPress, onItemLongPress }) => {
+const PurchaseList = ({
+  purchases,
+  refreshing,
+  onRefresh,
+  onItemPress,
+  onItemLongPress,
+  overlay,
+}) => {
   const renderFooter = () => (
     <View style={{ padding: 8, alignItems: 'center' }}>
-      <Text style={styles.description}>No more data to show</Text>
+      <Text style={styles.note}>No more data to show</Text>
     </View>
   );
 
@@ -28,7 +35,9 @@ const PurchaseList = ({ purchases, refreshing, onRefresh, onItemPress, onItemLon
           data={purchases}
           contentContainerStyle={styles.list}
           ListFooterComponent={renderFooter}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            onRefresh && <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => onItemPress(item)}
@@ -49,15 +58,17 @@ const PurchaseList = ({ purchases, refreshing, onRefresh, onItemPress, onItemLon
                         {displayCategoryName(item.category)}
                       </Text>
                     )}
-                    <Text style={styles.date}>
-                      • {item.wears !== undefined ? item.wears + ' wears' : 'N/A wears'}
-                    </Text>
+                    {!overlay && <Text style={styles.date}>• {item.wears + ' wears'}</Text>}
                   </View>
-                  <Text style={styles.date}>{formatDateShort(item.datePurchased)}</Text>
+                  <Text style={styles.date}>
+                    {overlay ? item.wears + ' wears' : formatDateShort(item.datePurchased)}
+                  </Text>
                 </View>
 
                 <View style={styles.row}>
-                  <Text style={styles.description}>{item.description || '(no note)'}</Text>
+                  <Text numberOfLines={1} style={styles.note}>
+                    {item.note || '(no note)'}
+                  </Text>
 
                   <View style={styles.group}>
                     <Text style={styles.paidPrice}>${item.paidPrice || item.regularPrice}</Text>
@@ -72,7 +83,7 @@ const PurchaseList = ({ purchases, refreshing, onRefresh, onItemPress, onItemLon
         />
       ) : (
         <View style={{ padding: 8, alignItems: 'center' }}>
-          <Text style={styles.description}>No data to show</Text>
+          <Text style={styles.note}>No data to show</Text>
         </View>
       )}
     </View>
@@ -101,13 +112,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  description: {
+  note: {
     color: 'gray',
+    maxWidth: '80%',
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
-    gap: 4,
     marginLeft: 10,
   },
   group: {
@@ -122,7 +133,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   category: {
-    backgroundColor: 'red',
     color: 'white',
     paddingVertical: 3,
     paddingBottom: 5,

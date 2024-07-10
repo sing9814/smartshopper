@@ -1,7 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useState, useEffect } from 'react';
 import colors from '../utils/colors';
 import BottomOverlay from '../components/overlay';
 import { fetchPurchases } from '../utils/firebase';
@@ -11,17 +10,23 @@ const HomeScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [purchases, setPurchases] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    const purchasesArray = await fetchPurchases();
+    setPurchases(purchasesArray);
+    setLoading(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const purchasesArray = await fetchPurchases();
-      setPurchases(purchasesArray);
-      setLoading(false);
-    };
     fetchData();
-
-    return () => {};
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
 
   const getMarkedDates = () => {
     if (!loading) {
@@ -42,30 +47,34 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={'Welcome Rita!'} rounded></Header>
+      <Header title={'Welcome Rita!'} rounded />
 
-      <Calendar
-        theme={{
-          backgroundColor: '#000',
-          calendarBackground: '#ffffff',
-          textSectionTitleColor: '#b6c1cd',
-          selectedDayBackgroundColor: colors.lightGrey,
-          selectedDayTextColor: '#ffffff',
-          todayTextColor: colors.white,
-          dayTextColor: '#2d4150',
-          textDisabledColor: '#a1a1a1',
-          arrowColor: colors.black,
-          todayBackgroundColor: colors.primary,
-          todayDotColor: colors.white,
-          dotColor: colors.primary,
-          // today: '2024-05-15',
-        }}
-        style={styles.calendar}
-        onDayPress={(day) => {
-          setSelectedDate(day.dateString);
-        }}
-        markedDates={getMarkedDates()}
-      />
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <Calendar
+          theme={{
+            backgroundColor: '#000',
+            calendarBackground: '#ffffff',
+            textSectionTitleColor: '#b6c1cd',
+            selectedDayBackgroundColor: colors.lightGrey,
+            selectedDayTextColor: '#ffffff',
+            todayTextColor: colors.white,
+            dayTextColor: '#2d4150',
+            textDisabledColor: '#a1a1a1',
+            arrowColor: colors.black,
+            todayBackgroundColor: colors.primary,
+            todayDotColor: colors.white,
+            dotColor: colors.primary,
+          }}
+          style={styles.calendar}
+          onDayPress={(day) => {
+            setSelectedDate(day.dateString);
+          }}
+          markedDates={getMarkedDates()}
+        />
+      </ScrollView>
       <BottomOverlay
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
@@ -81,6 +90,9 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
   },
   calendar: {
     marginHorizontal: 12,
