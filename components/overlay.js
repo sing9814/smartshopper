@@ -1,5 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Animated, Dimensions, Text, StyleSheet, TouchableHighlight } from 'react-native';
+import {
+  View,
+  Animated,
+  Dimensions,
+  Text,
+  StyleSheet,
+  TouchableHighlight,
+  PanResponder,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../utils/colors';
 import { formatDate } from '../utils/date';
@@ -33,8 +41,37 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
     }
   }, [selectedDate, height]);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return gestureState.dy > 0;
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        translateY.setValue(gestureState.dy);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dy > 100) {
+          Animated.timing(translateY, {
+            toValue: height,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => setSelectedDate(null));
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 6,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   return (
-    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+    <Animated.View
+      style={[styles.container, { transform: [{ translateY }] }]}
+      {...panResponder.panHandlers}
+    >
       <View style={styles.topContainer}>
         <Text style={styles.title}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
         <TouchableHighlight
