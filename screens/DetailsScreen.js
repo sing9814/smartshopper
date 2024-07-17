@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import colors from '../utils/colors';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
+import { formatDate } from '../utils/date';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import PigSVG from '../assets/pigSVG';
+import MoneySVG from '../assets/moneySVG';
 
 const DetailsScreen = ({ route, navigation }) => {
   const { purchase } = route.params;
@@ -17,15 +21,71 @@ const DetailsScreen = ({ route, navigation }) => {
     navigation.goBack();
   };
 
+  const onPressDelete = () => {
+    setModalVisible(true);
+  };
+
+  const displayCategoryName = (purchase) => {
+    if (purchase.subCategory) {
+      const akaIndex = purchase.subCategory.toLowerCase().indexOf('aka');
+      if (akaIndex !== -1) {
+        return `${purchase.category} - ${purchase.subCategory.substring(0, akaIndex)}`;
+      }
+      return `${purchase.category} - ${purchase.subCategory}`;
+    }
+    return purchase.category;
+  };
+
   return (
-    <View>
-      {errorMessage && <Text>{errorMessage}</Text>}
-      <Text style={styles.name}>{purchase.name}</Text>
-      <CustomButton
-        buttonStyle={styles.button}
-        onPress={() => setModalVisible(true)}
-        title="Delete"
-      />
+    <View style={styles.container}>
+      <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
+        <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
+      </TouchableWithoutFeedback>
+
+      <View style={styles.textContainer}>
+        <View style={styles.listContainer}>
+          <View style={styles.row}>
+            <Text style={styles.title}>{purchase.name}</Text>
+
+            <Text style={styles.date}>{formatDate(purchase.datePurchased)}</Text>
+          </View>
+          <View style={styles.row}>
+            {purchase.category?.category && (
+              <View style={{ alignSelf: 'flex-start' }}>
+                <Text
+                  style={[
+                    styles.category,
+                    { backgroundColor: colors[purchase.category?.category.split(' ')[0]] },
+                  ]}
+                >
+                  {displayCategoryName(purchase.category)}
+                </Text>
+              </View>
+            )}
+            <View style={styles.group}>
+              <Text style={styles.paidPrice}>${purchase.paidPrice || purchase.regularPrice}</Text>
+              {purchase.paidPrice && (
+                <Text style={styles.regularPrice}>${purchase.regularPrice}</Text>
+              )}
+            </View>
+          </View>
+          <Text style={styles.note}>{purchase.note || '(no note)'}</Text>
+        </View>
+        <View style={styles.amtContainer}>
+          <View style={styles.card}>
+            <MoneySVG />
+            <Text style={styles.amount}>${purchase.paidPrice || purchase.regularPrice}</Text>
+          </View>
+          <View style={styles.card}>
+            <PigSVG />
+            <Text style={styles.amount}>
+              ${purchase.paidPrice ? purchase.regularPrice - purchase.paidPrice : '0'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Delete" />
       <ConfirmationModal
         data={purchase.name}
         visible={modalVisible}
@@ -37,30 +97,90 @@ const DetailsScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 15,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: 'black',
-  },
-  email: {
-    color: colors.white,
-  },
   container: {
     flex: 1,
+    padding: 12,
+    backgroundColor: colors.bg,
   },
-  calendar: {
-    marginHorizontal: 12,
+  text: {
+    color: 'black',
+  },
+  listContainer: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderBottomColor: colors.bg,
     borderRadius: 10,
+    gap: 12,
+    paddingVertical: 18,
+  },
+  title: {
+    color: colors.black,
+    fontWeight: '700',
+    fontSize: 24,
+  },
+  note: {
+    color: 'gray',
+    maxWidth: '80%',
+  },
+  textContainer: {
+    flex: 1,
+    gap: 12,
+  },
+  group: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+  },
+  row: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  category: {
+    color: 'white',
+    paddingVertical: 3,
+    paddingBottom: 5,
+    paddingHorizontal: 8,
+    borderRadius: 50,
+    fontSize: 14,
+  },
+  paidPrice: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: colors.green,
+    marginRight: 2,
+  },
+  regularPrice: {
+    textDecorationLine: 'line-through',
+    color: 'gray',
+  },
+  date: {
+    fontSize: 13,
+    color: '#adadad',
+  },
+  card: {
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  amtContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    backgroundColor: 'red',
+    justifyContent: 'space-evenly',
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    paddingVertical: 20,
+  },
+  amount: {
+    color: colors.black,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  amtTitle: {
+    color: colors.black,
+    fontSize: 16,
   },
 });
 
