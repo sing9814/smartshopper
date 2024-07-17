@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import colors from '../utils/colors';
+import { View, StyleSheet } from 'react-native';
 import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Header from '../components/header';
@@ -81,10 +80,6 @@ const PurchaseHistoryScreen = ({ navigation }) => {
     showPopup(item, newPressCount);
   };
 
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
   return (
     <View style={styles.container}>
       <Header title={'History'} />
@@ -100,6 +95,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
         purchases={purchases}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        loading={loading}
         onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
         onItemLongPress={incrementWears}
       />
