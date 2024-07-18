@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, RefreshControl } from 'react-native';
 import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Header from '../components/header';
@@ -91,14 +91,23 @@ const PurchaseHistoryScreen = ({ navigation }) => {
           index={index}
         />
       ))}
-      <PurchaseList
-        purchases={purchases}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        loading={loading}
-        onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
-        onItemLongPress={incrementWears}
-      />
+      {!loading && purchases.length === 0 ? (
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          <Text style={styles.emptyText}>No purchases found. Pull down to refresh.</Text>
+        </ScrollView>
+      ) : (
+        <PurchaseList
+          purchases={purchases}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          loading={loading}
+          onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
+          onItemLongPress={incrementWears}
+        />
+      )}
     </View>
   );
 };
@@ -106,6 +115,15 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 15,
+    color: 'gray',
   },
 });
 
