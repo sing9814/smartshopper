@@ -3,18 +3,20 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native
 import { Calendar } from 'react-native-calendars';
 import colors from '../utils/colors';
 import BottomOverlay from '../components/overlay';
-import { fetchPurchases } from '../utils/firebase';
+import { fetchUserDataAndPurchases } from '../utils/firebase';
 import Header from '../components/header';
 
 const HomeScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [purchases, setPurchases] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
-    const purchasesArray = await fetchPurchases();
-    setPurchases(purchasesArray);
+    const { userData, purchaseData } = await fetchUserDataAndPurchases();
+    setUser(userData);
+    setPurchases(purchaseData);
     setLoading(false);
     setRefreshing(false);
   };
@@ -47,7 +49,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={'Welcome Rita!'} rounded />
+      <Header title={`Welcome ${user.name || ' '}!`} rounded />
 
       <ScrollView
         contentContainerStyle={styles.scrollView}

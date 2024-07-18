@@ -44,13 +44,14 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return gestureState.dy > 0;
+        return gestureState.dy !== 0;
       },
       onPanResponderMove: (evt, gestureState) => {
-        translateY.setValue(gestureState.dy);
+        const newTranslateY = Math.max(0, Math.min(gestureState.dy, height));
+        translateY.setValue(newTranslateY);
       },
       onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dy > 100) {
+        if (gestureState.dy > height / 2) {
           Animated.timing(translateY, {
             toValue: height,
             duration: 300,
@@ -68,11 +69,8 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
   ).current;
 
   return (
-    <Animated.View
-      style={[styles.container, { transform: [{ translateY }] }]}
-      {...panResponder.panHandlers}
-    >
-      <View style={styles.topContainer}>
+    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+      <View style={styles.topContainer} {...panResponder.panHandlers}>
         <Text style={styles.title}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
         <TouchableHighlight
           style={styles.x}
