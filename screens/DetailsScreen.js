@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import colors from '../utils/colors';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
@@ -44,14 +44,14 @@ const DetailsScreen = ({ route, navigation }) => {
 
       <View style={styles.textContainer}>
         <View style={styles.listContainer}>
-          <View style={styles.row}>
+          <View style={[styles.row, { alignItems: 'flex-start' }]}>
             <Text style={styles.title}>{purchase.name}</Text>
 
             <Text style={styles.date}>{formatDate(purchase.datePurchased)}</Text>
           </View>
           <View style={styles.row}>
             {purchase.category?.category && (
-              <View style={{ alignSelf: 'flex-start' }}>
+              <View>
                 <Text
                   style={[
                     styles.category,
@@ -73,14 +73,20 @@ const DetailsScreen = ({ route, navigation }) => {
         </View>
         <View style={styles.amtContainer}>
           <View style={styles.card}>
-            <MoneySVG />
-            <Text style={styles.amount}>${purchase.paidPrice || purchase.regularPrice}</Text>
+            <MoneySVG size={40} />
+            <View>
+              <Text style={styles.amtHeader}>Spent</Text>
+              <Text style={styles.amount}>${purchase.paidPrice || purchase.regularPrice}</Text>
+            </View>
           </View>
           <View style={styles.card}>
-            <PigSVG />
-            <Text style={styles.amount}>
-              ${purchase.paidPrice ? purchase.regularPrice - purchase.paidPrice : '0'}
-            </Text>
+            <PigSVG size={40} />
+            <View>
+              <Text style={styles.amtHeader}>Saved</Text>
+              <Text style={styles.amount}>
+                ${purchase.paidPrice ? purchase.regularPrice - purchase.paidPrice : '0'}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -107,20 +113,23 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     backgroundColor: 'white',
-    padding: 12,
+    padding: 16,
+    paddingTop: 12,
     borderBottomColor: colors.bg,
     borderRadius: 10,
-    gap: 12,
-    paddingVertical: 18,
+    gap: 8,
+    paddingBottom: 18,
   },
   title: {
     color: colors.black,
     fontWeight: '700',
     fontSize: 24,
+    flexShrink: 1,
+    marginRight: 16,
   },
   note: {
     color: 'gray',
-    maxWidth: '80%',
+    lineHeight: 22,
   },
   textContainer: {
     flex: 1,
@@ -158,20 +167,30 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 13,
     color: '#adadad',
+    marginTop: 6,
   },
   card: {
-    gap: 10,
+    gap: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.white,
+    flexDirection: 'row',
+    flexGrow: 1,
+    margin: 4,
+    padding: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
   },
   amtContainer: {
     width: '100%',
     flexDirection: 'row',
-    backgroundColor: 'red',
     justifyContent: 'space-evenly',
-    backgroundColor: colors.white,
     borderRadius: 10,
-    paddingVertical: 20,
+    gap: 12,
+  },
+  amtHeader: {
+    color: colors.black,
+    fontSize: 13,
+    marginBottom: 2,
   },
   amount: {
     color: colors.black,

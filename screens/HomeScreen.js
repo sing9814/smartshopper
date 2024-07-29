@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import colors from '../utils/colors';
 import BottomOverlay from '../components/overlay';
@@ -49,33 +56,44 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={`Welcome ${user.name || ' '}!`} rounded />
+      <Header title={loading ? ' ' : `Welcome ${user.name}!`} rounded />
 
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Calendar
-          theme={{
-            backgroundColor: '#000',
-            calendarBackground: '#ffffff',
-            textSectionTitleColor: '#b6c1cd',
-            selectedDayBackgroundColor: colors.lightGrey,
-            selectedDayTextColor: '#ffffff',
-            todayTextColor: colors.white,
-            dayTextColor: '#2d4150',
-            textDisabledColor: '#a1a1a1',
-            arrowColor: colors.black,
-            todayBackgroundColor: colors.primary,
-            todayDotColor: colors.white,
-            dotColor: colors.primary,
-          }}
-          style={styles.calendar}
-          onDayPress={(day) => {
-            setSelectedDate(day.dateString);
-          }}
-          markedDates={getMarkedDates()}
-        />
+        {loading ? (
+          <View>
+            <View style={styles.placeholder}></View>
+            <ActivityIndicator
+              size="large"
+              color={colors.primary}
+              style={styles.loadingIndicator}
+            />
+          </View>
+        ) : (
+          <Calendar
+            theme={{
+              backgroundColor: '#000',
+              calendarBackground: '#ffffff',
+              textSectionTitleColor: '#b6c1cd',
+              selectedDayBackgroundColor: colors.lightGrey,
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: colors.white,
+              dayTextColor: '#2d4150',
+              textDisabledColor: '#a1a1a1',
+              arrowColor: colors.black,
+              todayBackgroundColor: colors.primary,
+              todayDotColor: colors.white,
+              dotColor: colors.primary,
+            }}
+            style={styles.calendar}
+            onDayPress={(day) => {
+              setSelectedDate(day.dateString);
+            }}
+            markedDates={getMarkedDates()}
+          />
+        )}
       </ScrollView>
       <BottomOverlay
         selectedDate={selectedDate}
@@ -99,6 +117,20 @@ const styles = StyleSheet.create({
   calendar: {
     marginHorizontal: 12,
     borderRadius: 10,
+  },
+  placeholder: {
+    left: 0,
+    right: 0,
+    marginHorizontal: 12,
+    borderRadius: 10,
+    height: 250,
+    backgroundColor: colors.white,
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 10,
   },
 });
 

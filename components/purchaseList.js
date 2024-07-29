@@ -22,7 +22,7 @@ const PurchaseList = ({
 }) => {
   const renderFooter = () => (
     <View style={styles.footer}>
-      <Text style={styles.note}>No more data to show</Text>
+      <Text style={styles.footerText}>No more data to show</Text>
     </View>
   );
 
@@ -54,8 +54,10 @@ const PurchaseList = ({
     >
       <View style={styles.textContainer}>
         <View style={styles.row}>
-          <View style={styles.group}>
-            <Text style={styles.title}>{item.name}</Text>
+          <View style={styles.topGroup}>
+            <Text style={styles.title} numberOfLines={2}>
+              {item.name}
+            </Text>
             {item.category?.category && (
               <Text
                 style={[
@@ -66,7 +68,7 @@ const PurchaseList = ({
                 {getCategoryName(item.category)}
               </Text>
             )}
-            {!overlay && <Text style={styles.date}>• {item.wears} wears</Text>}
+            {!overlay && <Text style={styles.wears}>• {item.wears} wears</Text>}
           </View>
           <Text style={styles.date}>
             {overlay ? `${item.wears} wears` : formatDateShort(item.datePurchased)}
@@ -101,7 +103,7 @@ const PurchaseList = ({
     }
     return (
       <View style={styles.footer}>
-        <Text style={styles.note}>No data to show</Text>
+        <Text style={styles.footerText}>No data to show</Text>
       </View>
     );
   };
@@ -132,15 +134,25 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   title: {
+    flexShrink: 1,
     color: colors.black,
     fontWeight: '600',
     fontSize: 16,
   },
   note: {
     color: 'gray',
-    maxWidth: '80%',
+    flexShrink: 1,
+    marginRight: 30,
+    // maxWidth: '70%',
   },
+
   group: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+  },
+  topGroup: {
+    flex: 1,
     alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
@@ -172,10 +184,18 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     color: '#adadad',
+    marginLeft: 10,
+  },
+  wears: {
+    fontSize: 14,
+    color: '#adadad',
   },
   footer: {
     padding: 8,
     alignItems: 'center',
+  },
+  footerText: {
+    color: 'gray',
   },
   placeholder: {
     backgroundColor: 'lightgrey',
