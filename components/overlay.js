@@ -70,15 +70,18 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
 
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
-      <View style={styles.topContainer} {...panResponder.panHandlers}>
-        <Text style={styles.title}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
-        <TouchableHighlight
-          style={styles.x}
-          onPress={() => setSelectedDate(null)}
-          underlayColor={colors.lightGrey}
-        >
-          <Ionicons name={'close'} size={16} color={colors.white} />
-        </TouchableHighlight>
+      <View {...panResponder.panHandlers}>
+        <View style={styles.dragIndicator} />
+        <View style={styles.topContainer}>
+          <Text style={styles.title}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
+          <TouchableHighlight
+            style={styles.x}
+            onPress={() => setSelectedDate(null)}
+            underlayColor={colors.lightGrey}
+          >
+            <Ionicons name={'close'} size={16} color={colors.white} />
+          </TouchableHighlight>
+        </View>
       </View>
       <View style={styles.input}>
         <CustomInput
@@ -120,9 +123,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 6,
     backgroundColor: 'white',
     marginBottom: 16,
+  },
+  dragIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: 'gray',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginVertical: 8,
   },
   title: {
     fontSize: 18,
