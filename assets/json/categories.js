@@ -1,7 +1,7 @@
 export const categories = [
   {
     name: 'Tops',
-    details: [
+    subCategories: [
       'Baseball top',
       'Bolero',
       'Bodysuit',
@@ -42,7 +42,7 @@ export const categories = [
   },
   {
     name: 'Bottoms',
-    details: [
+    subCategories: [
       'Kilt',
       'Pants / trousers',
       'Bell bottoms',
@@ -75,7 +75,7 @@ export const categories = [
   },
   {
     name: 'One piece',
-    details: [
+    subCategories: [
       'Coveralls',
       'Dresses',
       'Ball gown',
@@ -104,7 +104,7 @@ export const categories = [
   },
   {
     name: 'Outerwear',
-    details: [
+    subCategories: [
       'Anorak',
       'Blazer',
       'Bodywarmer aka vest / gilet',
@@ -133,7 +133,7 @@ export const categories = [
   },
   {
     name: 'Intimates',
-    details: [
+    subCategories: [
       'Bloomers',
       'Bras',
       'Bra',
@@ -163,7 +163,7 @@ export const categories = [
   },
   {
     name: 'Footwear',
-    details: [
+    subCategories: [
       'Boots',
       'Cowboy boots',
       'Platform boots',
@@ -186,7 +186,7 @@ export const categories = [
   },
   {
     name: 'Accessories',
-    details: [
+    subCategories: [
       'Balaclava',
       'Bags',
       'Backpack',
@@ -251,7 +251,7 @@ export const categories = [
   },
   {
     name: 'Other',
-    details: [
+    subCategories: [
       'Apron',
       'Flak jacket',
       'Helmet',

@@ -19,27 +19,25 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
 
-  const categoryNames = new Set(items.map((brand) => brand.name));
-
   const getFilteredItems = () => {
     return items
-      .filter((brand) => {
-        const nameMatches = brand.name.toLowerCase().includes(search.toLowerCase());
-        const detailsMatch = brand.details.some((detail) =>
-          detail.toLowerCase().includes(search.toLowerCase())
+      .filter((category) => {
+        const nameMatches = category.name.toLowerCase().includes(search.toLowerCase());
+        const subCategoriesMatch = category.subCategories.some((subCategory) =>
+          subCategory.toLowerCase().includes(search.toLowerCase())
         );
-        return nameMatches || detailsMatch;
+        return nameMatches || subCategoriesMatch;
       })
-      .flatMap((brand) => {
-        if (expandedCategories.has(brand.name) || search) {
-          return [
-            brand.name,
-            ...brand.details
-              .filter((detail) => detail.toLowerCase().includes(search.toLowerCase()))
-              .map((detail) => `${brand.name} - ${detail}`),
-          ];
+      .flatMap((category) => {
+        const categoryItems = [{ category: category.name, subCategory: null }];
+        if (expandedCategories.has(category.name) || search) {
+          category.subCategories
+            .filter((subCategory) => subCategory.toLowerCase().includes(search.toLowerCase()))
+            .forEach((subCategory) =>
+              categoryItems.push({ category: category.name, subCategory: subCategory })
+            );
         }
-        return [brand.name];
+        return categoryItems;
       });
   };
 
@@ -67,11 +65,8 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   };
 
   const handleSelect = (item) => {
-    const [category, subCategory] = item.split(' - ');
-    const selectedCategory = categoryNames.has(category) ? category : null;
-    const selectedItem = { category: selectedCategory, subCategory };
-    onSelect(selectedItem);
-    setSelectedItem(selectedItem);
+    onSelect(item);
+    setSelectedItem(item);
     setVisible(false);
   };
 
@@ -89,18 +84,20 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
 
   const renderItem = useCallback(
     ({ item, index }) => {
-      const isCategory = categoryNames.has(item);
-      const isExpanded = expandedCategories.has(item.split(' - ')[0]);
+      const isCategory = !item.subCategory;
+      const displayText = item.subCategory || item.category;
+      const isExpanded = expandedCategories.has(item.category);
+
       return (
         <TouchableOpacity
-          key={`${item}-${index}`}
+          key={`${item.category}-${item.subCategory}-${index}`}
           style={[
             index !== filteredItems.length - 1 ? styles.item : styles.lastItem,
-            !isCategory && styles.detailItem,
+            item.subCategory && styles.subCategoryItem,
           ]}
-          onPress={() => (isCategory ? handleToggleCategory(item) : handleSelect(item))}
+          onPress={() => (isCategory ? handleToggleCategory(item.category) : handleSelect(item))}
         >
-          <Text style={styles.text}>{item}</Text>
+          <Text style={styles.text}>{displayText}</Text>
           {isCategory && !search && (
             <Ionicons
               style={isExpanded && styles.arrow}
@@ -138,7 +135,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
             <View style={styles.modalContent}>
               <TextInput
                 style={styles.input}
-                placeholder="Search or add custom"
+                placeholder="Search"
                 placeholderTextColor={'gray'}
                 value={search}
                 onChangeText={setSearch}
@@ -146,7 +143,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
               <FlatList
                 data={filteredItems}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => `${item}-${index}`}
+                keyExtractor={(item, index) => `${item.category}-${item.subCategory}-${index}`}
               />
             </View>
           </View>
@@ -210,7 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  detailItem: {
+  subCategoryItem: {
     paddingLeft: 20,
   },
 });
