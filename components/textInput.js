@@ -10,6 +10,7 @@ const CustomInput = ({
   type = 'default',
   multiline,
   component,
+  editable = true,
 }) => {
   const animatedValue = useState(new Animated.Value(0))[0];
 
@@ -46,10 +47,10 @@ const CustomInput = ({
 
   return (
     <View>
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, !editable && styles.disabled]}>
         <ScrollView>
           <TextInput
-            style={styles.input}
+            style={[styles.input, !editable && styles.disabled]}
             value={value}
             onChangeText={onChangeText}
             placeholder={label}
@@ -58,6 +59,7 @@ const CustomInput = ({
             maxLength={length()}
             secureTextEntry={secureTextEntry}
             multiline={multiline}
+            editable={editable}
           />
         </ScrollView>
         {component}
@@ -81,6 +83,10 @@ const styles = StyleSheet.create({
     color: colors.black,
     maxHeight: 200,
     lineHeight: 26,
+  },
+  disabled: {
+    backgroundColor: '#dddddd',
+    color: '#4d4d4d',
   },
 });
 

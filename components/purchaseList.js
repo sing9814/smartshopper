@@ -55,7 +55,7 @@ const PurchaseList = ({
       <View style={styles.textContainer}>
         <View style={styles.row}>
           <View style={styles.topGroup}>
-            <Text style={styles.title} numberOfLines={2}>
+            <Text style={styles.title} numberOfLines={1}>
               {item.name}
             </Text>
             {item.category?.category && (
@@ -131,7 +131,6 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     justifyContent: 'center',
-    marginLeft: 10,
   },
   title: {
     flexShrink: 1,
@@ -145,7 +144,6 @@ const styles = StyleSheet.create({
     marginRight: 30,
     // maxWidth: '70%',
   },
-
   group: {
     alignItems: 'center',
     flexDirection: 'row',

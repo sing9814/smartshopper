@@ -4,10 +4,11 @@ import colors from '../utils/colors';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
-import { formatDate } from '../utils/date';
+import { formatDate, formatTimeStamp } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PigSVG from '../assets/pigSVG';
 import MoneySVG from '../assets/moneySVG';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const DetailsScreen = ({ route, navigation }) => {
   const { purchase } = route.params;
@@ -38,9 +39,14 @@ const DetailsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-        <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
-      </TouchableWithoutFeedback>
+      <View style={styles.topNav}>
+        <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
+          <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback onPress={() => navigation.navigate('Edit', { purchase })}>
+          <FontAwesome name="pencil" size={26} color={colors.primary} />
+        </TouchableWithoutFeedback>
+      </View>
 
       <View style={styles.textContainer}>
         <View style={styles.listContainer}>
@@ -90,7 +96,10 @@ const DetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
       </View>
-
+      <Text style={styles.details}>Date created: {formatTimeStamp(purchase.dateCreated)}</Text>
+      {purchase.edited && (
+        <Text style={styles.details}>Last edited: {formatTimeStamp(purchase.edited)}</Text>
+      )}
       <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Delete" />
       <ConfirmationModal
         data={purchase.name}
@@ -107,6 +116,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     backgroundColor: colors.bg,
+  },
+  topNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   text: {
     color: 'black',
@@ -168,6 +182,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#adadad',
     marginTop: 6,
+    marginBottom: 8,
+  },
+  details: {
+    fontSize: 13,
+    color: '#919191',
+    marginBottom: 8,
   },
   card: {
     gap: 12,
