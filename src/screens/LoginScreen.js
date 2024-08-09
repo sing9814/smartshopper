@@ -4,7 +4,7 @@ import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
 import CustomInput from '../components/textInput';
 import Error from '../components/error';
-import Logo from '../assets/logo';
+import Logo from '../../assets/logo';
 import colors from '../utils/colors';
 import firestore from '@react-native-firebase/firestore';
 

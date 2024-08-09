@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
-import AuthStackNav from './navigation/AuthStackNav';
+import AuthStackNav from './src/navigation/AuthStackNav';
 import { StatusBar } from 'react-native';
-import colors from './utils/colors';
+import colors from './src/utils/colors';
 import SplashScreen from 'react-native-splash-screen';
-import MainStackNav from './navigation/MainStackNav';
+import MainStackNav from './src/navigation/MainStackNav';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

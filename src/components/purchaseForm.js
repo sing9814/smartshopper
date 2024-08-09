@@ -3,16 +3,16 @@ import { View, StyleSheet, TouchableWithoutFeedback, Text, TouchableOpacity } fr
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
-import CustomButton from '../components/button';
+import CustomButton from './button';
 import colors from '../utils/colors';
-import AddButton from '../components/addButton';
-import CustomInput from '../components/textInput';
-import CustomDropdown from '../components/dropdown';
-import { categories } from '../assets/json/categories';
-import Error from '../components/error';
-import ConfirmationPopup from '../components/confirmationPopup';
+import AddButton from './addButton';
+import CustomInput from './textInput';
+import CustomDropdown from './dropdown';
+import { categories } from '../../assets/json/categories';
+import Error from './error';
+import ConfirmationPopup from './confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Header from '../components/header';
+import Header from './header';
 import { useFocusEffect } from '@react-navigation/native';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {

@@ -6,8 +6,8 @@ import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
 import { formatDate, formatTimeStamp } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import PigSVG from '../assets/pigSVG';
-import MoneySVG from '../assets/moneySVG';
+import PigSVG from '../../assets/pigSVG';
+import MoneySVG from '../../assets/moneySVG';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const DetailsScreen = ({ route, navigation }) => {

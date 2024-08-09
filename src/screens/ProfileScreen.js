@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
 import colors from '../utils/colors';
-import WomanSVG from '../assets/womanSVG';
-import PigSVG from '../assets/pigSVG';
-import MoneySVG from '../assets/moneySVG';
+import WomanSVG from '../../assets/womanSVG';
+import PigSVG from '../../assets/pigSVG';
+import MoneySVG from '../../assets/moneySVG';
 import { fetchUserDataAndPurchases } from '../utils/firebase';
 import Header from '../components/header';
 
