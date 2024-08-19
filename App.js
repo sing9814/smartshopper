@@ -6,6 +6,8 @@ import { StatusBar } from 'react-native';
 import colors from './src/utils/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
+import store from './src/redux/store';
+import { Provider } from 'react-redux';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,10 +27,12 @@ function App() {
   }, []);
 
   return (
-    <NavigationContainer>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-      {isAuthenticated ? <MainStackNav /> : <AuthStackNav />}
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer>
+        <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+        {isAuthenticated ? <MainStackNav /> : <AuthStackNav />}
+      </NavigationContainer>
+    </Provider>
   );
 }
 

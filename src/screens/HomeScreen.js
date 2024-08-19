@@ -12,18 +12,23 @@ import colors from '../utils/colors';
 import BottomOverlay from '../components/overlay';
 import { fetchUserDataAndPurchases } from '../utils/firebase';
 import Header from '../components/header';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPurchases } from '../redux/actions/purchaseActions';
+import { setUser } from '../redux/actions/userActions';
 
 const HomeScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [purchases, setPurchases] = useState(null);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const purchases = useSelector((state) => state.purchase.purchases);
+  const user = useSelector((state) => state.user.user);
+  const dispatch = useDispatch();
+
   const fetchData = async () => {
     const { userData, purchaseData } = await fetchUserDataAndPurchases();
-    setUser(userData);
-    setPurchases(purchaseData);
+    dispatch(setUser(userData));
+    dispatch(setPurchases(purchaseData));
     setLoading(false);
     setRefreshing(false);
   };

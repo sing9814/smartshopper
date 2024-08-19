@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, ScrollView, RefreshControl } from 'react-native';
-import { fetchPurchases, updatePurchaseWears } from '../utils/firebase';
+import { updatePurchaseWears } from '../utils/firebase';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Header from '../components/header';
 import PurchaseList from '../components/purchaseList';
+import { useSelector } from 'react-redux';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const [purchases, setPurchases] = useState([]);
@@ -14,9 +15,11 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   const timersRef = useRef({});
 
+  const purchase = useSelector((state) => state.purchase.purchases);
+
   const fetchData = async () => {
-    const purchasesArray = await fetchPurchases();
-    setPurchases(purchasesArray);
+    // const purchasesArray = await fetchPurchases();
+    // setPurchases(purchasesArray);
     setLoading(false);
     setRefreshing(false);
   };
@@ -91,7 +94,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
           index={index}
         />
       ))}
-      {!loading && purchases.length === 0 ? (
+      {!loading && purchase.length === 0 ? (
         <ScrollView
           contentContainerStyle={styles.scrollView}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -100,7 +103,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
         </ScrollView>
       ) : (
         <PurchaseList
-          purchases={purchases}
+          purchases={purchase}
           refreshing={refreshing}
           onRefresh={onRefresh}
           loading={loading}

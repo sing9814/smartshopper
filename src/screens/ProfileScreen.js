@@ -6,20 +6,20 @@ import colors from '../utils/colors';
 import WomanSVG from '../../assets/womanSVG';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
-import { fetchUserDataAndPurchases } from '../utils/firebase';
 import Header from '../components/header';
+import { useSelector } from 'react-redux';
 
 const ProfileScreen = () => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [totalSpent, setTotalSpent] = useState(0);
   const [totalSaved, setTotalSaved] = useState(0);
 
+  const purchaseData = useSelector((state) => state.purchase.purchases);
+  const user = useSelector((state) => state.user.user);
+
   const fetchData = async () => {
     setLoading(true);
-    const { userData, purchaseData } = await fetchUserDataAndPurchases();
-    setUser(userData);
 
     let spent = 0;
     let saved = 0;
