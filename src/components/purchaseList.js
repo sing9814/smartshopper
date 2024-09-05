@@ -18,7 +18,6 @@ const PurchaseList = ({
   loading,
   refreshing,
   onRefresh,
-  onItemPress,
   onItemLongPress,
   overlay,
   navigation,

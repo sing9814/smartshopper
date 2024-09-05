@@ -4,10 +4,12 @@ import { updatePurchaseWears } from '../utils/firebase';
 import ConfirmationPopup from '../components/confirmationPopup';
 import Header from '../components/header';
 import PurchaseList from '../components/purchaseList';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setPurchases } from '../redux/actions/purchaseActions';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
-  const [purchases, setPurchases] = useState([]);
+  const dispatch = useDispatch();
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [popups, setPopups] = useState([]);
@@ -15,11 +17,10 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   const timersRef = useRef({});
 
-  const purchase = useSelector((state) => state.purchase.purchases);
+  const purchases = useSelector((state) => state.purchase.purchases);
 
   const fetchData = async () => {
     // const purchasesArray = await fetchPurchases();
-    // setPurchases(purchasesArray);
     setLoading(false);
     setRefreshing(false);
   };
@@ -77,8 +78,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
       purchase.key === item.key ? { ...purchase, wears: newWears } : purchase
     );
 
-    setPurchases(updatedPurchases);
-
+    dispatch(setPurchases(updatedPurchases));
     await updatePurchaseWears(item.key, newWears);
     showPopup(item, newPressCount);
   };
@@ -94,7 +94,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
           index={index}
         />
       ))}
-      {!loading && purchase.length === 0 ? (
+      {!loading && purchases.length === 0 ? (
         <ScrollView
           contentContainerStyle={styles.scrollView}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -103,7 +103,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
         </ScrollView>
       ) : (
         <PurchaseList
-          purchases={purchase}
+          purchases={purchases}
           refreshing={refreshing}
           onRefresh={onRefresh}
           loading={loading}
