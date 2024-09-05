@@ -17,13 +17,14 @@ import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 
 const HomeScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
-  const dispatch = useDispatch();
 
   const fetchData = async () => {
     const { userData, purchaseData } = await fetchUserDataAndPurchases();

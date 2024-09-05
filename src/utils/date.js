@@ -25,8 +25,18 @@ export const formatDateShort = (date) => {
 };
 
 export const formatTimeStamp = (timestamp) => {
-  const milliseconds = timestamp.seconds * 1000 + Math.floor(timestamp.nanoseconds / 1000000);
-  const date = new Date(milliseconds);
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  const date = new Date(timestamp.seconds * 1000);
+
+  const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+  const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+
+  const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+  const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
+
+  return `${formattedDate} @ ${formattedTime}`;
+
+  // const milliseconds = timestamp.seconds * 1000 + Math.floor(timestamp.nanoseconds / 1000000);
+  // const date = new Date(milliseconds);
+  // const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  // return date.toLocaleDateString('en-US', options);
 };

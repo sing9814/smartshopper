@@ -1,5 +1,5 @@
 export const SET_PURCHASES = 'SET_PURCHASES';
-export const UPDATE_PURCHASE = 'UPDATE_PURCHASE';
+export const CURRENT_PURCHASE = 'CURRENT_PURCHASE';
 
 export const setPurchases = (purchases) => {
   return {
@@ -7,9 +7,9 @@ export const setPurchases = (purchases) => {
     payload: purchases,
   };
 };
-export const updatePurchase = (updatedPurchase) => {
+export const setCurrentPurchase = (purchase) => {
   return {
-    type: UPDATE_PURCHASE,
-    payload: updatedPurchase,
+    type: CURRENT_PURCHASE,
+    payload: purchase,
   };
 };

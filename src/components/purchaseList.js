@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import colors from '../utils/colors';
 import { formatDateShort } from '../utils/date';
+import { useDispatch, useSelector } from 'react-redux';
+import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 
 const PurchaseList = ({
   purchases,
@@ -19,12 +21,20 @@ const PurchaseList = ({
   onItemPress,
   onItemLongPress,
   overlay,
+  navigation,
 }) => {
+  const dispatch = useDispatch();
+
   const renderFooter = () => (
     <View style={styles.footer}>
       <Text style={styles.footerText}>No more data to show</Text>
     </View>
   );
+
+  const onPress = (item) => {
+    dispatch(setCurrentPurchase(item));
+    navigation.navigate('Details', { purchase: item });
+  };
 
   const getCategoryName = (item) => {
     if (item?.subCategory) {
@@ -48,7 +58,7 @@ const PurchaseList = ({
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => onItemPress(item)}
+      onPress={() => onPress(item)}
       onLongPress={() => onItemLongPress(item)}
       style={styles.itemContainer}
     >

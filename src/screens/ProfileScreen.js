@@ -48,7 +48,7 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [purchaseData]);
 
   return (
     <View style={styles.container}>

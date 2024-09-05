@@ -107,8 +107,8 @@ const PurchaseHistoryScreen = ({ navigation }) => {
           refreshing={refreshing}
           onRefresh={onRefresh}
           loading={loading}
-          onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
           onItemLongPress={incrementWears}
+          navigation={navigation}
         />
       )}
     </View>

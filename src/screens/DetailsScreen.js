@@ -9,16 +9,24 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPurchases } from '../redux/actions/purchaseActions';
 
-const DetailsScreen = ({ route, navigation }) => {
-  const { purchase } = route.params;
+const DetailsScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
+  const purchases = useSelector((state) => state.purchase.purchases);
+  const currentPurchase = useSelector((state) => state.purchase.currentPurchase);
 
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleDelete = () => {
-    deletePurchase(purchase.key);
+    deletePurchase(currentPurchase.key);
+    const updatedPurchaseList = purchases.filter((p) => p.key !== currentPurchase.key);
+    dispatch(setPurchases(updatedPurchaseList));
+
     navigation.goBack();
   };
 
@@ -43,7 +51,9 @@ const DetailsScreen = ({ route, navigation }) => {
         <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => navigation.navigate('Edit', { purchase })}>
+        <TouchableWithoutFeedback
+          onPress={() => navigation.navigate('Edit', { purchase: currentPurchase })}
+        >
           <FontAwesome name="pencil" size={26} color={colors.primary} />
         </TouchableWithoutFeedback>
       </View>
@@ -51,38 +61,42 @@ const DetailsScreen = ({ route, navigation }) => {
       <View style={styles.textContainer}>
         <View style={styles.listContainer}>
           <View style={[styles.row, { alignItems: 'flex-start' }]}>
-            <Text style={styles.title}>{purchase.name}</Text>
+            <Text style={styles.title}>{currentPurchase.name}</Text>
 
-            <Text style={styles.date}>{formatDate(purchase.datePurchased)}</Text>
+            <Text style={styles.date}>{formatDate(currentPurchase.datePurchased)}</Text>
           </View>
           <View style={styles.row}>
-            {purchase.category?.category && (
+            {currentPurchase.category?.category && (
               <View>
                 <Text
                   style={[
                     styles.category,
-                    { backgroundColor: colors[purchase.category?.category.split(' ')[0]] },
+                    { backgroundColor: colors[currentPurchase.category?.category.split(' ')[0]] },
                   ]}
                 >
-                  {displayCategoryName(purchase.category)}
+                  {displayCategoryName(currentPurchase.category)}
                 </Text>
               </View>
             )}
             <View style={styles.group}>
-              <Text style={styles.paidPrice}>${purchase.paidPrice || purchase.regularPrice}</Text>
-              {purchase.paidPrice && (
-                <Text style={styles.regularPrice}>${purchase.regularPrice}</Text>
+              <Text style={styles.paidPrice}>
+                ${currentPurchase.paidPrice || currentPurchase.regularPrice}
+              </Text>
+              {currentPurchase.paidPrice && (
+                <Text style={styles.regularPrice}>${currentPurchase.regularPrice}</Text>
               )}
             </View>
           </View>
-          <Text style={styles.note}>{purchase.note || '(no note)'}</Text>
+          <Text style={styles.note}>{currentPurchase.note || '(no note)'}</Text>
         </View>
         <View style={styles.amtContainer}>
           <View style={styles.card}>
             <MoneySVG size={40} />
             <View>
               <Text style={styles.amtHeader}>Spent</Text>
-              <Text style={styles.amount}>${purchase.paidPrice || purchase.regularPrice}</Text>
+              <Text style={styles.amount}>
+                ${currentPurchase.paidPrice || currentPurchase.regularPrice}
+              </Text>
             </View>
           </View>
           <View style={styles.card}>
@@ -90,19 +104,22 @@ const DetailsScreen = ({ route, navigation }) => {
             <View>
               <Text style={styles.amtHeader}>Saved</Text>
               <Text style={styles.amount}>
-                ${purchase.paidPrice ? purchase.regularPrice - purchase.paidPrice : '0'}
+                $
+                {currentPurchase.paidPrice
+                  ? currentPurchase.regularPrice - currentPurchase.paidPrice
+                  : '0'}
               </Text>
             </View>
           </View>
         </View>
       </View>
-      <Text style={styles.details}>Date created: {formatTimeStamp(purchase.dateCreated)}</Text>
-      {purchase.edited && (
-        <Text style={styles.details}>Last edited: {formatTimeStamp(purchase.edited)}</Text>
+      <Text style={styles.details}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
+      {currentPurchase.edited && (
+        <Text style={styles.details}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
       )}
       <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Delete" />
       <ConfirmationModal
-        data={purchase.name}
+        data={currentPurchase.name}
         visible={modalVisible}
         onConfirm={handleDelete}
         onCancel={() => setModalVisible(false)}

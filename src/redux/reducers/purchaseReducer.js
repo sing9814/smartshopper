@@ -1,7 +1,8 @@
-import { SET_PURCHASES, UPDATE_PURCHASE } from '../actions/purchaseActions';
+import { CURRENT_PURCHASE, SET_PURCHASES } from '../actions/purchaseActions';
 
 const initialState = {
   purchases: [],
+  currentPurchase: {},
 };
 
 const purchaseReducer = (state = initialState, action) => {
@@ -11,12 +12,10 @@ const purchaseReducer = (state = initialState, action) => {
         ...state,
         purchases: action.payload,
       };
-    case UPDATE_PURCHASE:
+    case CURRENT_PURCHASE:
       return {
         ...state,
-        purchases: state.purchases.map((purchase) =>
-          purchase.key === action.payload.key ? action.payload : purchase
-        ),
+        currentPurchase: action.payload,
       };
     default:
       return state;

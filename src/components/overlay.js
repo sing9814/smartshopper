@@ -96,12 +96,7 @@ const BottomOverlay = ({ selectedDate, setSelectedDate, list, navigation }) => {
           }
         />
       </View>
-      <PurchaseList
-        purchases={list}
-        overlay
-        onItemPress={(item) => navigation.navigate('Details', { purchase: item })}
-        onItemLongPress={() => {}}
-      />
+      <PurchaseList purchases={list} overlay navigation={navigation} onItemLongPress={() => {}} />
     </Animated.View>
   );
 };

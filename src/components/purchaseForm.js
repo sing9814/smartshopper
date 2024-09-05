@@ -14,8 +14,13 @@ import ConfirmationPopup from './confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from './header';
 import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
+import uuid from 'react-native-uuid';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
+  const dispatch = useDispatch();
+  const purchases = useSelector((state) => state.purchase.purchases);
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
   const [date, setDate] = useState(new Date());
@@ -81,7 +86,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
   const removeSalePrice = () => {
     setDisabled(false);
-    setPaidPrice('');
+    setPaidPrice(null);
   };
 
   const validatePrice = (price) => {
@@ -109,21 +114,40 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     return true;
   };
 
+  const updatePurchaseInArray = (purchase) => {
+    return purchases.map((p) => (p.key === purchase.key ? purchase : p));
+  };
+
+  function generateFirestoreTimestamp() {
+    const date = new Date();
+    const seconds = Math.floor(date.getTime() / 1000);
+    const nanoseconds = date.getMilliseconds() * 1e6;
+
+    return {
+      seconds: seconds,
+      nanoseconds: nanoseconds,
+    };
+  }
+
   const updatePurchase = async () => {
     if (validateFields()) {
       try {
         const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-        await userRef
-          .collection('Purchases')
-          .doc(purchase.key)
-          .update({
-            name: itemName,
-            category: category,
-            note: note,
-            regularPrice: regularPrice,
-            paidPrice: paidPrice,
-            datePurchased: date.toISOString().split('T')[0],
-          });
+        const updatedPurchase = {
+          key: purchase.key,
+          name: itemName,
+          wears: purchase.wears,
+          category: category,
+          note: note,
+          edited: generateFirestoreTimestamp(),
+          regularPrice: regularPrice,
+          paidPrice: paidPrice,
+          datePurchased: date.toISOString().split('T')[0],
+          dateCreated: purchase.dateCreated,
+        };
+        await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
+        dispatch(setCurrentPurchase(updatedPurchase));
+        dispatch(setPurchases(updatePurchaseInArray(updatedPurchase)));
         setShowConfirmation(true);
         navigation.goBack();
       } catch (error) {
@@ -145,7 +169,9 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     if (validateFields()) {
       try {
         const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-        await userRef.collection('Purchases').add({
+        const id = uuid.v4();
+        const newPurchase = {
+          key: id,
           name: itemName,
           category: category,
           note: note,
@@ -153,8 +179,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           regularPrice: regularPrice,
           paidPrice: paidPrice,
           datePurchased: date.toISOString().split('T')[0],
-          dateCreated: firestore.FieldValue.serverTimestamp(),
-        });
+          dateCreated: generateFirestoreTimestamp(),
+        };
+        await userRef.collection('Purchases').doc(id).set(newPurchase);
+        dispatch(setPurchases([newPurchase, ...purchases]));
         resetFields();
         setShowConfirmation(true);
       } catch (error) {
