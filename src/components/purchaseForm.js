@@ -17,6 +17,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import uuid from 'react-native-uuid';
+import { generateFirestoreTimestamp } from '../utils/date';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const dispatch = useDispatch();
@@ -118,17 +119,6 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     return purchases.map((p) => (p.key === purchase.key ? purchase : p));
   };
 
-  function generateFirestoreTimestamp() {
-    const date = new Date();
-    const seconds = Math.floor(date.getTime() / 1000);
-    const nanoseconds = date.getMilliseconds() * 1e6;
-
-    return {
-      seconds: seconds,
-      nanoseconds: nanoseconds,
-    };
-  }
-
   const updatePurchase = async () => {
     if (validateFields()) {
       try {
@@ -175,7 +165,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           name: itemName,
           category: category,
           note: note,
-          wears: 0,
+          wears: [],
           regularPrice: regularPrice,
           paidPrice: paidPrice,
           datePurchased: date.toISOString().split('T')[0],
@@ -202,7 +192,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'}></Header>
       {showConfirmation && <ConfirmationPopup message={`Purchase added successfully!`} />}
       <View style={styles.container}>
@@ -274,7 +264,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           </TouchableOpacity>
         )}
         <CustomButton
-          buttonStyle={styles.button}
+          buttonStyle={[styles.button, { bottom: edit ? 12 : 75 }]}
           onPress={handleSubmit}
           title={edit ? 'Update' : 'Submit'}
         />
@@ -291,15 +281,16 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     width: '100%',
-    padding: 16,
-    backgroundColor: colors.white,
+    paddingTop: 12,
+    // padding: 16,
+    // backgroundColor: colors.white,
     gap: 16,
-    marginTop: 12,
+    paddingHorizontal: 8,
+    // marginTop: 12,
     borderRadius: 10,
   },
   button: {
     position: 'absolute',
-    bottom: 75,
   },
   icon: {
     padding: 12,

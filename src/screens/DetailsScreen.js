@@ -4,7 +4,7 @@ import colors from '../utils/colors';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
-import { formatDate, formatTimeStamp } from '../utils/date';
+import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
@@ -114,6 +114,12 @@ const DetailsScreen = ({ navigation }) => {
         </View>
       </View>
       <Text style={styles.details}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
+      {currentPurchase.wears.length > 0 && (
+        <Text style={styles.details}>
+          Last worn:{' '}
+          {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
+        </Text>
+      )}
       {currentPurchase.edited && (
         <Text style={styles.details}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
       )}

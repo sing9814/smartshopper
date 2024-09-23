@@ -77,10 +77,10 @@ const PurchaseList = ({
                 {getCategoryName(item.category)}
               </Text>
             )}
-            {!overlay && <Text style={styles.wears}>• {item.wears} wears</Text>}
+            {!overlay && <Text style={styles.wears}>• {item.wears.length} wears</Text>}
           </View>
           <Text style={styles.date}>
-            {overlay ? `${item.wears} wears` : formatDateShort(item.datePurchased)}
+            {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
           </Text>
         </View>
         <View style={styles.row}>

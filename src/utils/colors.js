@@ -6,7 +6,7 @@ const colors = {
   black: '#000',
   white: '#fff',
   lightGrey: '#C3C7D2',
-  bg: '#F6F6F6',
+  bg: '#F1F0F5',
   error: '#bd413d',
   green: '#42c229',
 

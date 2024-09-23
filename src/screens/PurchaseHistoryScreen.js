@@ -6,6 +6,7 @@ import Header from '../components/header';
 import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
+import { generateFirestoreTimestamp } from '../utils/date';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -69,10 +70,11 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   };
 
   const incrementWears = async (item) => {
-    const newPressCount = (pressCounts[item.key] || 0) + 1;
     setPressCounts({ ...pressCounts, [item.key]: newPressCount });
+    const date = generateFirestoreTimestamp();
+    const newWears = [...(item.wears || []), date];
 
-    const newWears = (item.wears || 0) + 1;
+    const newPressCount = newWears.length;
 
     const updatedPurchases = purchases.map((purchase) =>
       purchase.key === item.key ? { ...purchase, wears: newWears } : purchase
@@ -85,7 +87,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={'History'} />
+      <Header title={'Purchases'} />
       {popups.map((popup, index) => (
         <ConfirmationPopup
           style={{ top: index * 56 }}
