@@ -45,6 +45,19 @@ const DetailsScreen = ({ navigation }) => {
     return purchase.category;
   };
 
+  // console.log(
+  //   currentPurchase.regularPrice,
+  //   currentPurchase.wears.length,
+  //   (
+  //     currentPurchase.paidPrice || currentPurchase.regularPrice / currentPurchase.wears.length
+  //   ).toFixed(0)
+  // );
+
+  // {currentPurchase.wears.length > 0
+  //   ? currentPurchase.paidPrice ||
+  //     currentPurchase.regularPrice / currentPurchase.wears.length
+  //   : 'N/A'}
+
   return (
     <View style={styles.container}>
       <View style={styles.topNav}>
@@ -112,14 +125,29 @@ const DetailsScreen = ({ navigation }) => {
             </View>
           </View>
         </View>
+        <View style={styles.listContainer}>
+          <View style={[styles.row, { alignItems: 'flex-start' }]}>
+            <Text style={styles.title}>{currentPurchase.wears.length} wears</Text>
+            <Text style={styles.paidPrice}>
+              CPW $
+              {currentPurchase.wears.length > 0
+                ? (
+                    (currentPurchase.paidPrice || currentPurchase.regularPrice) /
+                    currentPurchase.wears.length
+                  ).toFixed(2)
+                : 'N/A'}
+            </Text>
+          </View>
+
+          <Text style={styles.note}>
+            Last worn:{' '}
+            {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
+          </Text>
+          <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Add wear" />
+        </View>
       </View>
+
       <Text style={styles.details}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
-      {currentPurchase.wears.length > 0 && (
-        <Text style={styles.details}>
-          Last worn:{' '}
-          {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
-        </Text>
-      )}
       {currentPurchase.edited && (
         <Text style={styles.details}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
       )}
