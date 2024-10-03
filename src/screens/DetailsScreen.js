@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import colors from '../utils/colors';
 import CustomButton from '../components/button';
@@ -8,9 +8,11 @@ import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/dat
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setPurchases } from '../redux/actions/purchaseActions';
+import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
+import ConfirmationPopup from '../components/confirmationPopup';
+import { generateFirestoreTimestamp } from '../utils/date';
+import { updatePurchaseWears } from '../utils/firebase';
 
 const DetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -21,6 +23,16 @@ const DetailsScreen = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (showConfirmation) {
+      const timer = setTimeout(() => {
+        setShowConfirmation(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfirmation]);
 
   const handleDelete = () => {
     deletePurchase(currentPurchase.key);
@@ -28,6 +40,22 @@ const DetailsScreen = ({ navigation }) => {
     dispatch(setPurchases(updatedPurchaseList));
 
     navigation.goBack();
+  };
+
+  const onPressAddWear = async () => {
+    const date = generateFirestoreTimestamp();
+
+    const newWears = [...(currentPurchase.wears || []), date];
+    console.log(newWears);
+
+    const updatedPurchases = purchases.map((purchase) =>
+      purchase.key === currentPurchase.key ? { ...purchase, wears: newWears } : purchase
+    );
+    dispatch(setPurchases(updatedPurchases));
+    dispatch(setCurrentPurchase({ ...currentPurchase, wears: newWears }));
+
+    await updatePurchaseWears(currentPurchase.key, newWears);
+    setShowConfirmation(true);
   };
 
   const onPressDelete = () => {
@@ -60,6 +88,7 @@ const DetailsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {showConfirmation && <ConfirmationPopup message={`Wear added successfully!`} />}
       <View style={styles.topNav}>
         <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
@@ -119,7 +148,8 @@ const DetailsScreen = ({ navigation }) => {
               <Text style={styles.amount}>
                 $
                 {currentPurchase.paidPrice
-                  ? currentPurchase.regularPrice - currentPurchase.paidPrice
+                  ? Math.round((currentPurchase.regularPrice - currentPurchase.paidPrice) * 100) /
+                    100
                   : '0'}
               </Text>
             </View>
@@ -143,7 +173,7 @@ const DetailsScreen = ({ navigation }) => {
             Last worn:{' '}
             {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
           </Text>
-          <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Add wear" />
+          <CustomButton buttonStyle={styles.button} onPress={onPressAddWear} title="Add wear" />
         </View>
       </View>
 
