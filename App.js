@@ -2,15 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AuthStackNav from './src/navigation/AuthStackNav';
-import { StatusBar } from 'react-native';
+import { StatusBar, View, ActivityIndicator } from 'react-native';
 import colors from './src/utils/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
 import store from './src/redux/store';
 import { Provider } from 'react-redux';
+import { userExists } from './src/utils/firebase';
+import { useSelector } from 'react-redux';
 
-function App() {
+function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const user = useSelector((state) => state.user.userOnboarded);
+
+  useEffect(() => {
+    setIsOnboarded(user);
+  }, [user]);
 
   useEffect(() => {
     if (SplashScreen) {
@@ -19,37 +29,50 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged((user) => {
-      setIsAuthenticated(user);
+    const unsubscribe = auth().onAuthStateChanged(async (user) => {
+      if (user) {
+        setIsAuthenticated(user);
+        const onboarded = await userExists(user.uid);
+        setIsOnboarded(onboarded);
+      } else {
+        setIsAuthenticated(false);
+        setIsOnboarded(false);
+      }
+      setLoading(false);
     });
 
     return unsubscribe; // Unsubscribe on unmount
   }, []);
 
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.primary,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.white} />
+      </View>
+    );
+  }
+
   return (
-    <Provider store={store}>
-      <NavigationContainer>
-        <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-        {isAuthenticated ? <MainStackNav /> : <AuthStackNav />}
-      </NavigationContainer>
-    </Provider>
+    <NavigationContainer>
+      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+      {isAuthenticated && isOnboarded ? <MainStackNav /> : <AuthStackNav />}
+    </NavigationContainer>
   );
 }
 
-export default App;
-
-// Field: email (String)
-// Field: username (String)
-// Field: registrationDate (Timestamp)
-// Collection: Purchases
-// Document ID: Auto-generated or custom ID for each purchase
-// Field: itemName (String)
-// Field: description (String, optional)
-// Field: regularPrice (Number)
-// Field: markdownPrices (Array of Numbers)
-// Field: paidPrice (Number)
-// Field: purchaseDate (Date or Timestamp)
-// Field: entryDate (Timestamp, set to the current time when saving)
-// Field: imageUrl (String, optional)
+export default function App() {
+  return (
+    <Provider store={store}>
+      <AppWrapper />
+    </Provider>
+  );
+}
 
 // npm start

@@ -6,9 +6,12 @@ import CustomInput from '../components/textInput';
 import Error from '../components/error';
 import Logo from '../../assets/logo';
 import colors from '../utils/colors';
-import firestore from '@react-native-firebase/firestore';
+import { useDispatch } from 'react-redux';
+import { setUserOnboarded } from '../redux/actions/userActions';
 
 const LoginScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -29,14 +32,12 @@ const LoginScreen = ({ navigation }) => {
           setErrorMessage('Please fill in all fields');
         } else {
           const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-          const user = userCredential.user;
-          console.log(email, name);
-          await firestore().collection('users').doc(user.uid).set({
-            email: email,
+          navigation.navigate('Onboarding', {
             name: name,
-            registrationDate: firestore.FieldValue.serverTimestamp(),
+            email: email,
+            userId: userCredential.user.uid,
           });
-          console.log('sucees');
+          dispatch(setUserOnboarded(false));
         }
       } catch (error) {
         setErrorMessage(error.message);
@@ -47,6 +48,7 @@ const LoginScreen = ({ navigation }) => {
           setErrorMessage('Email or password is empty');
         } else {
           await auth().signInWithEmailAndPassword(email, password);
+          dispatch(setUserOnboarded(true));
         }
       } catch (error) {
         setErrorMessage(error.message);
@@ -74,6 +76,7 @@ const LoginScreen = ({ navigation }) => {
 
         <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
         <CustomButton onPress={handleLogin} title={isSignUp ? 'Register' : 'Sign in'} />
+        {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
 
         <Pressable
           style={styles.linkContainer}

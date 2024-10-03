@@ -84,3 +84,13 @@ export const deletePurchase = async (purchaseId) => {
     }
   }
 };
+
+export const userExists = async (id) => {
+  try {
+    const userDoc = await firestore().collection('users').doc(id).get();
+    return userDoc.exists;
+  } catch (error) {
+    console.error('Error checking user existence: ', error);
+    return false;
+  }
+};

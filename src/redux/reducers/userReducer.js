@@ -1,7 +1,8 @@
-import { SET_USER } from '../actions/userActions';
+import { SET_USER, SET_USER_ONBOARDED } from '../actions/userActions';
 
 const initialState = {
   user: null,
+  userOnboarded: false,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -10,6 +11,11 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         user: action.payload,
+      };
+    case SET_USER_ONBOARDED:
+      return {
+        ...state,
+        userOnboarded: action.payload,
       };
     default:
       return state;
