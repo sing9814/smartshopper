@@ -1,4 +1,4 @@
-package com.smartshopper
+package com.icuaht.smartshopper
 
 import android.os.Bundle
 import org.devio.rn.splashscreen.SplashScreen

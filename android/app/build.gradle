@@ -75,13 +75,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.smartshopper"
+    namespace "com.icuaht.smartshopper"
     defaultConfig {
-        applicationId "com.smartshopper"
+        applicationId "com.icuaht.smartshopper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.0.0"
         resConfigs "en"
     }
     signingConfigs {

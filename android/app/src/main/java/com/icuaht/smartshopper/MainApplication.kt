@@ -1,4 +1,4 @@
-package com.smartshopper
+package com.icuaht.smartshopper
 
 import android.app.Application
 import com.facebook.react.PackageList
