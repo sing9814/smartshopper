@@ -1,37 +1,37 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
   Dimensions,
   StyleSheet,
-  Button,
-  FlatList,
-  useWindowDimensions,
   Animated,
+  FlatList,
   StatusBar,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import colors from '../utils/colors';
 import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
+import Slider from '@react-native-community/slider';
+import CustomInput from '../components/textInput';
 
 const OnboardingScreen = ({ route }) => {
   const dispatch = useDispatch();
-
   const scrollX = useRef(new Animated.Value(0)).current;
   const slidesRef = useRef(null);
-
   const { name = '', email = '', userId = '' } = route.params || {};
-
   const { width } = useWindowDimensions();
-
-  const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+  const [isSliding, setIsSliding] = useState(false);
+  const [sliderValue, setSliderValue] = useState(100);
 
   const slides = [
     {
+      image: require('../../assets/onboarding/icon.png'),
       title: 'Welcome to Smart Shopper',
-      description: 'Track your purchases easily and stay organized!',
+      description: 'Effortlessly track your purchases and keep your wardrobe organized!',
       backgroundColor: `${colors.primary}`,
     },
     {
@@ -40,19 +40,26 @@ const OnboardingScreen = ({ route }) => {
       backgroundColor: `${colors.primaryDark}`,
     },
     {
-      title: 'Track Usage',
-      description: 'Monitor how many times you wear your favorite clothing items!',
+      title: 'Track Your Wardrobe',
+      description:
+        'Keep tabs on how often you wear your favorite pieces and stay informed about your cost per wear (CPW)\n\n(Long hold item on history screen to quick add a wear)',
+      backgroundColor: `${colors.primary}`,
+    },
+    {
+      title: 'Set a monthly budget',
+      description:
+        'Take control of your spending by setting a monthly budget and stay on track with your financial goals!',
       backgroundColor: `${colors.primary}`,
       button: true,
     },
   ];
 
   const onPress = async () => {
-    console.log('item');
     try {
       await firestore().collection('users').doc(userId).set({
         email: email,
         name: name,
+        budget: sliderValue,
         registrationDate: firestore.FieldValue.serverTimestamp(),
       });
       dispatch(setUserOnboarded(true));
@@ -61,27 +68,63 @@ const OnboardingScreen = ({ route }) => {
     }
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({ item }) => {
     return (
       <View
-        style={[styles.slide, { backgroundColor: item.backgroundColor }, { width }]}
+        style={[
+          styles.slide,
+          { backgroundColor: item.backgroundColor },
+          { width },
+          item.image ? { paddingTop: '30%' } : { justifyContent: 'center' },
+        ]}
         key={item.title}
       >
+        {item.image && <Image source={item.image} style={styles.image} resizeMode="contain" />}
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
+
         {item.button && (
-          <CustomButton
-            buttonStyle={{
-              backgroundColor: colors.primaryDark,
-              width: 100,
-              position: 'absolute',
-              bottom: 50,
-              right: 30,
-            }}
-            underlayColor="#777"
-            onPress={onPress}
-            title="Finish"
-          />
+          <>
+            <View style={{ alignItems: 'center', position: 'relative', width: '100%' }}>
+              <Slider
+                style={{ width: '100%', height: 40 }}
+                minimumValue={0}
+                maximumValue={1000}
+                step={1}
+                value={sliderValue}
+                onValueChange={(value) => {
+                  setSliderValue(value);
+                }}
+                onTouchStart={() => setIsSliding(true)}
+                onTouchEnd={() => setIsSliding(false)}
+                minimumTrackTintColor="#FFFFFF"
+                maximumTrackTintColor="#000000"
+                thumbTintColor="white"
+              />
+
+              <CustomInput
+                label=""
+                value={sliderValue.toString()}
+                onChangeText={(value) => setSliderValue(Number(value))}
+                type="numeric"
+                budget
+              />
+            </View>
+
+            <CustomButton
+              buttonStyle={{
+                backgroundColor: '#fff',
+                width: 100,
+                position: 'absolute',
+                bottom: 50,
+                right: 30,
+              }}
+              textStyle={{ color: colors.primary, fontWeight: '600' }}
+              underlayColor="#777"
+              onPress={onPress}
+              title="Done"
+            />
+          </>
         )}
       </View>
     );
@@ -97,14 +140,15 @@ const OnboardingScreen = ({ route }) => {
         showsHorizontalScrollIndicator={false}
         pagingEnabled
         bounces={false}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.title}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
           useNativeDriver: false,
         })}
         scrollEventThrottle={32}
-        viewabilityConfig={viewConfig}
+        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         ref={slidesRef}
-      ></FlatList>
+        scrollEnabled={!isSliding}
+      />
 
       <View style={styles.paginator}>
         {slides.map((_, i) => {
@@ -136,22 +180,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  image: {
+    width: 150,
+    height: 150,
+    alignSelf: 'center',
+    margin: 30,
+  },
   slide: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: 26,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     color: '#fff',
     fontWeight: 'bold',
+    letterSpacing: 0.3,
   },
   description: {
     fontSize: 16,
     color: '#fff',
-    textAlign: 'center',
-    marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 18,
+    lineHeight: 25,
   },
   paginator: {
     width: '100%',

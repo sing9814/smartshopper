@@ -11,6 +11,7 @@ const CustomInput = ({
   multiline,
   component,
   editable = true,
+  budget,
 }) => {
   const animatedValue = useState(new Animated.Value(0))[0];
 
@@ -37,6 +38,9 @@ const CustomInput = ({
   };
 
   const length = () => {
+    if (budget) {
+      return 4;
+    }
     if (type === 'numeric') {
       return 8;
     } else if (multiline) {

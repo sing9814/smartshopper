@@ -6,6 +6,7 @@ const CustomButton = ({
   onPress,
   title,
   buttonStyle,
+  textStyle,
   underlayColor = colors.primaryDark,
   icon,
 }) => {
@@ -17,7 +18,7 @@ const CustomButton = ({
     >
       <View style={styles.innerContainer}>
         {icon}
-        <Text style={styles.text}>{title}</Text>
+        <Text style={[styles.text, textStyle]}>{title}</Text>
       </View>
     </TouchableHighlight>
   );
