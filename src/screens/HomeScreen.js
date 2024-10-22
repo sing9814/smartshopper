@@ -15,6 +15,7 @@ import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
+import ProgressBar from '../components/progressBar';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -60,6 +61,22 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+
+  const totalRegularPrice = purchases.reduce((total, purchase) => {
+    const purchaseDate = new Date(purchase.datePurchased);
+    const purchaseYear = purchaseDate.getFullYear();
+    const purchaseMonth = purchaseDate.getMonth() + 1;
+
+    if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
+      return total + parseFloat(purchase.regularPrice);
+    }
+
+    return total;
+  }, 0);
+
   return (
     <View style={styles.container}>
       <Header title={loading ? ' ' : `Welcome ${user.name}!`} rounded />
@@ -68,6 +85,10 @@ const HomeScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+        <View style={styles.progress}>
+          <Text style={styles.title}>Monthly Budget (${user.budget})</Text>
+          <ProgressBar budget={user.budget} spent={totalRegularPrice} />
+        </View>
         {loading ? (
           <View>
             <View style={styles.placeholder}></View>
@@ -123,6 +144,21 @@ const styles = StyleSheet.create({
   calendar: {
     marginHorizontal: 12,
     borderRadius: 10,
+  },
+  title: {
+    color: 'black',
+    fontSize: 20,
+    fontWeight: '500',
+    marginBottom: 12,
+  },
+  progress: {
+    backgroundColor: 'white',
+    marginHorizontal: 12,
+    borderRadius: 10,
+    margin: 10,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   placeholder: {
     left: 0,

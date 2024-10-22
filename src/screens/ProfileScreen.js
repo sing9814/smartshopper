@@ -55,7 +55,7 @@ const ProfileScreen = () => {
       <Header title={user?.name || ' '} subtitle={user?.email || ' '} rounded padding />
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.innerContainer}>
           <View style={styles.cardContainer}>
