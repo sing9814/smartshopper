@@ -76,7 +76,7 @@ const LoginScreen = ({ navigation }) => {
 
         <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
         <CustomButton onPress={handleLogin} title={isSignUp ? 'Register' : 'Sign in'} />
-        <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} />
+        {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
 
         <Pressable
           style={styles.linkContainer}

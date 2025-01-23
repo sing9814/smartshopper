@@ -86,8 +86,12 @@ const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.progress}>
-          <Text style={styles.title}>Monthly Budget (${user.budget})</Text>
-          <ProgressBar budget={user.budget} spent={totalRegularPrice} />
+          {!loading && (
+            <>
+              <Text style={styles.title}>Monthly Budget (${user?.budget})</Text>
+              <ProgressBar budget={user?.budget} spent={totalRegularPrice} />
+            </>
+          )}
         </View>
         {loading ? (
           <View>

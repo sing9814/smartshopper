@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import colors from '../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import CustomButton from './button';
 
 const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
   const [visible, setVisible] = useState(false);
@@ -140,6 +141,17 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
                 value={search}
                 onChangeText={setSearch}
               />
+              {/* <View style={styles.noResults}>
+                <Text style={styles.noResultsTitle}>No result for {search}</Text>
+                <Text style={styles.noResultsSubtitle}>
+                  Hmm, we can't find the category you're looking for. Would you like to add it?
+                </Text>
+                <CustomButton
+                  buttonStyle={styles.button}
+                  onPress={() => {}}
+                  title="Create custom category"
+                />
+              </View> */}
               <FlatList
                 data={filteredItems}
                 renderItem={renderItem}
@@ -184,6 +196,23 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
     elevation: 2,
+  },
+  noResults: {
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  noResultsTitle: {
+    fontSize: 18,
+    color: colors.black,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  noResultsSubtitle: {
+    color: 'gray',
+    marginBottom: 14,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   input: {
     borderWidth: 1,
