@@ -15,7 +15,7 @@ import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
-import ProgressBar from '../components/progressBar';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -79,7 +79,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={loading ? ' ' : `Welcome ${user.name}!`} rounded />
+      <Header title={loading ? ' ' : `Monthly Budget`} />
 
       <ScrollView
         contentContainerStyle={styles.scrollView}
@@ -88,8 +88,27 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.progress}>
           {!loading && (
             <>
-              <Text style={styles.title}>Monthly Budget (${user?.budget})</Text>
-              <ProgressBar budget={user?.budget} spent={totalRegularPrice} />
+              <Text style={styles.label}>{`Your spending`}</Text>
+              <AnimatedCircularProgress
+                size={100}
+                width={17}
+                fill={(totalRegularPrice / user?.budget) * 100}
+                tintColor={'#51fa05'}
+                backgroundColor="#e0e0e0"
+                rotation={230}
+                lineCap="round"
+                arcSweepAngle={260}
+                tintColorSecondary={'#f03702'}
+              >
+                {() => (
+                  <Text style={styles.labelProgress}>
+                    {(totalRegularPrice / user?.budget) * 100}
+                  </Text>
+                )}
+              </AnimatedCircularProgress>
+              <Text style={styles.subLabel}>{`$${
+                (totalRegularPrice / user?.budget) * 100
+              } of your $${user?.budget} budget used`}</Text>
             </>
           )}
         </View>
@@ -117,6 +136,9 @@ const HomeScreen = ({ navigation }) => {
               todayBackgroundColor: colors.primary,
               todayDotColor: colors.white,
               dotColor: colors.primary,
+              textMonthFontSize: 17,
+              textMonthFontWeight: 'bold',
+              monthTextColor: colors.black,
             }}
             style={styles.calendar}
             onDayPress={(day) => {
@@ -148,6 +170,8 @@ const styles = StyleSheet.create({
   calendar: {
     marginHorizontal: 12,
     borderRadius: 10,
+    elevation: 2,
+    paddingBottom: 6,
   },
   title: {
     color: 'black',
@@ -161,8 +185,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 10,
     marginTop: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    // paddingHorizontal: 20,
+    paddingVertical: 16,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.black,
+    marginBottom: 16,
+  },
+  labelProgress: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.black,
+  },
+  subLabel: {
+    fontSize: 14,
+    color: 'grey',
   },
   placeholder: {
     left: 0,
