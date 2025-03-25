@@ -14,8 +14,8 @@ function MainStackNav() {
       <Stack.Screen
         name="Details"
         component={DetailsScreen}
-        options={{ headerShown: false, animation: 'fade' }}
-        // options={{ headerShown: false, animation: 'slide_from_right' }}
+        // options={{ headerShown: false, animation: 'fade' }}
+        options={{ headerShown: false, animation: 'slide_from_right' }}
       />
       <Stack.Screen
         name="Edit"

@@ -9,6 +9,7 @@ const colors = {
   bg: '#F1F0F5',
   error: '#bd413d',
   green: '#42c229',
+  gray: 'gray',
 
   // Tops: '#007BFF',
   // Bottoms: '#28A745',

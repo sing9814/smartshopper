@@ -6,8 +6,7 @@ import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
 import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import PigSVG from '../../assets/pigSVG';
-import MoneySVG from '../../assets/moneySVG';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import ConfirmationPopup from '../components/confirmationPopup';
@@ -73,121 +72,129 @@ const DetailsScreen = ({ navigation }) => {
     return purchase.category;
   };
 
-  // console.log(
-  //   currentPurchase.regularPrice,
-  //   currentPurchase.wears.length,
-  //   (
-  //     currentPurchase.paidPrice || currentPurchase.regularPrice / currentPurchase.wears.length
-  //   ).toFixed(0)
-  // );
-
-  // {currentPurchase.wears.length > 0
-  //   ? currentPurchase.paidPrice ||
-  //     currentPurchase.regularPrice / currentPurchase.wears.length
-  //   : 'N/A'}
-
   return (
     <View style={styles.container}>
       {showConfirmation && <ConfirmationPopup message={`Wear added successfully!`} />}
-      <View style={styles.topNav}>
+
+      <View style={styles.topbar}>
         <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-          <FontAwesome name="long-arrow-left" size={30} color={colors.primary} />
+          <FontAwesome name="long-arrow-left" size={26} color={colors.white} />
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback
           onPress={() => navigation.navigate('Edit', { purchase: currentPurchase })}
         >
-          <FontAwesome name="pencil" size={26} color={colors.primary} />
+          <FontAwesome6 name="ellipsis" size={26} color={colors.white} />
         </TouchableWithoutFeedback>
       </View>
 
-      <View style={styles.textContainer}>
-        <View style={styles.listContainer}>
-          <View style={[styles.row, { alignItems: 'flex-start' }]}>
-            <Text style={styles.title}>{currentPurchase.name}</Text>
+      <View style={styles.paddingContainer}>
+        {/* <TouchableWithoutFeedback
+          onPress={() => navigation.navigate('Edit', { purchase: currentPurchase })}
+        >
+          <FontAwesome name="pencil" size={26} color={colors.black} />
+        </TouchableWithoutFeedback>
 
-            <Text style={styles.date}>{formatDate(currentPurchase.datePurchased)}</Text>
-          </View>
+        <TouchableWithoutFeedback onPress={onPressDelete}>
+          <FontAwesome name="trash" size={26} color={colors.black} />
+        </TouchableWithoutFeedback> */}
+
+        <View style={styles.topContainer}>
           <View style={styles.row}>
-            {currentPurchase.category?.category && (
-              <View>
-                <Text
-                  style={[
-                    styles.category,
-                    { backgroundColor: colors[currentPurchase.category?.category.split(' ')[0]] },
-                  ]}
-                >
-                  {displayCategoryName(currentPurchase.category)}
+            <View>
+              <Text style={styles.label}>Name</Text>
+              <Text style={styles.title}>{currentPurchase.name}</Text>
+            </View>
+
+            <View style={styles.alignRight}>
+              <Text style={styles.label}>Price</Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.paidPrice}>
+                  ${currentPurchase.paidPrice || currentPurchase.regularPrice}
                 </Text>
+                {currentPurchase.paidPrice && (
+                  <Text style={styles.regularPrice}>${currentPurchase.regularPrice}</Text>
+                )}
               </View>
-            )}
-            <View style={styles.group}>
-              <Text style={styles.paidPrice}>
-                ${currentPurchase.paidPrice || currentPurchase.regularPrice}
-              </Text>
-              {currentPurchase.paidPrice && (
-                <Text style={styles.regularPrice}>${currentPurchase.regularPrice}</Text>
+            </View>
+          </View>
+
+          <View>
+            <Text style={styles.label}>Category</Text>
+            <View style={styles.row}>
+              {currentPurchase.category?.category && (
+                <View>
+                  <Text
+                    style={[
+                      styles.category,
+                      { backgroundColor: colors[currentPurchase.category?.category.split(' ')[0]] },
+                    ]}
+                  >
+                    {displayCategoryName(currentPurchase.category)}
+                  </Text>
+                </View>
               )}
             </View>
           </View>
-          <Text style={styles.note}>{currentPurchase.note || '(no note)'}</Text>
-        </View>
-        <View style={styles.amtContainer}>
-          <View style={styles.card}>
-            <MoneySVG size={40} />
-            <View>
-              <Text style={styles.amtHeader}>Spent</Text>
-              <Text style={styles.amount}>
-                ${currentPurchase.paidPrice || currentPurchase.regularPrice}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.card}>
-            <PigSVG size={40} />
-            <View>
-              <Text style={styles.amtHeader}>Saved</Text>
-              <Text style={styles.amount}>
-                $
-                {currentPurchase.paidPrice
-                  ? Math.round((currentPurchase.regularPrice - currentPurchase.paidPrice) * 100) /
-                    100
-                  : '0'}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.listContainer}>
-          <View style={[styles.row, { alignItems: 'flex-start' }]}>
-            <Text style={styles.title}>{currentPurchase.wears.length} wears</Text>
-            <Text style={styles.paidPrice}>
-              CPW $
-              {currentPurchase.wears.length > 0
-                ? (
-                    (currentPurchase.paidPrice || currentPurchase.regularPrice) /
-                    currentPurchase.wears.length
-                  ).toFixed(2)
-                : 'N/A'}
-            </Text>
+
+          <View>
+            <Text style={styles.label}>Description</Text>
+            <Text style={styles.note}>{currentPurchase.note || '(no note)'}</Text>
           </View>
 
-          <Text style={styles.note}>
-            Last worn:{' '}
-            {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
-          </Text>
+          <View style={styles.line}></View>
+
+          <View style={styles.row}>
+            <View>
+              <Text style={styles.label}>Condition</Text>
+              <Text style={styles.text}>Slightly worn</Text>
+            </View>
+
+            <View style={styles.alignRight}>
+              <Text style={styles.label}>Wear count</Text>
+              <Text style={styles.text}>{currentPurchase.wears.length}</Text>
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View>
+              <Text style={styles.label}>Last worn</Text>
+              <Text style={styles.text}>
+                {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
+              </Text>
+            </View>
+
+            <View style={styles.alignRight}>
+              <Text style={styles.label}>Cost per wear (CPW)</Text>
+              <Text style={styles.text}>
+                $
+                {currentPurchase.wears.length > 0
+                  ? (
+                      (currentPurchase.paidPrice || currentPurchase.regularPrice) /
+                      currentPurchase.wears.length
+                    ).toFixed(2)
+                  : 'N/A'}
+              </Text>
+            </View>
+          </View>
+
           <CustomButton buttonStyle={styles.button} onPress={onPressAddWear} title="Add wear" />
         </View>
-      </View>
 
-      <Text style={styles.details}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
-      {currentPurchase.edited && (
-        <Text style={styles.details}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
-      )}
-      <CustomButton buttonStyle={styles.button} onPress={onPressDelete} title="Delete" />
-      <ConfirmationModal
-        data={currentPurchase.name}
-        visible={modalVisible}
-        onConfirm={handleDelete}
-        onCancel={() => setModalVisible(false)}
-      />
+        <View style={styles.bottomContainer}>
+          <Text style={styles.label}>Purchased: {formatDate(currentPurchase.datePurchased)}</Text>
+          <Text style={styles.label}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
+          {currentPurchase.edited && (
+            <Text style={styles.label}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
+          )}
+        </View>
+
+        <ConfirmationModal
+          data={currentPurchase.name}
+          visible={modalVisible}
+          onConfirm={handleDelete}
+          onCancel={() => setModalVisible(false)}
+        />
+      </View>
     </View>
   );
 };
@@ -195,25 +202,36 @@ const DetailsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.white,
   },
-  topNav: {
+  paddingContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  alignRight: {
+    alignItems: 'flex-end',
+  },
+  label: {
+    fontSize: 13,
+    color: colors.gray,
+    marginBottom: 4,
+  },
+  topbar: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    gap: 6,
+    paddingTop: 15,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    marginBottom: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
   },
   text: {
     color: 'black',
-  },
-  listContainer: {
-    backgroundColor: 'white',
-    padding: 16,
-    paddingTop: 12,
-    borderBottomColor: colors.bg,
-    borderRadius: 10,
-    gap: 8,
-    paddingBottom: 18,
+    fontWeight: 'bold',
   },
   title: {
     color: colors.black,
@@ -223,20 +241,21 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   note: {
-    color: 'gray',
+    color: colors.black,
     lineHeight: 22,
+    backgroundColor: colors.bg,
+    padding: 16,
+    borderRadius: 10,
   },
-  textContainer: {
-    flex: 1,
+  topContainer: {
     gap: 12,
   },
-  group: {
+  priceContainer: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
   },
   row: {
-    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -253,54 +272,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: colors.green,
-    marginRight: 2,
   },
   regularPrice: {
     textDecorationLine: 'line-through',
-    color: 'gray',
+    color: colors.gray,
+    marginLeft: 2,
   },
-  date: {
-    fontSize: 13,
-    color: '#adadad',
-    marginTop: 6,
-    marginBottom: 8,
-  },
-  details: {
-    fontSize: 13,
-    color: '#919191',
-    marginBottom: 8,
-  },
-  card: {
-    gap: 12,
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    flexDirection: 'row',
-    flexGrow: 1,
-    margin: 4,
-    padding: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  amtContainer: {
+  line: {
     width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    height: 1,
+    backgroundColor: colors.lightGrey,
+    opacity: 0.5,
+    marginVertical: 10,
     borderRadius: 10,
-    gap: 12,
   },
-  amtHeader: {
-    color: colors.black,
-    fontSize: 13,
-    marginBottom: 2,
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginBottom: 16,
+    gap: 4,
   },
-  amount: {
-    color: colors.black,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  amtTitle: {
-    color: colors.black,
-    fontSize: 16,
+  button: {
+    marginTop: 10,
   },
 });
 
