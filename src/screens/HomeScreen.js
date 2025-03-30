@@ -16,8 +16,33 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+// import Animated, {
+//   Easing,
+//   withSpring,
+//   useSharedValue,
+//   useAnimatedStyle,
+//   withTiming,
+// } from 'react-native-reanimated';
 
 const HomeScreen = ({ navigation }) => {
+  // const position = useSharedValue(0); // Shared value for animation
+
+  // // Create animated style based on the shared value
+  // const animatedStyle = useAnimatedStyle(() => {
+  //   return {
+  //     transform: [
+  //       {
+  //         translateX: withSpring(position.value, { damping: 2, stiffness: 100 }), // Animation style
+  //       },
+  //     ],
+  //   };
+  // });
+
+  // // Button handler to move the box
+  // const moveBox = () => {
+  //   position.value = position.value === 0 ? 300 : 0; // Toggle between 0 and 300
+  // };
+
   const dispatch = useDispatch();
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -146,6 +171,10 @@ const HomeScreen = ({ navigation }) => {
             }}
             markedDates={getMarkedDates()}
           />
+          // <View style={styles.container3}>
+          //   <Animated.View style={[styles.box, animatedStyle]} />
+          //   <Button title="Move Box" onPress={moveBox} />
+          // </View>
         )}
       </ScrollView>
       <BottomOverlay
@@ -161,6 +190,16 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  container3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  box: {
+    width: 100,
+    height: 100,
+    backgroundColor: 'tomato',
+  },
   container: {
     flex: 1,
   },

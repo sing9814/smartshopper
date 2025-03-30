@@ -18,7 +18,7 @@
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "react": "18.2.0",
-    "react-native": "0.73.1",
+    "react-native": "0.74.0",
     "react-native-calendars": "^1.1304.1",
     "react-native-circular-progress": "^1.4.1",
     "react-native-date-picker": "^5.0.1",
@@ -38,10 +38,10 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
-    "@react-native/babel-preset": "^0.73.18",
-    "@react-native/eslint-config": "^0.73.1",
-    "@react-native/metro-config": "^0.73.2",
-    "@react-native/typescript-config": "^0.73.1",
+    "@react-native/babel-preset": "0.74.81",
+    "@react-native/eslint-config": "0.74.81",
+    "@react-native/metro-config": "0.74.81",
+    "@react-native/typescript-config": "0.74.81",
     "@types/react": "^18.2.6",
     "@types/react-test-renderer": "^18.0.0",
     "babel-jest": "^29.6.3",
@@ -63,5 +63,6 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "packageManager": "yarn@3.6.4"
 }
