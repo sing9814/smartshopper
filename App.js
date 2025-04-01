@@ -7,9 +7,9 @@ import colors from './src/utils/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
 import store from './src/redux/store';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { userExists } from './src/utils/firebase';
-import { useSelector } from 'react-redux';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,7 +41,7 @@ function AppWrapper() {
       setLoading(false);
     });
 
-    return unsubscribe; // Unsubscribe on unmount
+    return unsubscribe;
   }, []);
 
   if (loading) {
@@ -70,7 +70,9 @@ function AppWrapper() {
 export default function App() {
   return (
     <Provider store={store}>
-      <AppWrapper />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AppWrapper />
+      </GestureHandlerRootView>
     </Provider>
   );
 }

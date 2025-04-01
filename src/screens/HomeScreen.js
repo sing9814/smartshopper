@@ -9,39 +9,16 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import colors from '../utils/colors';
-import BottomOverlay from '../components/overlay';
 import { fetchUserDataAndPurchases } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-// import Animated, {
-//   Easing,
-//   withSpring,
-//   useSharedValue,
-//   useAnimatedStyle,
-//   withTiming,
-// } from 'react-native-reanimated';
+import BottomSheet from '../components/bottomSheet';
 
-const HomeScreen = ({ navigation }) => {
-  // const position = useSharedValue(0); // Shared value for animation
-
-  // // Create animated style based on the shared value
-  // const animatedStyle = useAnimatedStyle(() => {
-  //   return {
-  //     transform: [
-  //       {
-  //         translateX: withSpring(position.value, { damping: 2, stiffness: 100 }), // Animation style
-  //       },
-  //     ],
-  //   };
-  // });
-
-  // // Button handler to move the box
-  // const moveBox = () => {
-  //   position.value = position.value === 0 ? 300 : 0; // Toggle between 0 and 300
-  // };
+const HomeScreen = () => {
+  const [open, setOpen] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -168,23 +145,16 @@ const HomeScreen = ({ navigation }) => {
             style={styles.calendar}
             onDayPress={(day) => {
               setSelectedDate(day.dateString);
+              setOpen(true);
             }}
             markedDates={getMarkedDates()}
           />
-          // <View style={styles.container3}>
-          //   <Animated.View style={[styles.box, animatedStyle]} />
-          //   <Button title="Move Box" onPress={moveBox} />
-          // </View>
         )}
       </ScrollView>
-      <BottomOverlay
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        navigation={navigation}
-        list={
-          selectedDate ? purchases.filter((product) => product.datePurchased === selectedDate) : []
-        }
-      />
+
+      <BottomSheet visible={open} onClose={() => setOpen(false)}>
+        <Text>{selectedDate}</Text>
+      </BottomSheet>
     </View>
   );
 };
