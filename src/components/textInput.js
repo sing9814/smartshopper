@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     color: colors.black,
     maxHeight: 200,
     lineHeight: 26,
+    fontSize: 15,
   },
   disabled: {
     backgroundColor: '#dddddd',
