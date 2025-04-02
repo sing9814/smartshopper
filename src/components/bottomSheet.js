@@ -1,36 +1,48 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Pressable } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet, Dimensions, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
+  withSpring,
   runOnJS,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.4;
+const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
 const DISMISS_THRESHOLD = 100;
 
-export default function BottomSheet({ visible, onClose, children }) {
-  const translateY = useSharedValue(SHEET_HEIGHT);
+export default function BottomSheet({ visible, onClose, height = '40%', children }) {
+  // Convert % string or number to a pixel value
+  const resolvedHeight = useMemo(() => {
+    if (typeof height === 'string' && height.endsWith('%')) {
+      const percent = parseFloat(height) / 100;
+      return SCREEN_HEIGHT * percent;
+    }
+    return typeof height === 'number' ? height : DEFAULT_HEIGHT;
+  }, [height]);
+
+  const translateY = useSharedValue(resolvedHeight);
   const backdropOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
       backdropOpacity.value = withTiming(0.3, { duration: 200 });
-      translateY.value = withSpring(0);
+      translateY.value = withSpring(0, {
+        damping: 18,
+        stiffness: 250,
+      });
     } else {
-      translateY.value = SHEET_HEIGHT;
+      translateY.value = resolvedHeight;
       backdropOpacity.value = withTiming(0, { duration: 200 });
     }
-  }, [visible]);
+  }, [visible, resolvedHeight]);
 
-  const animateAndClose = () => {
+  const closeSheet = () => {
     'worklet';
     backdropOpacity.value = withTiming(0, { duration: 200 });
-    translateY.value = withTiming(SHEET_HEIGHT, {}, () => {
+    translateY.value = withTiming(resolvedHeight, {}, () => {
       runOnJS(onClose)();
     });
   };
@@ -43,9 +55,12 @@ export default function BottomSheet({ visible, onClose, children }) {
     })
     .onEnd(() => {
       if (translateY.value > DISMISS_THRESHOLD) {
-        animateAndClose();
+        closeSheet();
       } else {
-        translateY.value = withSpring(0);
+        translateY.value = withSpring(0, {
+          damping: 18,
+          stiffness: 250,
+        });
       }
     });
 
@@ -55,21 +70,22 @@ export default function BottomSheet({ visible, onClose, children }) {
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
+    height: resolvedHeight,
   }));
 
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.container, backdropStyle]}>
+    <Animated.View style={[StyleSheet.absoluteFill, styles.container, backdropStyle]}>
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={() => {
-          animateAndClose();
+          runOnJS(closeSheet)();
         }}
       />
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.sheet, sheetStyle]} onStartShouldSetResponder={() => true}>
-          <View style={styles.handle} />
+          <Animated.View style={styles.handle} />
           {children}
         </Animated.View>
       </GestureDetector>
@@ -79,17 +95,17 @@ export default function BottomSheet({ visible, onClose, children }) {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
   },
   sheet: {
-    height: SHEET_HEIGHT,
     width: '100%',
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 10,
     alignItems: 'center',
+    // overflow: 'hidden',
+    paddingHorizontal: 16,
   },
   handle: {
     width: 50,

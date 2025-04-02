@@ -16,8 +16,12 @@ import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
+import CustomInput from '../components/textInput';
+import AddButton from '../components/addButton';
+import { formatDate } from '../utils/date';
+import PurchaseList from '../components/purchaseList';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [open, setOpen] = useState(false);
 
   const dispatch = useDispatch();
@@ -25,6 +29,8 @@ const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [name, setName] = useState(false);
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
@@ -70,7 +76,7 @@ const HomeScreen = () => {
   const totalRegularPrice = purchases.reduce((total, purchase) => {
     const purchaseDate = new Date(purchase.datePurchased);
     const purchaseYear = purchaseDate.getFullYear();
-    const purchaseMonth = purchaseDate.getMonth() + 1;
+    const purchaseMonth = purchaseDate.getUTCMonth() + 1;
 
     if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
       return total + parseFloat(purchase.regularPrice);
@@ -81,7 +87,7 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header title={loading ? ' ' : `Monthly Budget`} />
+      <Header title={loading ? ' ' : `Overview`} />
 
       <ScrollView
         contentContainerStyle={styles.scrollView}
@@ -152,18 +158,55 @@ const HomeScreen = () => {
         )}
       </ScrollView>
 
-      <BottomSheet visible={open} onClose={() => setOpen(false)}>
-        <Text>{selectedDate}</Text>
+      <BottomSheet visible={open} onClose={() => setOpen(false)} height={'50%'}>
+        <View style={styles.sheetContainer}>
+          <Text style={styles.sheetText}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
+          <View style={styles.input}>
+            <CustomInput
+              label="Add item"
+              value={name}
+              onChangeText={setName}
+              component={
+                <AddButton
+                  onPress={() => [navigation.navigate('Add', { name: name }), setName('')]}
+                  size={20}
+                />
+              }
+            />
+          </View>
+          <View style={styles.list}>
+            <PurchaseList
+              purchases={
+                selectedDate
+                  ? purchases.filter((product) => product.datePurchased === selectedDate)
+                  : []
+              }
+              overlay
+              navigation={navigation}
+              onItemLongPress={() => {}}
+            />
+          </View>
+        </View>
       </BottomSheet>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container3: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sheetContainer: {
+    width: '100%',
+    gap: 8,
+  },
+  sheetText: {
+    alignSelf: 'center',
+    color: colors.gray,
+  },
+  input: {
+    marginBottom: 12,
+  },
+  list: {
+    width: '100%',
+    height: '100%',
   },
   box: {
     width: 100,
