@@ -16,7 +16,7 @@ import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
-import CustomInput from '../components/textInput';
+import CustomInput from '../components/customInput';
 import AddButton from '../components/addButton';
 import { formatDate } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
@@ -158,9 +158,14 @@ const HomeScreen = ({ navigation }) => {
         )}
       </ScrollView>
 
-      <BottomSheet visible={open} onClose={() => setOpen(false)} height={'50%'}>
+      <BottomSheet
+        title={selectedDate ? formatDate(selectedDate) : ''}
+        visible={open}
+        onClose={() => setOpen(false)}
+        height={'50%'}
+      >
         <View style={styles.sheetContainer}>
-          <Text style={styles.sheetText}>{selectedDate ? formatDate(selectedDate) : ''}</Text>
+          {/* <Text style={styles.sheetText}>{selectedDate ? formatDate(selectedDate) : ''}</Text> */}
           <View style={styles.input}>
             <CustomInput
               label="Add item"

@@ -6,7 +6,7 @@ import DatePicker from 'react-native-date-picker';
 import CustomButton from './button';
 import colors from '../utils/colors';
 import AddButton from './addButton';
-import CustomInput from './textInput';
+import CustomInput from './customInput';
 import CustomDropdown from './dropdown';
 import { categories } from '../../assets/json/categories';
 import Error from './error';
@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import uuid from 'react-native-uuid';
 import { generateFirestoreTimestamp } from '../utils/date';
+import CustomCategorySheet from './customCategorySheet';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const dispatch = useDispatch();
@@ -38,6 +39,9 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
+
+  const [showCustomSheet, setShowCustomSheet] = useState(false);
+  const [customSubcategoryName, setCustomSubcategoryName] = useState('');
 
   useEffect(() => {
     if (purchase) {
@@ -211,6 +215,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
             onSelect={handleSelect}
             selectedItem={category}
             setSelectedItem={setCategory}
+            onOpenCustomSheet={(searchValue) => {
+              setCustomSubcategoryName(searchValue);
+              setShowCustomSheet(true);
+            }}
           />
 
           <CustomButton
@@ -269,6 +277,20 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           title={edit ? 'Update' : 'Submit'}
         />
       </View>
+      <CustomCategorySheet
+        visible={showCustomSheet}
+        onClose={() => setShowCustomSheet(false)}
+        items={categories}
+        initialSubcategoryName={customSubcategoryName}
+        onSave={(newItem) => {
+          const match = categories.find((c) => c.name === newItem.category);
+          if (match && !match.subCategories.includes(newItem.subCategory)) {
+            match.subCategories.push(newItem.subCategory);
+          }
+          setCategory(newItem);
+          setShowCustomSheet(false);
+        }}
+      />
     </View>
   );
 };

@@ -16,7 +16,7 @@ import firestore from '@react-native-firebase/firestore';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
 import Slider from '@react-native-community/slider';
-import CustomInput from '../components/textInput';
+import CustomInput from '../components/customInput';
 
 const OnboardingScreen = ({ route }) => {
   const dispatch = useDispatch();

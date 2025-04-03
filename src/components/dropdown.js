@@ -15,7 +15,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../utils/colors';
 import CustomButton from './button';
 
-const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
+const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpenCustomSheet }) => {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
@@ -149,9 +149,8 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem }) => {
                     <CustomButton
                       buttonStyle={styles.button}
                       onPress={() => {
-                        console.log(`Creating new category: ${search}`);
                         setVisible(false);
-                        setSearch('');
+                        onOpenCustomSheet?.(search); // Pass the current search value up to the form
                       }}
                       title="Create custom category"
                     />

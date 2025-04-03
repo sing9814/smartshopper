@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, Dimensions, Pressable } from 'react-native';
+import { StyleSheet, Dimensions, Pressable, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,12 +8,13 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import colors from '../utils/colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
 const DISMISS_THRESHOLD = 100;
 
-export default function BottomSheet({ visible, onClose, height = '40%', children }) {
+const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
   // Convert % string or number to a pixel value
   const resolvedHeight = useMemo(() => {
     if (typeof height === 'string' && height.endsWith('%')) {
@@ -86,12 +87,13 @@ export default function BottomSheet({ visible, onClose, height = '40%', children
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.sheet, sheetStyle]} onStartShouldSetResponder={() => true}>
           <Animated.View style={styles.handle} />
+          <Text style={styles.title}>{title}</Text>
           {children}
         </Animated.View>
       </GestureDetector>
     </Animated.View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -114,4 +116,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc',
     marginBottom: 10,
   },
+  title: {
+    alignSelf: 'center',
+    color: colors.gray,
+    paddingBottom: 8,
+  },
 });
+
+export default BottomSheet;

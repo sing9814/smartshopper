@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Button, Text, StyleSheet, Pressable } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
-import CustomInput from '../components/textInput';
+import CustomInput from '../components/customInput';
 import Error from '../components/error';
 import Logo from '../../assets/logo';
 import colors from '../utils/colors';
