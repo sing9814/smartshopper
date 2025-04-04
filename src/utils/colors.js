@@ -10,6 +10,7 @@ const colors = {
   error: '#bd413d',
   green: '#42c229',
   gray: 'gray',
+  red: '#C82828',
 
   // Tops: '#007BFF',
   // Bottoms: '#28A745',

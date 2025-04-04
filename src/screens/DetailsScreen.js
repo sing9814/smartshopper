@@ -12,6 +12,7 @@ import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActio
 import ConfirmationPopup from '../components/confirmationPopup';
 import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
+import DetailsSheet from '../components/detailsSheet';
 
 const DetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,8 @@ const DetailsScreen = ({ navigation }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   useEffect(() => {
     if (showConfirmation) {
@@ -80,9 +83,7 @@ const DetailsScreen = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={26} color={colors.white} />
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback
-          onPress={() => navigation.navigate('Edit', { purchase: currentPurchase })}
-        >
+        <TouchableWithoutFeedback onPress={() => setIsSheetVisible(true)}>
           <FontAwesome6 name="ellipsis" size={26} color={colors.white} />
         </TouchableWithoutFeedback>
       </View>
@@ -195,6 +196,17 @@ const DetailsScreen = ({ navigation }) => {
           onCancel={() => setModalVisible(false)}
         />
       </View>
+
+      <DetailsSheet
+        visible={isSheetVisible}
+        onClose={() => setIsSheetVisible(false)}
+        navigation={navigation}
+        currentPurchase={currentPurchase}
+        purchases={purchases}
+        dispatch={dispatch}
+        setPurchases={setPurchases}
+        setModalVisible={setModalVisible}
+      />
     </View>
   );
 };

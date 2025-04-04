@@ -23,22 +23,17 @@ const CustomCategorySheet = ({ visible, onClose, items, onSave, initialSubcatego
   }, [visible, initialSubcategoryName]);
 
   return (
-    <BottomSheet
-      title={'Create Custom Subcategory'}
-      visible={visible}
-      onClose={onClose}
-      height="60%"
-    >
+    <BottomSheet title={'Create Custom Category'} visible={visible} onClose={onClose} height="60%">
       <Text style={styles.label}>Name</Text>
       <TextInput
         style={styles.sheetInput}
-        placeholder="Enter subcategory name"
+        placeholder="Enter category name"
         value={customName}
         onChangeText={setCustomName}
       />
 
       <Text style={styles.label}>
-        Category <Text style={{ color: 'gray' }}>(Selected: {selectedCategoryName || 'None'})</Text>
+        Group <Text style={{ color: 'gray' }}>(Selected: {selectedCategoryName || 'None'})</Text>
       </Text>
 
       <View style={styles.categoryButtonGroup}>
