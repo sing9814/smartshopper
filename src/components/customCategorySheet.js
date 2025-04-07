@@ -3,18 +3,12 @@ import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import BottomSheet from './bottomSheet';
 import CustomButton from './button';
 import colors from '../utils/colors';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
-const CustomCategorySheet = ({ visible, onClose, items, onSave, initialSubcategoryName = '' }) => {
+const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName = '', onSave }) => {
   const [customName, setCustomName] = useState(initialSubcategoryName);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
-
-  const handleSave = () => {
-    if (!customName || !selectedCategoryName) return;
-    onSave({ category: selectedCategoryName, subCategory: customName });
-    setCustomName('');
-    setSelectedCategoryName('');
-    onClose();
-  };
 
   useEffect(() => {
     if (visible) {
@@ -22,8 +16,45 @@ const CustomCategorySheet = ({ visible, onClose, items, onSave, initialSubcatego
     }
   }, [visible, initialSubcategoryName]);
 
+  const handleSave = async () => {
+    if (!customName || !selectedCategoryName) return;
+
+    try {
+      const userID = auth().currentUser.uid;
+      const customCategoriesRef = firestore()
+        .collection('users')
+        .doc(userID)
+        .collection('customCategories');
+
+      const newEntry = {
+        category: selectedCategoryName,
+        subCategory: customName,
+      };
+
+      // Prevent duplicates
+      const existing = await customCategoriesRef
+        .where('category', '==', selectedCategoryName)
+        .where('subCategory', '==', customName)
+        .get();
+
+      let wasAdded = false;
+
+      if (existing.empty) {
+        await customCategoriesRef.add(newEntry);
+        wasAdded = true;
+      }
+
+      onSave(newEntry, wasAdded);
+      onClose();
+      setCustomName('');
+      setSelectedCategoryName('');
+    } catch (error) {
+      console.error('Error saving custom category:', error);
+    }
+  };
+
   return (
-    <BottomSheet title={'Create Custom Category'} visible={visible} onClose={onClose} height="60%">
+    <BottomSheet title="Create Custom Category" visible={visible} onClose={onClose} height="60%">
       <Text style={styles.label}>Name</Text>
       <TextInput
         style={styles.sheetInput}

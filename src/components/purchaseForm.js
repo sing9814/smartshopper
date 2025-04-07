@@ -37,7 +37,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const [note, setNote] = useState(null);
   const [disabled, setDisabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
   const [showClearButton, setShowClearButton] = useState(false);
 
   const [showCustomSheet, setShowCustomSheet] = useState(false);
@@ -64,13 +64,11 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   );
 
   useEffect(() => {
-    if (showConfirmation) {
-      const timer = setTimeout(() => {
-        setShowConfirmation(false);
-      }, 2000);
+    if (confirmationMessage) {
+      const timer = setTimeout(() => setConfirmationMessage(''), 2000);
       return () => clearTimeout(timer);
     }
-  }, [showConfirmation]);
+  }, [confirmationMessage]);
 
   useEffect(() => {
     const checkFields = () => {
@@ -178,7 +176,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         await userRef.collection('Purchases').doc(id).set(newPurchase);
         dispatch(setPurchases([newPurchase, ...purchases]));
         resetFields();
-        setShowConfirmation(true);
+        setConfirmationMessage('Purchase added successfully!');
       } catch (error) {
         console.error('Error adding purchase: ', error);
         setErrorMessage('An error occurred while adding the purchase. Please try again.');
@@ -198,7 +196,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
       <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'}></Header>
-      {showConfirmation && <ConfirmationPopup message={`Purchase added successfully!`} />}
+      {confirmationMessage !== '' && <ConfirmationPopup message={confirmationMessage} />}
       <View style={styles.container}>
         {errorMessage && <Error title={errorMessage} style={{ marginTop: 12 }}></Error>}
 
@@ -282,13 +280,12 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         onClose={() => setShowCustomSheet(false)}
         items={categories}
         initialSubcategoryName={customSubcategoryName}
-        onSave={(newItem) => {
-          const match = categories.find((c) => c.name === newItem.category);
-          if (match && !match.subCategories.includes(newItem.subCategory)) {
-            match.subCategories.push(newItem.subCategory);
-          }
+        onSave={(newItem, wasAdded) => {
           setCategory(newItem);
           setShowCustomSheet(false);
+          if (wasAdded) {
+            setConfirmationMessage('Custom category added!');
+          }
         }}
       />
     </View>
