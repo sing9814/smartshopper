@@ -8,7 +8,6 @@ import colors from '../utils/colors';
 import AddButton from './addButton';
 import CustomInput from './customInput';
 import CustomDropdown from './dropdown';
-import { categories } from '../../assets/json/categories';
 import Error from './error';
 import ConfirmationPopup from './confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,10 +18,12 @@ import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActio
 import uuid from 'react-native-uuid';
 import { generateFirestoreTimestamp } from '../utils/date';
 import CustomCategorySheet from './customCategorySheet';
+import { setCategories } from '../redux/actions/userActions';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases);
+  const categories = useSelector((state) => state.user.categories);
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
   const [date, setDate] = useState(new Date());
@@ -115,6 +116,19 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     }
     setErrorMessage(null);
     return true;
+  };
+
+  const mergeCategory = (categories, newItem) => {
+    const updated = [...categories];
+    const match = updated.find((c) => c.name === newItem.category);
+    if (match) {
+      if (!match.subCategories.includes(newItem.subCategory)) {
+        match.subCategories.push(newItem.subCategory);
+      }
+    } else {
+      updated.push({ name: newItem.category, subCategories: [newItem.subCategory] });
+    }
+    return updated;
   };
 
   const updatePurchaseInArray = (purchase) => {
@@ -281,11 +295,12 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         items={categories}
         initialSubcategoryName={customSubcategoryName}
         onSave={(newItem, wasAdded) => {
+          const updated = mergeCategory(categories, newItem);
+          dispatch(setCategories(updated));
+
           setCategory(newItem);
           setShowCustomSheet(false);
-          if (wasAdded) {
-            setConfirmationMessage('Custom category added!');
-          }
+          setConfirmationMessage(wasAdded ? 'Custom category added!' : 'Category already exists.');
         }}
       />
     </View>

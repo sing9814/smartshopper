@@ -60,17 +60,13 @@ const DetailsScreen = ({ navigation }) => {
     setShowConfirmation(true);
   };
 
-  const onPressDelete = () => {
-    setModalVisible(true);
-  };
-
   const displayCategoryName = (purchase) => {
-    if (purchase.subCategory) {
-      const akaIndex = purchase.subCategory.toLowerCase().indexOf('aka');
+    if (purchase.subCategory.name) {
+      const akaIndex = purchase.subCategory.name.toLowerCase().indexOf('aka');
       if (akaIndex !== -1) {
-        return `${purchase.category} - ${purchase.subCategory.substring(0, akaIndex)}`;
+        return `${purchase.category} - ${purchase.subCategory.name.substring(0, akaIndex)}`;
       }
-      return `${purchase.category} - ${purchase.subCategory}`;
+      return `${purchase.category} - ${purchase.subCategory.name}`;
     }
     return purchase.category;
   };
@@ -89,16 +85,6 @@ const DetailsScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.paddingContainer}>
-        {/* <TouchableWithoutFeedback
-          onPress={() => navigation.navigate('Edit', { purchase: currentPurchase })}
-        >
-          <FontAwesome name="pencil" size={26} color={colors.black} />
-        </TouchableWithoutFeedback>
-
-        <TouchableWithoutFeedback onPress={onPressDelete}>
-          <FontAwesome name="trash" size={26} color={colors.black} />
-        </TouchableWithoutFeedback> */}
-
         <View style={styles.topContainer}>
           <View style={styles.row}>
             <View>

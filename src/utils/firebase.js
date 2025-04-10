@@ -94,3 +94,56 @@ export const userExists = async (id) => {
     return false;
   }
 };
+
+export const fetchMergedCategories = async (defaultCategories) => {
+  const userID = auth().currentUser.uid;
+
+  const customSnapshot = await firestore()
+    .collection('users')
+    .doc(userID)
+    .collection('customCategories')
+    .get();
+
+  const customData = customSnapshot.docs.map((doc) => doc.data());
+
+  // Convert default subcategories into { name, custom: false }
+  const merged = defaultCategories.map((cat) => ({
+    name: cat.name,
+    subCategories: cat.subCategories.map((name) => ({ name, custom: false })),
+  }));
+
+  for (const { category, subCategory } of customData) {
+    const catMatch = merged.find((c) => c.name === category);
+
+    if (catMatch) {
+      const exists = catMatch.subCategories.some((s) => s.name === subCategory);
+      if (!exists) {
+        catMatch.subCategories.push({ name: subCategory, custom: true });
+      }
+    } else {
+      merged.push({
+        name: category,
+        subCategories: [{ name: subCategory, custom: true }],
+      });
+    }
+  }
+
+  return merged;
+};
+
+export const saveCustomCategory = async ({ category, subCategory }) => {
+  const userID = auth().currentUser.uid;
+  const customRef = firestore().collection('users').doc(userID).collection('customCategories');
+
+  const existing = await customRef
+    .where('category', '==', category)
+    .where('subCategory', '==', subCategory)
+    .get();
+
+  if (existing.empty) {
+    await customRef.add({ category, subCategory, custom: true });
+    return true;
+  }
+
+  return false;
+};

@@ -46,7 +46,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
       .filter((category) => {
         const nameMatches = category.name.toLowerCase().includes(search.toLowerCase());
         const subMatches = category.subCategories.some((sub) =>
-          sub.toLowerCase().includes(search.toLowerCase())
+          sub.name.toLowerCase().includes(search.toLowerCase())
         );
         return nameMatches || subMatches;
       })
@@ -54,7 +54,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
         const categoryItems = [{ category: category.name, subCategory: null }];
         if (expandedCategories.has(category.name) || search) {
           category.subCategories
-            .filter((sub) => sub.toLowerCase().includes(search.toLowerCase()))
+            .filter((sub) => sub.name.toLowerCase().includes(search.toLowerCase()))
             .forEach((subCategory) => categoryItems.push({ category: category.name, subCategory }));
         }
         return categoryItems;
@@ -81,12 +81,12 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
   const renderItem = useCallback(
     ({ item, index }) => {
       const isCategory = !item.subCategory;
-      const displayText = item.subCategory || item.category;
+      const displayText = item.subCategory?.name || item.category;
       const isExpanded = expandedCategories.has(item.category);
 
       return (
         <TouchableOpacity
-          key={`${item.category}-${item.subCategory}-${index}`}
+          key={`${item.category}-${item.subCategory?.name || 'header'}-${index}`}
           style={[
             styles.item,
             item.subCategory && styles.subCategoryItem,
@@ -94,7 +94,11 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
           ]}
           onPress={() => (isCategory ? handleToggleCategory(item.category) : handleSelect(item))}
         >
-          <Text style={styles.itemText}>{displayText}</Text>
+          <View style={styles.customLabelContainer}>
+            <Text style={styles.itemText}>{displayText}</Text>
+            {item.subCategory?.custom && <Text style={styles.customTag}>(custom)</Text>}
+          </View>
+
           {isCategory && !search && (
             <Ionicons
               name="chevron-down"
@@ -115,7 +119,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
         <Text style={[styles.selectedText, { color: selectedItem ? 'black' : 'gray' }]}>
           {selectedItem
             ? `${selectedItem.category}${
-                selectedItem.subCategory ? ` - ${selectedItem.subCategory}` : ''
+                selectedItem.subCategory ? ` - ${selectedItem.subCategory.name}` : ''
               }`
             : 'Select category'}
         </Text>
@@ -159,7 +163,9 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
                   <FlatList
                     data={filteredItems}
                     renderItem={renderItem}
-                    keyExtractor={(item, index) => `${item.category}-${item.subCategory}-${index}`}
+                    keyExtractor={(item, index) =>
+                      `${item.category}-${item.subCategory?.name}-${index}`
+                    }
                     keyboardShouldPersistTaps="handled"
                   />
                 )}
@@ -242,6 +248,11 @@ const styles = StyleSheet.create({
   lastItem: {
     borderBottomWidth: 0,
   },
+  customLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
   itemText: {
     fontSize: 15,
     color: colors.black,
@@ -251,6 +262,10 @@ const styles = StyleSheet.create({
   },
   arrowUp: {
     transform: [{ rotate: '180deg' }],
+  },
+  customTag: {
+    color: 'gray',
+    fontSize: 13,
   },
 });
 

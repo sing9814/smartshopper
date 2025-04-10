@@ -9,17 +9,19 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import colors from '../utils/colors';
-import { fetchUserDataAndPurchases } from '../utils/firebase';
+import { fetchUserDataAndPurchases, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
+import { setCategories } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
 import CustomInput from '../components/customInput';
 import AddButton from '../components/addButton';
 import { formatDate } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
+import { categories as defaultCategories } from '../../assets/json/categories';
 
 const HomeScreen = ({ navigation }) => {
   const [open, setOpen] = useState(false);
@@ -34,11 +36,14 @@ const HomeScreen = ({ navigation }) => {
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
+  const users = useSelector((state) => state.user.categories);
 
   const fetchData = async () => {
     const { userData, purchaseData } = await fetchUserDataAndPurchases();
+    const merged = await fetchMergedCategories(defaultCategories);
     dispatch(setUser(userData));
     dispatch(setPurchases(purchaseData));
+    dispatch(setCategories(merged));
     setLoading(false);
     setRefreshing(false);
   };

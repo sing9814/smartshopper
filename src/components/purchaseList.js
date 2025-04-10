@@ -36,12 +36,12 @@ const PurchaseList = ({
   };
 
   const getCategoryName = (item) => {
-    if (item?.subCategory) {
-      const akaIndex = item.subCategory.toLowerCase().indexOf('aka');
+    if (item?.subCategory.name) {
+      const akaIndex = item.subCategory.name.toLowerCase().indexOf('aka');
       if (akaIndex !== -1) {
-        return item.subCategory.substring(0, akaIndex);
+        return item.subCategory.name.substring(0, akaIndex);
       }
-      return item.subCategory;
+      return item.subCategory.name;
     }
     return item.category;
   };

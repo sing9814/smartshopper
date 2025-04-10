@@ -1,5 +1,6 @@
 export const SET_USER = 'SET_USER';
 export const SET_USER_ONBOARDED = 'USER_ONBOARDED';
+export const SET_CATEGORIES = 'CATEGORIES';
 
 export const setUser = (user) => {
   return {
@@ -7,9 +8,15 @@ export const setUser = (user) => {
     payload: user,
   };
 };
-export const setUserOnboarded = (user) => {
+export const setUserOnboarded = (onboarded) => {
   return {
     type: SET_USER_ONBOARDED,
-    payload: user,
+    payload: onboarded,
+  };
+};
+export const setCategories = (categories) => {
+  return {
+    type: SET_CATEGORIES,
+    payload: categories,
   };
 };

@@ -5,6 +5,7 @@ import CustomButton from './button';
 import colors from '../utils/colors';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { saveCustomCategory } from '../utils/firebase';
 
 const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName = '', onSave }) => {
   const [customName, setCustomName] = useState(initialSubcategoryName);
@@ -19,38 +20,22 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
   const handleSave = async () => {
     if (!customName || !selectedCategoryName) return;
 
-    try {
-      const userID = auth().currentUser.uid;
-      const customCategoriesRef = firestore()
-        .collection('users')
-        .doc(userID)
-        .collection('customCategories');
+    const wasSaved = await saveCustomCategory({
+      category: selectedCategoryName,
+      subCategory: customName,
+    });
 
-      const newEntry = {
+    onSave?.(
+      {
         category: selectedCategoryName,
-        subCategory: customName,
-      };
+        subCategory: { name: customName, custom: true },
+      },
+      wasSaved
+    );
 
-      // Prevent duplicates
-      const existing = await customCategoriesRef
-        .where('category', '==', selectedCategoryName)
-        .where('subCategory', '==', customName)
-        .get();
-
-      let wasAdded = false;
-
-      if (existing.empty) {
-        await customCategoriesRef.add(newEntry);
-        wasAdded = true;
-      }
-
-      onSave(newEntry, wasAdded);
-      onClose();
-      setCustomName('');
-      setSelectedCategoryName('');
-    } catch (error) {
-      console.error('Error saving custom category:', error);
-    }
+    onClose();
+    setCustomName('');
+    setSelectedCategoryName('');
   };
 
   return (
