@@ -54,7 +54,7 @@ function AppWrapper() {
           backgroundColor: colors.primary,
         }}
       >
-        <ActivityIndicator size="large" color={colors.white} />
+        <ActivityIndicator size="large" color="white" />
       </View>
     );
   }

@@ -15,10 +15,11 @@ function MainTabNav() {
       screenOptions={({ route }) => ({
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: '#fff',
+          backgroundColor: colors.white,
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
           height: 60,
+          borderBlockColor: colors.lightGrey,
         },
         headerShown: false,
         tabBarActiveTintColor: colors.primary,

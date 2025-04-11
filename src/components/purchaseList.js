@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   itemContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     flexDirection: 'row',
     padding: 10,
     borderBottomColor: colors.bg,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   note: {
-    color: 'gray',
+    color: colors.gray,
     flexShrink: 1,
     marginRight: 30,
     // maxWidth: '70%',
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   category: {
-    color: 'white',
+    color: colors.white,
     paddingVertical: 3,
     paddingBottom: 5,
     paddingHorizontal: 8,
@@ -186,26 +186,26 @@ const styles = StyleSheet.create({
   },
   regularPrice: {
     textDecorationLine: 'line-through',
-    color: 'gray',
+    color: colors.gray,
   },
   date: {
     fontSize: 14,
-    color: '#adadad',
+    color: colors.gray,
     marginLeft: 10,
   },
   wears: {
     fontSize: 14,
-    color: '#adadad',
+    color: colors.gray,
   },
   footer: {
     padding: 8,
     alignItems: 'center',
   },
   footerText: {
-    color: 'gray',
+    color: colors.gray,
   },
   placeholder: {
-    backgroundColor: 'lightgrey',
+    backgroundColor: colors.lightGrey,
     width: '98%',
     height: 80,
     marginHorizontal: 4,

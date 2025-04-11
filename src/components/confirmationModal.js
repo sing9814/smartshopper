@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: 300,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 16,
-    color: 'gray',
+    color: colors.gray,
     marginBottom: 20,
     marginHorizontal: 16,
     lineHeight: 25,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   buttonCancel: {
     flex: 1,
-    backgroundColor: 'gray',
+    backgroundColor: colors.gray,
   },
 });
 

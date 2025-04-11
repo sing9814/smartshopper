@@ -6,29 +6,12 @@ const colors = {
   black: '#000',
   white: '#fff',
   lightGrey: '#C3C7D2',
+  lightestGrey: '#f0f0f0',
   bg: '#F1F0F5',
   error: '#bd413d',
   green: '#42c229',
   gray: 'gray',
   red: '#C82828',
-
-  // Tops: '#007BFF',
-  // Bottoms: '#28A745',
-  // One: '#6F42C1',
-  // Outerwear: '#DC3545',
-  // Intimates: '#E83E8C',
-  // Footwear: '#FD7E14',
-  // Accessories: '#20C997',
-  // Other: '#6C757D',
-
-  // Tops: '#66A3FF',
-  // Bottoms: '#66D285',
-  // One: '#9973D9',
-  // Outerwear: '#E98085',
-  // Intimates: '#F099B4',
-  // Footwear: '#FEB380',
-  // Accessories: '#80E3C1',
-  // Other: '#A6B1B5',
 
   Tops: '#3399FF',
   Bottoms: '#4CCB6B',
@@ -38,6 +21,14 @@ const colors = {
   Footwear: '#FFA348',
   Accessories: '#4ED8A8',
   Other: '#8A9399',
+
+  textSectionTitleColor: '#b6c1cd',
+  dayTextColor: '#2d4150',
+  textDisabledColor: '#a1a1a1',
+
+  confirmationModal: '#4CAF50',
+  progressTintColor: '#51fa05',
+  tintColorSecondary: '#f03702',
 };
 
 export default colors;

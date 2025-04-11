@@ -208,7 +208,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'}></Header>
       {confirmationMessage !== '' && <ConfirmationPopup message={confirmationMessage} />}
       <View style={styles.container}>
@@ -236,7 +236,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           <CustomButton
             onPress={() => setOpen(true)}
             title={formattedDate}
-            icon={<Ionicons name={'calendar'} size={20} color={colors.white} />}
+            icon={<Ionicons name={'calendar'} size={20} color="white" />}
           />
           <DatePicker
             modal
@@ -270,7 +270,12 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
               type="numeric"
               component={
                 <TouchableWithoutFeedback onPress={removeSalePrice}>
-                  <Ionicons style={styles.icon} name={'remove-outline'} size={16} color={'gray'} />
+                  <Ionicons
+                    style={styles.icon}
+                    name={'remove-outline'}
+                    size={16}
+                    color={colors.gray}
+                  />
                 </TouchableWithoutFeedback>
               }
             />

@@ -7,6 +7,7 @@ import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { generateFirestoreTimestamp } from '../utils/date';
+import colors from '../utils/colors';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -120,6 +121,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.bg,
   },
   scrollView: {
     flex: 1,
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
-    color: 'gray',
+    color: colors.gray,
   },
 });
 

@@ -137,14 +137,14 @@ const HomeScreen = ({ navigation }) => {
         ) : (
           <Calendar
             theme={{
-              backgroundColor: '#000',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#b6c1cd',
+              backgroundColor: colors.black,
+              calendarBackground: colors.white,
+              textSectionTitleColor: colors.textSectionTitleColor,
               selectedDayBackgroundColor: colors.lightGrey,
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: colors.white,
-              dayTextColor: '#2d4150',
-              textDisabledColor: '#a1a1a1',
+              selectedDayTextColor: colors.white,
+              todayTextColor: 'white',
+              dayTextColor: colors.dayTextColor,
+              textDisabledColor: colors.textDisabledColor,
               arrowColor: colors.black,
               todayBackgroundColor: colors.primary,
               todayDotColor: colors.white,
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    backgroundColor: colors.bg,
   },
   scrollView: {
     flexGrow: 1,
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   progress: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     marginHorizontal: 12,
     borderRadius: 10,
     margin: 10,

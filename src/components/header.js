@@ -24,10 +24,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '500',
-    color: colors.white,
+    color: 'white',
   },
   subtitle: {
-    color: colors.white,
+    color: 'white',
   },
   rounded: {
     borderBottomLeftRadius: 16,

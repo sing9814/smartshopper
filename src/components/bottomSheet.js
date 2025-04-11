@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 10,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#ccc',
+    backgroundColor: colors.lightGrey,
     marginBottom: 10,
   },
   title: {

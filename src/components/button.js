@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   text: {
-    color: colors.white,
+    color: 'white',
     fontSize: 16,
   },
 });

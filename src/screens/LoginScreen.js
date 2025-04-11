@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   subtitle: {
-    color: 'gray',
+    color: colors.gray,
   },
   linkContainer: {
     position: 'absolute',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   bottomText: {
-    color: 'gray',
+    color: colors.gray,
   },
   link: {
     color: colors.primary,

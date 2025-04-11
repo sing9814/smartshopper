@@ -8,7 +8,7 @@ const AddButton = ({ onPress, size, disabled = false }) => {
     <TouchableHighlight
       underlayColor={colors.primaryDark}
       onPress={onPress}
-      style={[styles.button, { backgroundColor: disabled ? 'lightgray' : colors.primary }]}
+      style={[styles.button, { backgroundColor: disabled ? colors.lightGrey : colors.primary }]}
       disabled={disabled}
     >
       <Ionicons name="add" size={size || 30} color={colors.white} />

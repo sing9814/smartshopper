@@ -6,7 +6,7 @@ import colors from '../utils/colors';
 const ConfirmationPopup = ({ message, style }) => {
   return (
     <View style={[styles.container, style]}>
-      <Ionicons name="checkmark-circle-outline" size={20} color={colors.white} />
+      <Ionicons name="checkmark-circle-outline" size={20} color="white" />
       <Text style={styles.message}>{message}</Text>
     </View>
   );
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.confirmationModal,
     padding: 15,
     alignItems: 'center',
     paddingHorizontal: 12,

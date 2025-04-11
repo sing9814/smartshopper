@@ -49,14 +49,15 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
       />
 
       <Text style={styles.label}>
-        Group <Text style={{ color: 'gray' }}>(Selected: {selectedCategoryName || 'None'})</Text>
+        Group{' '}
+        <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
       </Text>
 
       <View style={styles.categoryButtonGroup}>
         {items.map((item) => {
           const isSelected = selectedCategoryName === item.name;
           const baseName = item.name.split(' ')[0];
-          const buttonColor = colors[baseName] || '#ccc';
+          const buttonColor = colors[baseName] || colors.lightGrey;
 
           return (
             <Pressable
@@ -65,12 +66,12 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
               style={[
                 styles.categoryButton,
                 {
-                  backgroundColor: isSelected ? buttonColor : '#f0f0f0',
-                  borderColor: isSelected ? buttonColor : '#ccc',
+                  backgroundColor: isSelected ? buttonColor : colors.lightestGrey,
+                  borderColor: isSelected ? buttonColor : colors.lightGrey,
                 },
               ]}
             >
-              <Text style={{ color: isSelected ? 'white' : 'black' }}>{item.name}</Text>
+              <Text style={{ color: isSelected ? colors.white : colors.black }}>{item.name}</Text>
             </Pressable>
           );
         })}

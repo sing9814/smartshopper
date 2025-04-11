@@ -77,10 +77,10 @@ const DetailsScreen = ({ navigation }) => {
 
       <View style={styles.topbar}>
         <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-          <FontAwesome name="long-arrow-left" size={26} color={colors.white} />
+          <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback onPress={() => setIsSheetVisible(true)}>
-          <FontAwesome6 name="ellipsis" size={26} color={colors.white} />
+          <FontAwesome6 name="ellipsis" size={26} color="white" />
         </TouchableWithoutFeedback>
       </View>
 
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: 'black',
+    color: colors.black,
     fontWeight: 'bold',
   },
   title: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   category: {
-    color: 'white',
+    color: colors.white,
     paddingVertical: 3,
     paddingBottom: 5,
     paddingHorizontal: 8,

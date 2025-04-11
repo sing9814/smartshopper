@@ -116,7 +116,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
   return (
     <View>
       <Pressable style={styles.container} onPress={() => setVisible(true)}>
-        <Text style={[styles.selectedText, { color: selectedItem ? 'black' : 'gray' }]}>
+        <Text style={[styles.selectedText, { color: selectedItem ? colors.black : colors.gray }]}>
           {selectedItem
             ? `${selectedItem.category}${
                 selectedItem.subCategory ? ` - ${selectedItem.subCategory.name}` : ''
@@ -140,7 +140,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
                 <TextInput
                   style={styles.input}
                   placeholder="Search"
-                  placeholderTextColor="gray"
+                  placeholderTextColor={colors.gray}
                   value={search}
                   onChangeText={setSearch}
                 />
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 12,
     maxHeight: 400,
     padding: 20,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginBottom: 12,
-    color: 'black',
+    color: colors.black,
     fontSize: 14,
   },
   noResults: {
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   noResultsSubtitle: {
-    color: 'gray',
+    color: colors.gray,
     marginBottom: 14,
     textAlign: 'center',
     lineHeight: 22,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.lightestGrey,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '180deg' }],
   },
   customTag: {
-    color: 'gray',
+    color: colors.gray,
     fontSize: 13,
   },
 });
