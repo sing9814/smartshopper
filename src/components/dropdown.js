@@ -12,10 +12,13 @@ import {
   Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import CustomButton from './button';
 
 const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpenCustomSheet }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
@@ -178,95 +181,96 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.bg,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    // borderWidth: 1,
-    // borderColor: colors.lightGrey,
-  },
-  selectedText: {
-    fontSize: 15,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  modalContent: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    maxHeight: 400,
-    padding: 20,
-    elevation: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.lightGrey,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    color: colors.black,
-    fontSize: 14,
-  },
-  noResults: {
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  noResultsTitle: {
-    fontSize: 18,
-    color: colors.black,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  noResultsSubtitle: {
-    color: colors.gray,
-    marginBottom: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  item: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.lightestGrey,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  subCategoryItem: {
-    paddingLeft: 26,
-  },
-  lastItem: {
-    borderBottomWidth: 0,
-  },
-  customLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  itemText: {
-    fontSize: 15,
-    color: colors.black,
-  },
-  arrowDown: {
-    transform: [{ rotate: '0deg' }],
-  },
-  arrowUp: {
-    transform: [{ rotate: '180deg' }],
-  },
-  customTag: {
-    color: colors.gray,
-    fontSize: 13,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.bg,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      // borderWidth: 1,
+      // borderColor: colors.lightGrey,
+    },
+    selectedText: {
+      fontSize: 15,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center',
+      paddingHorizontal: 20,
+    },
+    modalContent: {
+      backgroundColor: colors.white,
+      borderRadius: 12,
+      maxHeight: 400,
+      padding: 20,
+      elevation: 5,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      marginBottom: 12,
+      color: colors.black,
+      fontSize: 14,
+    },
+    noResults: {
+      alignItems: 'center',
+      marginVertical: 8,
+    },
+    noResultsTitle: {
+      fontSize: 18,
+      color: colors.black,
+      fontWeight: 'bold',
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    noResultsSubtitle: {
+      color: colors.gray,
+      marginBottom: 14,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    item: {
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.lightestGrey,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    subCategoryItem: {
+      paddingLeft: 26,
+    },
+    lastItem: {
+      borderBottomWidth: 0,
+    },
+    customLabelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    itemText: {
+      fontSize: 15,
+      color: colors.black,
+    },
+    arrowDown: {
+      transform: [{ rotate: '0deg' }],
+    },
+    arrowUp: {
+      transform: [{ rotate: '180deg' }],
+    },
+    customTag: {
+      color: colors.gray,
+      fontSize: 13,
+    },
+  });
 
 export default CustomDropdown;

@@ -4,7 +4,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
 import CustomButton from './button';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import AddButton from './addButton';
 import CustomInput from './customInput';
 import CustomDropdown from './dropdown';
@@ -21,6 +21,9 @@ import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases);
   const categories = useSelector((state) => state.user.categories);
@@ -312,37 +315,38 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 12,
-  },
-  innerContainer: {
-    width: '100%',
-    paddingTop: 12,
-    // padding: 16,
-    // backgroundColor: colors.white,
-    gap: 16,
-    paddingHorizontal: 8,
-    // marginTop: 12,
-    borderRadius: 10,
-  },
-  button: {
-    position: 'absolute',
-  },
-  icon: {
-    padding: 12,
-    borderRadius: 50,
-  },
-  clearBtn: {
-    alignSelf: 'flex-end',
-    marginTop: 8,
-    marginRight: 8,
-  },
-  clear: {
-    color: colors.primary,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      paddingHorizontal: 12,
+    },
+    innerContainer: {
+      width: '100%',
+      paddingTop: 12,
+      // padding: 16,
+      // backgroundColor: colors.white,
+      gap: 16,
+      paddingHorizontal: 8,
+      // marginTop: 12,
+      borderRadius: 10,
+    },
+    button: {
+      position: 'absolute',
+    },
+    icon: {
+      padding: 12,
+      borderRadius: 50,
+    },
+    clearBtn: {
+      alignSelf: 'flex-end',
+      marginTop: 8,
+      marginRight: 8,
+    },
+    clear: {
+      color: colors.primary,
+    },
+  });
 
 export default PurchaseForm;

@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import BottomSheet from './bottomSheet';
 import CustomButton from './button';
-import colors from '../utils/colors';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
+import { useTheme } from '../theme/themeContext';
 import { saveCustomCategory } from '../utils/firebase';
 
 const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName = '', onSave }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const [customName, setCustomName] = useState(initialSubcategoryName);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
@@ -86,37 +87,38 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
   );
 };
 
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    alignSelf: 'flex-start',
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  sheetInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: colors.lightGrey,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    color: colors.black,
-    fontSize: 14,
-  },
-  categoryButtonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 10,
-    justifyContent: 'flex-start',
-  },
-  categoryButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    label: {
+      fontSize: 14,
+      fontWeight: '500',
+      alignSelf: 'flex-start',
+      marginBottom: 6,
+      marginTop: 10,
+    },
+    sheetInput: {
+      width: '100%',
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      color: colors.black,
+      fontSize: 14,
+    },
+    categoryButtonGroup: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+      marginTop: 10,
+      justifyContent: 'flex-start',
+    },
+    categoryButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+    },
+  });
 
 export default CustomCategorySheet;

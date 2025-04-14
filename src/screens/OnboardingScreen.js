@@ -10,7 +10,7 @@ import {
   Image,
   useWindowDimensions,
 } from 'react-native';
-import colors from '../utils/colors';
+import colors from '../theme/colors';
 import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch } from 'react-redux';

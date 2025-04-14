@@ -3,13 +3,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AuthStackNav from './src/navigation/AuthStackNav';
 import { StatusBar, View, ActivityIndicator } from 'react-native';
-import colors from './src/utils/colors';
+import { lightTheme } from './src/theme/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
 import store from './src/redux/store';
 import { Provider, useSelector } from 'react-redux';
 import { userExists } from './src/utils/firebase';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ThemeProvider } from './src/theme/themeContext';
 
 function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,7 +52,7 @@ function AppWrapper() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: colors.primary,
+          backgroundColor: lightTheme.primary,
         }}
       >
         <ActivityIndicator size="large" color="white" />
@@ -61,7 +62,7 @@ function AppWrapper() {
 
   return (
     <NavigationContainer>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+      <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
       {isAuthenticated && isOnboarded ? <MainStackNav /> : <AuthStackNav />}
     </NavigationContainer>
   );
@@ -69,11 +70,13 @@ function AppWrapper() {
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <AppWrapper />
-      </GestureHandlerRootView>
-    </Provider>
+    <ThemeProvider>
+      <Provider store={store}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AppWrapper />
+        </GestureHandlerRootView>
+      </Provider>
+    </ThemeProvider>
   );
 }
 

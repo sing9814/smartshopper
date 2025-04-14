@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Animated, TextInput, View, StyleSheet, ScrollView } from 'react-native';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 
 const CustomInput = ({
   label,
@@ -13,6 +13,9 @@ const CustomInput = ({
   editable = true,
   budget,
 }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const animatedValue = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -74,25 +77,26 @@ const CustomInput = ({
   );
 };
 
-const styles = StyleSheet.create({
-  inputContainer: {
-    backgroundColor: colors.bg,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  input: {
-    color: colors.black,
-    maxHeight: 200,
-    lineHeight: 26,
-    fontSize: 15,
-  },
-  disabled: {
-    backgroundColor: '#dddddd',
-    color: '#4d4d4d',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    inputContainer: {
+      backgroundColor: colors.bg,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    input: {
+      color: colors.black,
+      maxHeight: 200,
+      lineHeight: 26,
+      fontSize: 15,
+    },
+    disabled: {
+      backgroundColor: colors.lightgrey,
+      color: colors.black,
+    },
+  });
 
 export default CustomInput;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
@@ -15,6 +15,9 @@ import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 
 const DetailsScreen = ({ navigation }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const dispatch = useDispatch();
 
   const purchases = useSelector((state) => state.purchase.purchases);
@@ -197,102 +200,103 @@ const DetailsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  paddingContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  alignRight: {
-    alignItems: 'flex-end',
-  },
-  label: {
-    fontSize: 13,
-    color: colors.gray,
-    marginBottom: 4,
-  },
-  topbar: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    gap: 6,
-    paddingTop: 15,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    marginBottom: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  text: {
-    color: colors.black,
-    fontWeight: 'bold',
-  },
-  title: {
-    color: colors.black,
-    fontWeight: '700',
-    fontSize: 24,
-    flexShrink: 1,
-    marginRight: 16,
-  },
-  note: {
-    color: colors.black,
-    lineHeight: 22,
-    backgroundColor: colors.bg,
-    padding: 16,
-    borderRadius: 10,
-  },
-  topContainer: {
-    gap: 12,
-  },
-  priceContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  category: {
-    color: colors.white,
-    paddingVertical: 3,
-    paddingBottom: 5,
-    paddingHorizontal: 8,
-    borderRadius: 50,
-    fontSize: 14,
-  },
-  paidPrice: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.green,
-  },
-  regularPrice: {
-    textDecorationLine: 'line-through',
-    color: colors.gray,
-    marginLeft: 2,
-  },
-  line: {
-    width: '100%',
-    height: 1,
-    backgroundColor: colors.lightGrey,
-    opacity: 0.5,
-    marginVertical: 10,
-    borderRadius: 10,
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginBottom: 16,
-    gap: 4,
-  },
-  button: {
-    marginTop: 10,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.white,
+    },
+    paddingContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
+    alignRight: {
+      alignItems: 'flex-end',
+    },
+    label: {
+      fontSize: 13,
+      color: colors.gray,
+      marginBottom: 4,
+    },
+    topbar: {
+      width: '100%',
+      backgroundColor: colors.primary,
+      gap: 6,
+      paddingTop: 15,
+      paddingBottom: 20,
+      paddingHorizontal: 20,
+      marginBottom: 6,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    text: {
+      color: colors.black,
+      fontWeight: 'bold',
+    },
+    title: {
+      color: colors.black,
+      fontWeight: '700',
+      fontSize: 24,
+      flexShrink: 1,
+      marginRight: 16,
+    },
+    note: {
+      color: colors.black,
+      lineHeight: 22,
+      backgroundColor: colors.bg,
+      padding: 16,
+      borderRadius: 10,
+    },
+    topContainer: {
+      gap: 12,
+    },
+    priceContainer: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    category: {
+      color: colors.white,
+      paddingVertical: 3,
+      paddingBottom: 5,
+      paddingHorizontal: 8,
+      borderRadius: 50,
+      fontSize: 14,
+    },
+    paidPrice: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: colors.green,
+    },
+    regularPrice: {
+      textDecorationLine: 'line-through',
+      color: colors.gray,
+      marginLeft: 2,
+    },
+    line: {
+      width: '100%',
+      height: 1,
+      backgroundColor: colors.lightGrey,
+      opacity: 0.5,
+      marginVertical: 10,
+      borderRadius: 10,
+    },
+    bottomContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      marginBottom: 16,
+      gap: 4,
+    },
+    button: {
+      marginTop: 10,
+    },
+  });
 
 export default DetailsScreen;

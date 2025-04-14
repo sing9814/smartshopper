@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import WomanSVG from '../../assets/womanSVG';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
@@ -10,6 +10,9 @@ import Header from '../components/header';
 import { useSelector } from 'react-redux';
 
 const ProfileScreen = () => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [totalSpent, setTotalSpent] = useState(0);
@@ -78,48 +81,49 @@ const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-    width: '100%',
-    backgroundColor: colors.bg,
-  },
-  innerContainer: {
-    width: '100%',
-    paddingHorizontal: 12,
-    flex: 1,
-  },
-  button: {
-    bottom: 75,
-  },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 50,
-    paddingVertical: 16,
-    gap: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  amount: {
-    color: colors.black,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    color: colors.black,
-    fontSize: 16,
-  },
-  cardContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      height: '100%',
+      width: '100%',
+      backgroundColor: colors.bg,
+    },
+    innerContainer: {
+      width: '100%',
+      paddingHorizontal: 12,
+      flex: 1,
+    },
+    button: {
+      bottom: 75,
+    },
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: 10,
+      paddingHorizontal: 50,
+      paddingVertical: 16,
+      gap: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    amount: {
+      color: colors.black,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    title: {
+      color: colors.black,
+      fontSize: 16,
+    },
+    cardContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    scrollViewContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+  });
 
 export default ProfileScreen;

@@ -8,13 +8,16 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
 const DISMISS_THRESHOLD = 100;
 
 const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   // Convert % string or number to a pixel value
   const resolvedHeight = useMemo(() => {
     if (typeof height === 'string' && height.endsWith('%')) {
@@ -95,32 +98,33 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    width: '100%',
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 10,
-    alignItems: 'center',
-    // overflow: 'hidden',
-    paddingHorizontal: 16,
-  },
-  handle: {
-    width: 50,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.lightGrey,
-    marginBottom: 10,
-  },
-  title: {
-    alignSelf: 'center',
-    color: colors.gray,
-    paddingBottom: 8,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      width: '100%',
+      backgroundColor: colors.white,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: 10,
+      alignItems: 'center',
+      // overflow: 'hidden',
+      paddingHorizontal: 16,
+    },
+    handle: {
+      width: 50,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.lightGrey,
+      marginBottom: 10,
+    },
+    title: {
+      alignSelf: 'center',
+      color: colors.gray,
+      paddingBottom: 8,
+    },
+  });
 
 export default BottomSheet;

@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import { formatDateShort } from '../utils/date';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
@@ -22,6 +22,9 @@ const PurchaseList = ({
   overlay,
   navigation,
 }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const dispatch = useDispatch();
 
   const renderFooter = () => (
@@ -120,104 +123,105 @@ const PurchaseList = ({
   return <View style={styles.container}>{loading ? renderPlaceholder() : renderContent()}</View>;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  list: {
-    paddingBottom: 65,
-    flexGrow: 0,
-    marginHorizontal: 4,
-  },
-  itemContainer: {
-    backgroundColor: colors.white,
-    flexDirection: 'row',
-    padding: 10,
-    borderBottomColor: colors.bg,
-    marginBottom: 2,
-    borderRadius: 10,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    flexShrink: 1,
-    color: colors.black,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  note: {
-    color: colors.gray,
-    flexShrink: 1,
-    marginRight: 30,
-    // maxWidth: '70%',
-  },
-  group: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  topGroup: {
-    flex: 1,
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  row: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  category: {
-    color: colors.white,
-    paddingVertical: 3,
-    paddingBottom: 5,
-    paddingHorizontal: 8,
-    borderRadius: 50,
-    fontSize: 14,
-  },
-  paidPrice: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.green,
-    marginRight: 2,
-  },
-  regularPrice: {
-    textDecorationLine: 'line-through',
-    color: colors.gray,
-  },
-  date: {
-    fontSize: 14,
-    color: colors.gray,
-    marginLeft: 10,
-  },
-  wears: {
-    fontSize: 14,
-    color: colors.gray,
-  },
-  footer: {
-    padding: 8,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: colors.gray,
-  },
-  placeholder: {
-    backgroundColor: colors.lightGrey,
-    width: '98%',
-    height: 80,
-    marginHorizontal: 4,
-    marginBottom: 2,
-    borderRadius: 10,
-  },
-  loadingIndicator: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 10,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    list: {
+      paddingBottom: 65,
+      flexGrow: 0,
+      marginHorizontal: 4,
+    },
+    itemContainer: {
+      backgroundColor: colors.white,
+      flexDirection: 'row',
+      padding: 10,
+      borderBottomColor: colors.bg,
+      marginBottom: 2,
+      borderRadius: 10,
+    },
+    textContainer: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    title: {
+      flexShrink: 1,
+      color: colors.black,
+      fontWeight: '600',
+      fontSize: 16,
+    },
+    note: {
+      color: colors.gray,
+      flexShrink: 1,
+      marginRight: 30,
+      // maxWidth: '70%',
+    },
+    group: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
+    },
+    topGroup: {
+      flex: 1,
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
+    },
+    row: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    category: {
+      color: colors.white,
+      paddingVertical: 3,
+      paddingBottom: 5,
+      paddingHorizontal: 8,
+      borderRadius: 50,
+      fontSize: 14,
+    },
+    paidPrice: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: colors.green,
+      marginRight: 2,
+    },
+    regularPrice: {
+      textDecorationLine: 'line-through',
+      color: colors.gray,
+    },
+    date: {
+      fontSize: 14,
+      color: colors.gray,
+      marginLeft: 10,
+    },
+    wears: {
+      fontSize: 14,
+      color: colors.gray,
+    },
+    footer: {
+      padding: 8,
+      alignItems: 'center',
+    },
+    footerText: {
+      color: colors.gray,
+    },
+    placeholder: {
+      backgroundColor: colors.lightGrey,
+      width: '98%',
+      height: 80,
+      marginHorizontal: 4,
+      marginBottom: 2,
+      borderRadius: 10,
+    },
+    loadingIndicator: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 10,
+    },
+  });
 
 export default PurchaseList;

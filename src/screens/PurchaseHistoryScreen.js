@@ -7,9 +7,12 @@ import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { generateFirestoreTimestamp } from '../utils/date';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(true);
@@ -118,20 +121,21 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  scrollView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 15,
-    color: colors.gray,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    scrollView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: 15,
+      color: colors.gray,
+    },
+  });
 
 export default PurchaseHistoryScreen;

@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import PurchaseHistoryScreen from '../screens/PurchaseHistoryScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import AddPurchaseScreen from '../screens/AddPurchaseScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { StyleSheet } from 'react-native';
@@ -10,20 +10,22 @@ import { StyleSheet } from 'react-native';
 const Tab = createBottomTabNavigator();
 
 function MainTabNav() {
+  const theme = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: colors.white,
+          backgroundColor: theme.white,
           borderTopLeftRadius: 10,
           borderTopRightRadius: 10,
           height: 60,
-          borderBlockColor: colors.lightGrey,
+          borderBlockColor: theme.lightGrey,
         },
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.lightGrey,
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.lightGrey,
         tabBarLabelStyle: {
           display: 'none',
         },

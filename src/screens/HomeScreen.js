@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import colors from '../utils/colors';
 import { fetchUserDataAndPurchases, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,8 +21,12 @@ import AddButton from '../components/addButton';
 import { formatDate } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
+import { useTheme } from '../theme/themeContext';
 
 const HomeScreen = ({ navigation }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const [open, setOpen] = useState(false);
 
   const dispatch = useDispatch();
@@ -202,86 +205,87 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  sheetContainer: {
-    width: '100%',
-    gap: 8,
-  },
-  sheetText: {
-    alignSelf: 'center',
-    color: colors.gray,
-  },
-  input: {
-    marginBottom: 12,
-  },
-  list: {
-    width: '100%',
-    height: '100%',
-  },
-  box: {
-    width: 100,
-    height: 100,
-    backgroundColor: 'tomato',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  scrollView: {
-    flexGrow: 1,
-  },
-  calendar: {
-    marginHorizontal: 12,
-    borderRadius: 10,
-    elevation: 2,
-    paddingBottom: 6,
-  },
-  title: {
-    color: 'black',
-    fontSize: 20,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  progress: {
-    backgroundColor: colors.white,
-    marginHorizontal: 12,
-    borderRadius: 10,
-    margin: 10,
-    marginTop: 8,
-    // paddingHorizontal: 20,
-    paddingVertical: 16,
-    elevation: 2,
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.black,
-    marginBottom: 16,
-  },
-  labelProgress: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.black,
-  },
-  subLabel: {
-    fontSize: 14,
-    color: 'grey',
-  },
-  placeholder: {
-    left: 0,
-    right: 0,
-    marginHorizontal: 12,
-    borderRadius: 10,
-    height: 250,
-    backgroundColor: colors.white,
-  },
-  loadingIndicator: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 10,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    sheetContainer: {
+      width: '100%',
+      gap: 8,
+    },
+    sheetText: {
+      alignSelf: 'center',
+      color: colors.gray,
+    },
+    input: {
+      marginBottom: 12,
+    },
+    list: {
+      width: '100%',
+      height: '100%',
+    },
+    box: {
+      width: 100,
+      height: 100,
+      backgroundColor: 'tomato',
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    scrollView: {
+      flexGrow: 1,
+    },
+    calendar: {
+      marginHorizontal: 12,
+      borderRadius: 10,
+      elevation: 2,
+      paddingBottom: 6,
+    },
+    title: {
+      color: 'black',
+      fontSize: 20,
+      fontWeight: '500',
+      marginBottom: 12,
+    },
+    progress: {
+      backgroundColor: colors.white,
+      marginHorizontal: 12,
+      borderRadius: 10,
+      margin: 10,
+      marginTop: 8,
+      // paddingHorizontal: 20,
+      paddingVertical: 16,
+      elevation: 2,
+      alignItems: 'center',
+    },
+    label: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.black,
+      marginBottom: 16,
+    },
+    labelProgress: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.black,
+    },
+    subLabel: {
+      fontSize: 14,
+      color: 'grey',
+    },
+    placeholder: {
+      left: 0,
+      right: 0,
+      marginHorizontal: 12,
+      borderRadius: 10,
+      height: 250,
+      backgroundColor: colors.white,
+    },
+    loadingIndicator: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 10,
+    },
+  });
 
 export default HomeScreen;

@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet from './bottomSheet';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { generateFirestoreTimestamp } from '../utils/date';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 
 const DetailsSheet = ({
   visible,
@@ -15,6 +15,9 @@ const DetailsSheet = ({
   setPurchases,
   setModalVisible,
 }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const handleEdit = () => {
     onClose();
     navigation.navigate('Edit', { purchase: currentPurchase });
@@ -56,24 +59,25 @@ const DetailsSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-  },
-  icon: {
-    marginRight: 10,
-  },
-  text: {
-    fontSize: 15,
-    color: colors.black,
-  },
-  deleteText: {
-    color: colors.red,
-    fontSize: 15,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    row: {
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+    },
+    icon: {
+      marginRight: 10,
+    },
+    text: {
+      fontSize: 15,
+      color: colors.black,
+    },
+    deleteText: {
+      color: colors.red,
+      fontSize: 15,
+    },
+  });
 
 export default DetailsSheet;

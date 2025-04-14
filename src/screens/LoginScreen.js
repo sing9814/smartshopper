@@ -5,11 +5,14 @@ import CustomButton from '../components/button';
 import CustomInput from '../components/customInput';
 import Error from '../components/error';
 import Logo from '../../assets/logo';
-import colors from '../utils/colors';
+import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
 
 const LoginScreen = ({ navigation }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   const dispatch = useDispatch();
 
   const [isSignUp, setIsSignUp] = useState(true);
@@ -92,56 +95,57 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  innerContainer: {
-    height: '80%',
-    width: '100%',
-    position: 'absolute',
-    bottom: 0,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 36,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    gap: 16,
-  },
-  logo: {
-    alignItems: 'center',
-    marginTop: '6%',
-  },
-  textContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 5,
-    // marginBottom: 16,
-  },
-  title: {
-    color: colors.black,
-    fontSize: 24,
-    fontWeight: '500',
-  },
-  subtitle: {
-    color: colors.gray,
-  },
-  linkContainer: {
-    position: 'absolute',
-    flexDirection: 'row',
-    gap: 4,
-    justifyContent: 'center',
-    bottom: 16,
-    alignSelf: 'center',
-  },
-  bottomText: {
-    color: colors.gray,
-  },
-  link: {
-    color: colors.primary,
-    fontWeight: '500',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
+    innerContainer: {
+      height: '80%',
+      width: '100%',
+      position: 'absolute',
+      bottom: 0,
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 36,
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+      gap: 16,
+    },
+    logo: {
+      alignItems: 'center',
+      marginTop: '6%',
+    },
+    textContainer: {
+      width: '100%',
+      alignItems: 'center',
+      gap: 5,
+      // marginBottom: 16,
+    },
+    title: {
+      color: colors.black,
+      fontSize: 24,
+      fontWeight: '500',
+    },
+    subtitle: {
+      color: colors.gray,
+    },
+    linkContainer: {
+      position: 'absolute',
+      flexDirection: 'row',
+      gap: 4,
+      justifyContent: 'center',
+      bottom: 16,
+      alignSelf: 'center',
+    },
+    bottomText: {
+      color: colors.gray,
+    },
+    link: {
+      color: colors.primary,
+      fontWeight: '500',
+    },
+  });
 
 export default LoginScreen;
