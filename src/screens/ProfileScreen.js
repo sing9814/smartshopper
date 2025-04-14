@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
-import { useTheme } from '../theme/themeContext';
+import { useTheme, useToggleTheme, useIsDark } from '../theme/themeContext';
 import WomanSVG from '../../assets/womanSVG';
 import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
@@ -12,6 +12,8 @@ import { useSelector } from 'react-redux';
 const ProfileScreen = () => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const toggleTheme = useToggleTheme();
+  const isDark = useIsDark();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -73,6 +75,16 @@ const ProfileScreen = () => {
               <Text style={styles.title}>Saved</Text>
             </View>
           </View>
+          <View style={styles.toggleRow}>
+            <Text style={[styles.label, { color: colors.black }]}>Dark Mode</Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.lightGrey, true: colors.lightGrey }}
+              thumbColor={isDark ? colors.primary : colors.gray}
+            />
+          </View>
+
           <WomanSVG />
           <CustomButton buttonStyle={styles.button} onPress={handleSignOut} title="Log out" />
         </View>
@@ -123,6 +135,20 @@ const createStyles = (colors) =>
     scrollViewContent: {
       flexGrow: 1,
       justifyContent: 'center',
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginHorizontal: 12,
+      marginTop: 24,
+      backgroundColor: colors.white,
+      padding: 10,
+      borderRadius: 10,
+    },
+    label: {
+      fontSize: 16,
+      marginLeft: 10,
     },
   });
 

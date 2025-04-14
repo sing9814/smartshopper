@@ -20,14 +20,14 @@ const createStyles = (colors) =>
       width: '100%',
       backgroundColor: colors.primary,
       gap: 6,
-      paddingTop: 15,
-      paddingBottom: 20,
+      paddingTop: 10,
+      paddingBottom: 15,
       paddingHorizontal: 20,
       marginBottom: 6,
     },
     title: {
-      fontSize: 20,
-      fontWeight: '500',
+      fontSize: 18,
+      // fontWeight: '500',
       color: 'white',
     },
     subtitle: {
@@ -38,8 +38,8 @@ const createStyles = (colors) =>
       borderBottomRightRadius: 16,
     },
     padding: {
-      paddingTop: 25,
-      paddingBottom: 30,
+      paddingTop: 15,
+      paddingBottom: 20,
       paddingHorizontal: 30,
     },
   });
