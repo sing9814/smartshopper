@@ -1,13 +1,29 @@
-// themeContext.js
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightTheme, darkTheme } from './colors';
 
 const ThemeContext = createContext();
 
+const THEME_KEY = 'APP_THEME_MODE';
+
 export const ThemeProvider = ({ children }) => {
   const systemScheme = useColorScheme(); // 'light' | 'dark'
   const [themeOverride, setThemeOverride] = useState(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then((stored) => {
+      if (stored === 'light' || stored === 'dark') {
+        setThemeOverride(stored);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (themeOverride) {
+      AsyncStorage.setItem(THEME_KEY, themeOverride);
+    }
+  }, [themeOverride]);
 
   const theme = useMemo(() => {
     const mode = themeOverride || systemScheme;

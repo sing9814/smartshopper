@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,27 @@ import { useTheme } from '../theme/themeContext';
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+
+  const calendarTheme = useMemo(
+    () => ({
+      backgroundColor: colors.black,
+      calendarBackground: colors.white,
+      textSectionTitleColor: colors.textSectionTitleColor,
+      selectedDayBackgroundColor: colors.lightGrey,
+      selectedDayTextColor: colors.white,
+      todayTextColor: 'white',
+      dayTextColor: colors.dayTextColor,
+      textDisabledColor: colors.textDisabledColor,
+      arrowColor: colors.black,
+      todayBackgroundColor: colors.primary,
+      todayDotColor: colors.white,
+      dotColor: colors.primary,
+      textMonthFontSize: 17,
+      textMonthFontWeight: 'bold',
+      monthTextColor: colors.black,
+    }),
+    [colors]
+  );
 
   const [open, setOpen] = useState(false);
 
@@ -139,23 +160,8 @@ const HomeScreen = ({ navigation }) => {
           </View>
         ) : (
           <Calendar
-            theme={{
-              backgroundColor: colors.black,
-              calendarBackground: colors.white,
-              textSectionTitleColor: colors.textSectionTitleColor,
-              selectedDayBackgroundColor: colors.lightGrey,
-              selectedDayTextColor: colors.white,
-              todayTextColor: 'white',
-              dayTextColor: colors.dayTextColor,
-              textDisabledColor: colors.textDisabledColor,
-              arrowColor: colors.black,
-              todayBackgroundColor: colors.primary,
-              todayDotColor: colors.white,
-              dotColor: colors.primary,
-              textMonthFontSize: 17,
-              textMonthFontWeight: 'bold',
-              monthTextColor: colors.black,
-            }}
+            key={colors.mode}
+            theme={calendarTheme}
             style={styles.calendar}
             onDayPress={(day) => {
               setSelectedDate(day.dateString);
