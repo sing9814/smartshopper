@@ -13,6 +13,7 @@ import { useTheme } from '../theme/themeContext';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.4;
 const DISMISS_THRESHOLD = 100;
+const SHEET_OFFSET = 40;
 
 const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
   const colors = useTheme();
@@ -32,38 +33,41 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
 
   useEffect(() => {
     if (visible) {
-      backdropOpacity.value = withTiming(0.3, { duration: 200 });
-      translateY.value = withSpring(0, {
-        damping: 18,
-        stiffness: 250,
+      backdropOpacity.value = withTiming(0.3, { duration: 200, reduceMotion: 'never' });
+      translateY.value = withSpring(SHEET_OFFSET, {
+        damping: 15,
+        stiffness: 130,
+        reduceMotion: 'never',
       });
     } else {
-      translateY.value = resolvedHeight;
-      backdropOpacity.value = withTiming(0, { duration: 200 });
+      translateY.value = resolvedHeight + SHEET_OFFSET;
+      backdropOpacity.value = withTiming(0, { duration: 200, reduceMotion: 'never' });
     }
   }, [visible, resolvedHeight]);
 
   const closeSheet = () => {
     'worklet';
-    backdropOpacity.value = withTiming(0, { duration: 200 });
-    translateY.value = withTiming(resolvedHeight, {}, () => {
+    backdropOpacity.value = withTiming(0, { duration: 200, reduceMotion: 'never' });
+    translateY.value = withTiming(resolvedHeight + SHEET_OFFSET, { reduceMotion: 'never' }, () => {
       runOnJS(onClose)();
     });
   };
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
-      if (event.translationY > 0) {
-        translateY.value = event.translationY;
+      const nextY = event.translationY + SHEET_OFFSET;
+      if (nextY >= 0) {
+        translateY.value = nextY;
       }
     })
     .onEnd(() => {
       if (translateY.value > DISMISS_THRESHOLD) {
         closeSheet();
       } else {
-        translateY.value = withSpring(0, {
+        translateY.value = withSpring(SHEET_OFFSET, {
           damping: 18,
           stiffness: 250,
+          reduceMotion: 'never',
         });
       }
     });
@@ -74,7 +78,7 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-    height: resolvedHeight,
+    height: resolvedHeight + SHEET_OFFSET,
   }));
 
   if (!visible) return null;

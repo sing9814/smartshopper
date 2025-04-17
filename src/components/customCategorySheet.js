@@ -40,7 +40,7 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
   };
 
   return (
-    <BottomSheet title="Create Custom Category" visible={visible} onClose={onClose} height="60%">
+    <BottomSheet title="Create Custom Category" visible={visible} onClose={onClose} height={450}>
       <Text style={styles.label}>Name</Text>
       <TextInput
         style={styles.sheetInput}
@@ -90,11 +90,11 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
 const createStyles = (colors) =>
   StyleSheet.create({
     label: {
+      color: colors.black,
       fontSize: 14,
       fontWeight: '500',
       alignSelf: 'flex-start',
       marginBottom: 6,
-      marginTop: 10,
     },
     sheetInput: {
       width: '100%',
@@ -105,12 +105,13 @@ const createStyles = (colors) =>
       paddingHorizontal: 12,
       color: colors.black,
       fontSize: 14,
+      marginBottom: 10,
     },
     categoryButtonGroup: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 10,
-      marginTop: 10,
+      marginTop: 6,
       justifyContent: 'flex-start',
     },
     categoryButton: {
