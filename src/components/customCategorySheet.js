@@ -49,10 +49,8 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
         onChangeText={setCustomName}
       />
 
-      <Text style={styles.label}>
-        Group{' '}
-        <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
-      </Text>
+      <Text style={styles.label}>Group </Text>
+      <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
 
       <View style={styles.categoryButtonGroup}>
         {items.map((item) => {

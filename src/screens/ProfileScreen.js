@@ -76,7 +76,7 @@ const ProfileScreen = () => {
             </View>
           </View>
           <View style={styles.toggleRow}>
-            <Text style={[styles.label, { color: colors.black }]}>Dark Mode</Text>
+            <Text style={[styles.label, { color: colors.black }]}>Dark mode</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}

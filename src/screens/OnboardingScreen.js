@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
-  Dimensions,
   StyleSheet,
   Animated,
   FlatList,
@@ -10,7 +9,7 @@ import {
   Image,
   useWindowDimensions,
 } from 'react-native';
-import colors from '../theme/colors';
+import { lightTheme } from '../theme/colors';
 import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch } from 'react-redux';
@@ -32,24 +31,24 @@ const OnboardingScreen = ({ route }) => {
       image: require('../../assets/onboarding/icon.png'),
       title: 'Welcome to Smart Shopper',
       description: 'Effortlessly track your purchases and keep your wardrobe organized!',
-      backgroundColor: `${colors.primary}`,
+      backgroundColor: `${lightTheme.primary}`,
     },
     {
       title: 'Add Items Quickly',
       description: 'Add and edit your clothing items with a simple form.',
-      backgroundColor: `${colors.primaryDark}`,
+      backgroundColor: `${lightTheme.primaryDark}`,
     },
     {
       title: 'Track Your Wardrobe',
       description:
         'Keep tabs on how often you wear your favorite pieces and stay informed about your cost per wear (CPW)\n\n(Long hold item on history screen to quick add a wear)',
-      backgroundColor: `${colors.primary}`,
+      backgroundColor: `${lightTheme.primary}`,
     },
     {
       title: 'Set a monthly budget',
       description:
         'Take control of your spending by setting a monthly budget and stay on track with your financial goals!',
-      backgroundColor: `${colors.primary}`,
+      backgroundColor: `${lightTheme.primary}`,
       button: true,
     },
   ];
@@ -119,7 +118,7 @@ const OnboardingScreen = ({ route }) => {
                 bottom: 50,
                 right: 30,
               }}
-              textStyle={{ color: colors.primary, fontWeight: '600' }}
+              textStyle={{ color: lightTheme.primary, fontWeight: '600' }}
               underlayColor="#777"
               onPress={onPress}
               title="Done"

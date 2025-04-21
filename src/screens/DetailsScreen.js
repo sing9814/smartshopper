@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import CustomButton from '../components/button';
 import { deletePurchase } from '../utils/firebase';
@@ -79,12 +79,12 @@ const DetailsScreen = ({ navigation }) => {
       {showConfirmation && <ConfirmationPopup message={`Wear added successfully!`} />}
 
       <View style={styles.topbar}>
-        <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => setIsSheetVisible(true)}>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsSheetVisible(true)}>
           <FontAwesome6 name="ellipsis" size={26} color="white" />
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.paddingContainer}>
