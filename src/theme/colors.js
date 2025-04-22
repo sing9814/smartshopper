@@ -1,9 +1,9 @@
 export const lightTheme = {
   mode: 'light',
   primary: '#536DFE',
-  primaryDark: '#455FEB',
+  primaryDark: '#3756FF',
   secondary: '#ff6f00',
-  accent: '#ffc107',
+  accent: '#A55617',
   black: '#000',
   white: '#fff',
   lightGrey: '#C3C7D2',

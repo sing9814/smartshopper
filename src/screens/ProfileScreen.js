@@ -84,8 +84,9 @@ const ProfileScreen = () => {
               thumbColor={isDark ? colors.primary : colors.gray}
             />
           </View>
-
-          <WomanSVG />
+          <View style={styles.svgContainer}>
+            <WomanSVG />
+          </View>
           <CustomButton buttonStyle={styles.button} onPress={handleSignOut} title="Log out" />
         </View>
       </ScrollView>
@@ -149,6 +150,12 @@ const createStyles = (colors) =>
     label: {
       fontSize: 16,
       marginLeft: 10,
+    },
+    svgContainer: {
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      flex: 1,
+      marginRight: 20,
     },
   });
 

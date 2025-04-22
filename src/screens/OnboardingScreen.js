@@ -16,6 +16,10 @@ import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
 import Slider from '@react-native-community/slider';
 import CustomInput from '../components/customInput';
+import Logo from '../../assets/logo';
+import Form from '../../assets/onboarding/form';
+import WomanSVG from '../../assets/womanSVG';
+import LinearGradient from 'react-native-linear-gradient';
 
 const OnboardingScreen = ({ route }) => {
   const dispatch = useDispatch();
@@ -28,26 +32,35 @@ const OnboardingScreen = ({ route }) => {
 
   const slides = [
     {
-      image: require('../../assets/onboarding/icon.png'),
-      title: 'Welcome to Smart Shopper',
-      description: 'Effortlessly track your purchases and keep your wardrobe organized!',
+      colors: [lightTheme.primaryDark, lightTheme.primary],
+      svg: Logo,
+      svgProps: { height: 130, width: 150 },
+      title: 'Smart Shopper',
+      description: 'Start organizing your wardrobe in just a few taps.',
       backgroundColor: `${lightTheme.primary}`,
     },
     {
-      title: 'Add Items Quickly',
-      description: 'Add and edit your clothing items with a simple form.',
+      colors: [lightTheme.primary, lightTheme.primaryDark],
+      diagonal: true,
+      svg: Form,
+      title: 'Add items',
+      description: 'Quickly add and edit your clothing items using our streamlined form.',
       backgroundColor: `${lightTheme.primaryDark}`,
     },
     {
-      title: 'Track Your Wardrobe',
-      description:
-        'Keep tabs on how often you wear your favorite pieces and stay informed about your cost per wear (CPW)\n\n(Long hold item on history screen to quick add a wear)',
+      colors: [lightTheme.primary, lightTheme.primaryDark],
+      svg: WomanSVG,
+      svgProps: { color: lightTheme.white, height: 150, opacity: 1 },
+      title: 'Track your wears',
+      description: 'Know what you love most. See wear counts and make smarter choices.',
       backgroundColor: `${lightTheme.primary}`,
     },
     {
-      title: 'Set a monthly budget',
-      description:
-        'Take control of your spending by setting a monthly budget and stay on track with your financial goals!',
+      colors: [lightTheme.primaryDark, lightTheme.accent],
+      diagonal: true,
+      image: require('../../assets/onboarding/progress.png'),
+      title: 'Ready to take control?',
+      description: 'Stay on budget without stress. Set your monthly limit.',
       backgroundColor: `${lightTheme.primary}`,
       button: true,
     },
@@ -69,16 +82,16 @@ const OnboardingScreen = ({ route }) => {
 
   const renderItem = ({ item }) => {
     return (
-      <View
-        style={[
-          styles.slide,
-          { backgroundColor: item.backgroundColor },
-          { width },
-          item.image ? { paddingTop: '30%' } : { justifyContent: 'center' },
-        ]}
+      <LinearGradient
+        colors={item.colors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: item.diagonal ? 1 : 0 }}
+        style={[styles.slide, { width }]}
         key={item.title}
       >
         {item.image && <Image source={item.image} style={styles.image} resizeMode="contain" />}
+        {item.svg && <item.svg {...item.svgProps}></item.svg>}
+
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
 
@@ -113,19 +126,17 @@ const OnboardingScreen = ({ route }) => {
             <CustomButton
               buttonStyle={{
                 backgroundColor: '#fff',
-                width: 100,
                 position: 'absolute',
-                bottom: 50,
-                right: 30,
+                bottom: 70,
               }}
               textStyle={{ color: lightTheme.primary, fontWeight: '600' }}
-              underlayColor="#777"
+              underlayColor="#dadada"
               onPress={onPress}
               title="Done"
             />
           </>
         )}
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -176,18 +187,30 @@ const OnboardingScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    color: 'white',
+    fontSize: 20,
+  },
   container: {
     flex: 1,
   },
   image: {
-    width: 150,
-    height: 150,
+    width: 130,
+    height: 130,
     alignSelf: 'center',
-    margin: 30,
+    marginBottom: -10,
   },
   slide: {
     flex: 1,
     paddingHorizontal: 26,
+    alignItems: 'center',
+    gap: 20,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
@@ -196,10 +219,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   description: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#fff',
-    marginTop: 18,
-    lineHeight: 25,
+    lineHeight: 33,
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
   paginator: {
     width: '100%',

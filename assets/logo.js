@@ -1,9 +1,9 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
-const Logo = () => {
+const Logo = ({ height = 100, width = 100 }) => {
   return (
-    <Svg width="100" height="100" viewBox="0 0 134 143" fill="none">
+    <Svg width={width} height={height} viewBox="0 0 134 143" fill="none">
       <Path
         fill-rule="evenodd"
         clip-rule="evenodd"
