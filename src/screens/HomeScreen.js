@@ -257,7 +257,6 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
       borderRadius: 10,
       margin: 10,
-      marginTop: 8,
       // paddingHorizontal: 20,
       paddingVertical: 16,
       elevation: 2,

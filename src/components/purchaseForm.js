@@ -329,7 +329,7 @@ const createStyles = (colors) =>
       // backgroundColor: colors.white,
       gap: 16,
       paddingHorizontal: 8,
-      // marginTop: 12,
+      marginTop: 12,
       borderRadius: 10,
     },
     button: {

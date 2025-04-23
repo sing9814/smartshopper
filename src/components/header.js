@@ -23,7 +23,6 @@ const createStyles = (colors) =>
       paddingTop: 10,
       paddingBottom: 15,
       paddingHorizontal: 20,
-      marginBottom: 6,
     },
     title: {
       fontSize: 18,

@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { generateFirestoreTimestamp } from '../utils/date';
 import { useTheme } from '../theme/themeContext';
+import CustomInput from '../components/customInput';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -19,10 +20,15 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [popups, setPopups] = useState([]);
   const [pressCounts, setPressCounts] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const timersRef = useRef({});
 
   const purchases = useSelector((state) => state.purchase.purchases);
+
+  const filteredPurchases = purchases.filter((purchase) =>
+    purchase.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const fetchData = async () => {
     // const purchasesArray = await fetchPurchases();
@@ -74,11 +80,11 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   };
 
   const incrementWears = async (item) => {
-    setPressCounts({ ...pressCounts, [item.key]: newPressCount });
     const date = generateFirestoreTimestamp();
     const newWears = [...(item.wears || []), date];
-
     const newPressCount = newWears.length;
+
+    setPressCounts({ ...pressCounts, [item.key]: newPressCount });
 
     const updatedPurchases = purchases.map((purchase) =>
       purchase.key === item.key ? { ...purchase, wears: newWears } : purchase
@@ -92,6 +98,22 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header title={'Purchases'} />
+
+      <View style={styles.searchContainer}>
+        <CustomInput
+          label="Search"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          type="default"
+          editable={true}
+        />
+      </View>
+
+      <View style={styles.countContainer}>
+        <Text style={styles.count}>Results</Text>
+        <Text style={styles.count}>{filteredPurchases.length} found</Text>
+      </View>
+
       {popups.map((popup, index) => (
         <ConfirmationPopup
           style={{ top: index * 56 }}
@@ -100,7 +122,8 @@ const PurchaseHistoryScreen = ({ navigation }) => {
           index={index}
         />
       ))}
-      {!loading && purchases.length === 0 ? (
+
+      {!loading && filteredPurchases.length === 0 ? (
         <ScrollView
           contentContainerStyle={styles.scrollView}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -109,7 +132,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
         </ScrollView>
       ) : (
         <PurchaseList
-          purchases={purchases}
+          purchases={filteredPurchases}
           refreshing={refreshing}
           onRefresh={onRefresh}
           loading={loading}
@@ -126,6 +149,21 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    searchContainer: {
+      backgroundColor: colors.white,
+      padding: 10,
+      marginBottom: 4,
+    },
+    countContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingBottom: 6,
+    },
+    count: {
+      color: colors.gray,
+      fontSize: 13,
     },
     scrollView: {
       flex: 1,

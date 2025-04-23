@@ -139,7 +139,6 @@ const createStyles = (colors) =>
       padding: 10,
       borderBottomColor: colors.bg,
       marginBottom: 2,
-      borderRadius: 10,
     },
     textContainer: {
       flex: 1,
