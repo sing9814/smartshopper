@@ -101,7 +101,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
       <View style={styles.searchContainer}>
         <CustomInput
-          label="Search"
+          placeholder="Search"
           value={searchQuery}
           onChangeText={setSearchQuery}
           type="default"

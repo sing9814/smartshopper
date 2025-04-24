@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
-  Animated,
   View,
   Text,
   TextInput,
@@ -22,27 +21,6 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
-
-  const animatedValue = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: selectedItem ? 1 : 0,
-      duration: 150,
-      useNativeDriver: false,
-    }).start();
-  }, [selectedItem]);
-
-  const labelStyle = {
-    position: 'absolute',
-    left: 16,
-    top: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [18, -8],
-    }),
-    fontSize: 13,
-    color: colors.primary,
-  };
 
   const getFilteredItems = () => {
     return items
@@ -133,7 +111,6 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
           style={visible && styles.arrowUp}
         />
       </Pressable>
-      {selectedItem && <Animated.Text style={labelStyle}>Category</Animated.Text>}
 
       <Modal visible={visible} animationType="fade" transparent>
         <TouchableWithoutFeedback onPress={() => setVisible(false)}>
@@ -157,7 +134,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
                       buttonStyle={styles.button}
                       onPress={() => {
                         setVisible(false);
-                        onOpenCustomSheet?.(search); // Pass the current search value up to the form
+                        onOpenCustomSheet?.(search);
                       }}
                       title="Create custom category"
                     />
@@ -184,15 +161,15 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.bg,
+      backgroundColor: colors.white,
       borderRadius: 10,
       paddingHorizontal: 16,
       paddingVertical: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      // borderWidth: 1,
-      // borderColor: colors.lightGrey,
+      borderWidth: 2,
+      borderColor: colors.bg,
     },
     selectedText: {
       fontSize: 15,

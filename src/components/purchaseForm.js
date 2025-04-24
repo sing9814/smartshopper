@@ -91,9 +91,9 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     setCategory(selectedValue);
   };
 
-  const removeSalePrice = () => {
+  const removeRegularPrice = () => {
     setDisabled(false);
-    setPaidPrice(null);
+    setRegularPrice(null);
   };
 
   const validatePrice = (price) => {
@@ -108,14 +108,14 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
   const validateFields = () => {
     setErrorMessage(null);
-    if (!validateName(itemName) || regularPrice === '' || category?.category === null) {
+    if (!validateName(itemName) || paidPrice === '' || category?.category === null) {
       return setErrorMessage('Please fill in all missing fields');
     }
-    if (!validatePrice(regularPrice) || (paidPrice && !validatePrice(paidPrice))) {
+    if (!validatePrice(paidPrice) || (regularPrice && !validatePrice(regularPrice))) {
       return setErrorMessage('Prices must be a valid number with up to 2 decimal places');
     }
     if (paidPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
-      return setErrorMessage('Sale price must be less than regular price');
+      return setErrorMessage('Paid price must be less than regular price');
     }
     setErrorMessage(null);
     return true;
@@ -220,27 +220,40 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         <View style={styles.innerContainer}>
           <CustomInput
             label="Item name"
+            placeholder="Enter item name"
             value={itemName}
             onChangeText={setItemName}
             editable={edit && false}
           />
+          <View>
+            <Text style={styles.label}>Category</Text>
+            <CustomDropdown
+              items={categories}
+              onSelect={handleSelect}
+              selectedItem={category}
+              setSelectedItem={setCategory}
+              onOpenCustomSheet={(searchValue) => {
+                setCustomSubcategoryName(searchValue);
+                setShowCustomSheet(true);
+              }}
+            />
+          </View>
 
-          <CustomDropdown
-            items={categories}
-            onSelect={handleSelect}
-            selectedItem={category}
-            setSelectedItem={setCategory}
-            onOpenCustomSheet={(searchValue) => {
-              setCustomSubcategoryName(searchValue);
-              setShowCustomSheet(true);
-            }}
-          />
+          <View>
+            <Text style={styles.label}>Date</Text>
+            {/* <CustomButton
+              onPress={() => setOpen(true)}
+              title={formattedDate}
+              icon={<Ionicons name={'calendar'} size={20} color="white" />}
+            /> */}
+            <TouchableOpacity onPress={() => setOpen(true)} style={[styles.button2]}>
+              <View style={styles.innerContainer2}>
+                <Ionicons name={'calendar'} size={20} color={colors.primary} />
+                <Text style={[styles.text]}>{formattedDate}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
-          <CustomButton
-            onPress={() => setOpen(true)}
-            title={formattedDate}
-            icon={<Ionicons name={'calendar'} size={20} color="white" />}
-          />
           <DatePicker
             modal
             open={open}
@@ -256,9 +269,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           />
 
           <CustomInput
-            label="Regular price"
-            value={regularPrice}
-            onChangeText={setRegularPrice}
+            label="Price"
+            placeholder="Enter price"
+            value={paidPrice}
+            onChangeText={setPaidPrice}
             type="numeric"
             component={
               <AddButton onPress={() => setDisabled(true)} size={20} disabled={disabled} />
@@ -267,12 +281,12 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
           {disabled && (
             <CustomInput
-              label={`Sale price`}
-              value={paidPrice}
-              onChangeText={setPaidPrice}
+              placeholder={'Enter regular price (optional)'}
+              value={regularPrice}
+              onChangeText={setRegularPrice}
               type="numeric"
               component={
-                <TouchableWithoutFeedback onPress={removeSalePrice}>
+                <TouchableWithoutFeedback onPress={removeRegularPrice}>
                   <Ionicons
                     style={styles.icon}
                     name={'remove-outline'}
@@ -284,7 +298,13 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
             />
           )}
 
-          <CustomInput label="Note (optional)" value={note} onChangeText={setNote} multiline />
+          <CustomInput
+            label="Note"
+            placeholder="Add notes (optional)"
+            value={note}
+            onChangeText={setNote}
+            multiline
+          />
         </View>
         {showClearButton && !edit && (
           <TouchableOpacity style={styles.clearBtn} onPress={resetFields}>
@@ -324,10 +344,10 @@ const createStyles = (colors) =>
     },
     innerContainer: {
       width: '100%',
-      paddingTop: 12,
+      paddingTop: 2,
       // padding: 16,
       // backgroundColor: colors.white,
-      gap: 16,
+      gap: 8,
       paddingHorizontal: 8,
       marginTop: 12,
       borderRadius: 10,
@@ -336,7 +356,7 @@ const createStyles = (colors) =>
       position: 'absolute',
     },
     icon: {
-      padding: 12,
+      padding: 8,
       borderRadius: 50,
     },
     clearBtn: {
@@ -346,6 +366,30 @@ const createStyles = (colors) =>
     },
     clear: {
       color: colors.primary,
+      fontWeight: '500',
+    },
+    button2: {
+      width: '100%',
+      backgroundColor: colors.white,
+      padding: 16,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.bg,
+    },
+    innerContainer2: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    text: {
+      color: colors.black,
+      fontSize: 16,
+    },
+    label: {
+      fontSize: 14,
+      color: colors.gray,
+      marginBottom: 4,
+      marginLeft: 2,
     },
   });
 

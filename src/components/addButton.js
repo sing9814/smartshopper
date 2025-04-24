@@ -13,15 +13,15 @@ const AddButton = ({ onPress, size, disabled = false }) => {
       style={[styles.button, { backgroundColor: disabled ? colors.lightGrey : colors.primary }]}
       disabled={disabled}
     >
-      <Ionicons name="add" size={size || 30} color="white" />
+      <Ionicons name="add" size={size || 30} color={colors.white} />
     </TouchableHighlight>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    height: 40,
-    width: 40,
+    height: 32,
+    width: 32,
     borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',

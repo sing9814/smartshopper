@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Animated, TextInput, View, StyleSheet, ScrollView } from 'react-native';
+import React from 'react';
+import { TextInput, View, StyleSheet, ScrollView, Text } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
 const CustomInput = ({
   label,
+  placeholder,
   value,
   onChangeText,
   secureTextEntry,
@@ -15,30 +16,6 @@ const CustomInput = ({
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-
-  const animatedValue = useState(new Animated.Value(0))[0];
-
-  useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: value ? 1 : 0,
-      duration: 150,
-      useNativeDriver: false,
-    }).start();
-  }, [value, animatedValue]);
-
-  const labelStyle = {
-    position: 'absolute',
-    left: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [16, 12],
-    }),
-    top: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [16, -10],
-    }),
-    fontSize: 13,
-    color: colors.primary,
-  };
 
   const length = () => {
     if (budget) {
@@ -54,13 +31,14 @@ const CustomInput = ({
 
   return (
     <View>
+      {label && <Text style={styles.label}>{label}</Text>}
       <View style={[styles.inputContainer, !editable && styles.disabled]}>
         <ScrollView>
           <TextInput
             style={[styles.input, !editable && styles.disabled]}
             value={value}
             onChangeText={onChangeText}
-            placeholder={label}
+            placeholder={placeholder || label}
             placeholderTextColor={colors.gray}
             keyboardType={type}
             maxLength={length()}
@@ -71,21 +49,27 @@ const CustomInput = ({
         </ScrollView>
         {component}
       </View>
-
-      {value && <Animated.Text style={labelStyle}>{label}</Animated.Text>}
     </View>
   );
 };
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    label: {
+      fontSize: 14,
+      color: colors.gray,
+      marginBottom: 4,
+      marginLeft: 2,
+    },
     inputContainer: {
-      backgroundColor: colors.bg,
+      backgroundColor: colors.white,
       borderRadius: 10,
       paddingHorizontal: 12,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      borderWidth: 2,
+      borderColor: colors.bg,
     },
     input: {
       color: colors.black,

@@ -49,8 +49,10 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
         onChangeText={setCustomName}
       />
 
-      <Text style={styles.label}>Group </Text>
-      <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
+      <View style={styles.selectedContainer}>
+        <Text style={styles.label}>Group </Text>
+        <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
+      </View>
 
       <View style={styles.categoryButtonGroup}>
         {items.map((item) => {
@@ -87,12 +89,18 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    selectedContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
     label: {
       color: colors.black,
       fontSize: 14,
       fontWeight: '500',
       alignSelf: 'flex-start',
-      marginBottom: 6,
     },
     sheetInput: {
       width: '100%',
