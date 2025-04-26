@@ -22,6 +22,7 @@ import { formatDate } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
+import { convertCentsToDollars } from '../utils/price';
 
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -98,21 +99,38 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
+  const formatDollar = (amount) => {
+    return `$${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
 
-  const totalRegularPrice = purchases.reduce((total, purchase) => {
-    const purchaseDate = new Date(purchase.datePurchased);
-    const purchaseYear = purchaseDate.getFullYear();
-    const purchaseMonth = purchaseDate.getUTCMonth() + 1;
-
-    if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
-      return total + parseFloat(purchase.regularPrice);
+  const formatPercent = () => {
+    let amount = (parseFloat(convertCentsToDollars(totalRegularPrice)) / user?.budget) * 100;
+    if (amount > 100) {
+      return '>100';
     }
+    return amount.toFixed(0);
+  };
 
-    return total;
-  }, 0);
+  const currentDate = new Date();
+  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth() + 1);
+
+  const totalRegularPrice = useMemo(() => {
+    return purchases.reduce((total, purchase) => {
+      const purchaseDate = new Date(purchase.datePurchased);
+      const purchaseYear = purchaseDate.getFullYear();
+      const purchaseMonth = purchaseDate.getUTCMonth() + 1;
+
+      if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
+        return total + parseFloat(purchase.paidPrice || purchase.regularPrice);
+      }
+
+      return total;
+    }, 0);
+  }, [purchases, currentMonth, currentYear]);
 
   return (
     <View style={styles.container}>
@@ -129,7 +147,7 @@ const HomeScreen = ({ navigation }) => {
               <AnimatedCircularProgress
                 size={100}
                 width={17}
-                fill={(totalRegularPrice / user?.budget) * 100}
+                fill={(convertCentsToDollars(totalRegularPrice) / user?.budget) * 100}
                 tintColor={'#51fa05'}
                 backgroundColor="#e0e0e0"
                 rotation={230}
@@ -137,15 +155,12 @@ const HomeScreen = ({ navigation }) => {
                 arcSweepAngle={260}
                 tintColorSecondary={'#f03702'}
               >
-                {() => (
-                  <Text style={styles.labelProgress}>
-                    {(totalRegularPrice / user?.budget) * 100}
-                  </Text>
-                )}
+                {() => <Text style={styles.labelProgress}>{formatPercent()}%</Text>}
               </AnimatedCircularProgress>
-              <Text style={styles.subLabel}>{`$${
-                (totalRegularPrice / user?.budget) * 100
-              } of your $${user?.budget} budget used`}</Text>
+              <Text style={styles.subLabel}>
+                {formatDollar(convertCentsToDollars(totalRegularPrice))} of your{' '}
+                {formatDollar(user?.budget)} budget used
+              </Text>
             </>
           )}
         </View>
@@ -166,6 +181,10 @@ const HomeScreen = ({ navigation }) => {
             onDayPress={(day) => {
               setSelectedDate(day.dateString);
               setOpen(true);
+            }}
+            onMonthChange={(month) => {
+              setCurrentMonth(month.month);
+              setCurrentYear(month.year);
             }}
             markedDates={getMarkedDates()}
           />

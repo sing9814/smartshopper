@@ -13,6 +13,7 @@ import ConfirmationPopup from '../components/confirmationPopup';
 import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
+import { convertCentsToDollars } from '../utils/price';
 
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -99,10 +100,12 @@ const DetailsScreen = ({ navigation }) => {
               <Text style={styles.label}>Price</Text>
               <View style={styles.priceContainer}>
                 <Text style={styles.paidPrice}>
-                  ${currentPurchase.paidPrice || currentPurchase.regularPrice}
+                  ${convertCentsToDollars(currentPurchase.paidPrice)}
                 </Text>
-                {currentPurchase.paidPrice && (
-                  <Text style={styles.regularPrice}>${currentPurchase.regularPrice}</Text>
+                {currentPurchase.regularPrice && (
+                  <Text style={styles.regularPrice}>
+                    ${convertCentsToDollars(currentPurchase.regularPrice)}
+                  </Text>
                 )}
               </View>
             </View>
@@ -158,10 +161,10 @@ const DetailsScreen = ({ navigation }) => {
               <Text style={styles.text}>
                 $
                 {currentPurchase.wears.length > 0
-                  ? (
+                  ? convertCentsToDollars(
                       (currentPurchase.paidPrice || currentPurchase.regularPrice) /
-                      currentPurchase.wears.length
-                    ).toFixed(2)
+                        currentPurchase.wears.length
+                    )
                   : 'N/A'}
               </Text>
             </View>

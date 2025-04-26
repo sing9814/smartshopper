@@ -12,6 +12,7 @@ import { useTheme } from '../theme/themeContext';
 import { formatDateShort } from '../utils/date';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
+import { convertCentsToDollars } from '../utils/price';
 
 const PurchaseList = ({
   purchases,
@@ -91,8 +92,10 @@ const PurchaseList = ({
             {item.note || '(no note)'}
           </Text>
           <View style={styles.group}>
-            <Text style={styles.paidPrice}>${item.paidPrice || item.regularPrice}</Text>
-            {item.paidPrice && <Text style={styles.regularPrice}>${item.regularPrice}</Text>}
+            <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
+            {item.regularPrice && (
+              <Text style={styles.regularPrice}>${convertCentsToDollars(item.regularPrice)}</Text>
+            )}
           </View>
         </View>
       </View>

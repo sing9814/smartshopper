@@ -19,6 +19,7 @@ import uuid from 'react-native-uuid';
 import { generateFirestoreTimestamp } from '../utils/date';
 import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
+import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const colors = useTheme();
@@ -52,8 +53,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
       setItemName(purchase.name);
       setCategory(purchase.category);
       setDate(new Date(purchase.datePurchased));
-      setRegularPrice(purchase.regularPrice);
-      setPaidPrice(purchase.paidPrice);
+      setRegularPrice(
+        purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
+      );
+      setPaidPrice(convertCentsToDollars(purchase.paidPrice));
       setNote(purchase.note);
       setDisabled(purchase.paidPrice ? true : false);
     } else if (name) {
@@ -149,15 +152,15 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           category: category,
           note: note,
           edited: generateFirestoreTimestamp(),
-          regularPrice: regularPrice,
-          paidPrice: paidPrice,
+          regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
+          paidPrice: Math.round(parseFloat(paidPrice) * 100),
           datePurchased: date.toISOString().split('T')[0],
           dateCreated: purchase.dateCreated,
         };
         await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
         dispatch(setCurrentPurchase(updatedPurchase));
         dispatch(setPurchases(updatePurchaseInArray(updatedPurchase)));
-        setShowConfirmation(true);
+        setConfirmationMessage('Item updated successfully!');
         navigation.goBack();
       } catch (error) {
         console.error('Error updating purchase: ', error);
@@ -185,8 +188,8 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           category: category,
           note: note,
           wears: [],
-          regularPrice: regularPrice,
-          paidPrice: paidPrice,
+          regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
+          paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
           datePurchased: date.toISOString().split('T')[0],
           dateCreated: generateFirestoreTimestamp(),
         };

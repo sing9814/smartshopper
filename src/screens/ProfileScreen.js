@@ -30,14 +30,18 @@ const ProfileScreen = () => {
     let saved = 0;
 
     purchaseData.forEach((purchase) => {
-      const regularPrice = parseFloat(purchase.regularPrice) || 0;
-      const paidPrice = parseFloat(purchase.paidPrice) || regularPrice;
+      const regularPrice = parseInt(purchase.regularPrice, 10) || 0;
+      const paidPrice = parseInt(purchase.paidPrice, 10);
+
       spent += paidPrice;
-      saved += regularPrice - paidPrice;
+
+      if (paidPrice < regularPrice) {
+        saved += regularPrice - paidPrice;
+      }
     });
 
-    setTotalSpent(spent);
-    setTotalSaved(saved);
+    setTotalSpent((spent / 100).toFixed(2));
+    setTotalSaved((saved / 100).toFixed(2));
 
     setLoading(false);
   };
@@ -65,12 +69,12 @@ const ProfileScreen = () => {
         <View style={styles.innerContainer}>
           <View style={styles.cardContainer}>
             <View style={styles.card}>
-              <Text style={styles.amount}>${totalSpent.toFixed(2)}</Text>
+              <Text style={styles.amount}>${totalSpent}</Text>
               <MoneySVG />
               <Text style={styles.title}>Spent</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.amount}>${totalSaved.toFixed(2)}</Text>
+              <Text style={styles.amount}>${totalSaved}</Text>
               <PigSVG />
               <Text style={styles.title}>Saved</Text>
             </View>
