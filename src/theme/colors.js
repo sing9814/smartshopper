@@ -13,6 +13,7 @@ export const lightTheme = {
   green: '#42c229',
   gray: 'gray',
   red: '#C82828',
+  placeholder: '#9A9A9A',
 
   Tops: '#3399FF',
   Bottoms: '#4CCB6B',
@@ -47,6 +48,7 @@ export const darkTheme = {
   green: '#66DD55',
   gray: '#B0BEC5',
   red: '#F0625D',
+  placeholder: '#B3B3B3',
 
   Tops: '#66B2FF',
   Bottoms: '#6BE88B',

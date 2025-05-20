@@ -3,6 +3,7 @@ import { TextInput, View, StyleSheet, ScrollView, Text } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
 const CustomInput = ({
+  autoCapitalize = true,
   label,
   placeholder,
   value,
@@ -39,12 +40,13 @@ const CustomInput = ({
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder || label}
-            placeholderTextColor={colors.gray}
+            placeholderTextColor={colors.placeholder}
             keyboardType={type}
             maxLength={length()}
             secureTextEntry={secureTextEntry}
             multiline={multiline}
             editable={editable}
+            autoCapitalize={autoCapitalize}
           />
         </ScrollView>
         {component}
@@ -56,7 +58,7 @@ const CustomInput = ({
 const createStyles = (colors) =>
   StyleSheet.create({
     label: {
-      fontSize: 14,
+      fontSize: 13,
       color: colors.gray,
       marginBottom: 4,
       marginLeft: 2,
@@ -68,14 +70,14 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderWidth: 2,
-      borderColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
     },
     input: {
       color: colors.black,
       maxHeight: 200,
       lineHeight: 26,
-      fontSize: 15,
+      // fontSize: 15,
     },
     disabled: {
       backgroundColor: colors.lightgrey,

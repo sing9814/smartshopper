@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Button, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
 import CustomInput from '../components/customInput';
@@ -78,9 +78,19 @@ const LoginScreen = ({ navigation }) => {
         {isSignUp && <CustomInput label="Name" value={name} onChangeText={setName} />}
 
         <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
-        <CustomButton onPress={handleLogin} title={isSignUp ? 'Register' : 'Sign in'} />
+        <CustomButton
+          buttonStyle={styles.button}
+          onPress={handleLogin}
+          title={isSignUp ? 'Register' : 'Sign in'}
+        />
         {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
-
+        {!isSignUp && (
+          <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={[styles.link, { textAlign: 'center', marginTop: 12 }]}>
+              Forgot password?
+            </Text>
+          </Pressable>
+        )}
         <Pressable
           style={styles.linkContainer}
           onPress={() => [setIsSignUp(!isSignUp), resetStates()]}
@@ -111,7 +121,7 @@ const createStyles = (colors) =>
       paddingVertical: 36,
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
-      gap: 16,
+      gap: 8,
     },
     logo: {
       alignItems: 'center',
@@ -126,7 +136,7 @@ const createStyles = (colors) =>
     title: {
       color: colors.black,
       fontSize: 24,
-      fontWeight: '500',
+      fontWeight: 'bold',
     },
     subtitle: {
       color: colors.gray,
@@ -138,6 +148,9 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       bottom: 16,
       alignSelf: 'center',
+    },
+    button: {
+      marginTop: 16,
     },
     bottomText: {
       color: colors.gray,
