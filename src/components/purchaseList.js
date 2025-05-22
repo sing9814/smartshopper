@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -22,6 +21,7 @@ const PurchaseList = ({
   onItemLongPress,
   overlay,
   navigation,
+  selectedItems = [],
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -35,8 +35,14 @@ const PurchaseList = ({
   );
 
   const onPress = (item) => {
-    dispatch(setCurrentPurchase(item));
-    navigation.navigate('Details', { purchase: item });
+    const isSelectionMode = selectedItems.length > 0;
+
+    if (isSelectionMode) {
+      onItemLongPress?.(item);
+    } else {
+      dispatch(setCurrentPurchase(item));
+      navigation.navigate('Details', { purchase: item });
+    }
   };
 
   const getCategoryName = (item) => {
@@ -59,48 +65,59 @@ const PurchaseList = ({
     </View>
   );
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => onPress(item)}
-      onLongPress={() => onItemLongPress(item)}
-      style={styles.itemContainer}
-    >
-      <View style={styles.textContainer}>
-        <View style={styles.row}>
-          <View style={styles.topGroup}>
-            <Text style={styles.title} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {item.category?.category && (
-              <Text
-                style={[
-                  styles.category,
-                  { backgroundColor: colors[item.category?.category.split(' ')[0]] },
-                ]}
-              >
-                {getCategoryName(item.category)}
+  const renderItem = ({ item }) => {
+    const isSelected = selectedItems.includes(item.key);
+
+    return (
+      <TouchableOpacity
+        onPress={() => onPress(item)}
+        onLongPress={() => onItemLongPress?.(item)}
+        style={[
+          styles.itemContainer,
+          isSelected && {
+            backgroundColor: colors.primaryLight,
+            borderLeftWidth: 4,
+            borderLeftColor: colors.primary,
+          },
+        ]}
+      >
+        <View style={styles.textContainer}>
+          <View style={styles.row}>
+            <View style={styles.topGroup}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.name}
               </Text>
-            )}
-            {!overlay && <Text style={styles.wears}>• {item.wears.length} wears</Text>}
+              {item.category?.category && (
+                <Text
+                  style={[
+                    styles.category,
+                    { backgroundColor: colors[item.category?.category.split(' ')[0]] },
+                  ]}
+                >
+                  {getCategoryName(item.category)}
+                </Text>
+              )}
+              {!overlay && <Text style={styles.wears}>• {item.wears.length} wears</Text>}
+            </View>
+            <Text style={styles.date}>
+              {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
+            </Text>
           </View>
-          <Text style={styles.date}>
-            {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
-          </Text>
-        </View>
-        <View style={styles.row}>
-          <Text numberOfLines={1} style={styles.note}>
-            {item.note || '(no note)'}
-          </Text>
-          <View style={styles.group}>
-            <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
-            {item.regularPrice && (
-              <Text style={styles.regularPrice}>${convertCentsToDollars(item.regularPrice)}</Text>
-            )}
+          <View style={styles.row}>
+            <Text numberOfLines={1} style={styles.note}>
+              {item.note || '(no note)'}
+            </Text>
+            <View style={styles.group}>
+              <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
+              {item.regularPrice && (
+                <Text style={styles.regularPrice}>${convertCentsToDollars(item.regularPrice)}</Text>
+              )}
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderContent = () => {
     if (purchases.length > 0) {
@@ -134,7 +151,6 @@ const createStyles = (colors) =>
     list: {
       paddingBottom: 65,
       flexGrow: 0,
-      marginHorizontal: 4,
     },
     itemContainer: {
       backgroundColor: colors.white,
@@ -142,6 +158,7 @@ const createStyles = (colors) =>
       padding: 10,
       borderBottomColor: colors.bg,
       marginBottom: 2,
+      paddingHorizontal: 14,
     },
     textContainer: {
       flex: 1,
