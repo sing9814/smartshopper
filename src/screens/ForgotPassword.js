@@ -4,28 +4,40 @@ import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
 import { useTheme } from '../theme/themeContext';
 import CustomInput from '../components/customInput';
+import Banner from '../components/banner';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const handleReset = async () => {
+    setErrorMessage(null);
+
+    if (!email.trim()) {
+      setErrorMessage('Please enter a valid email.');
+      return;
+    }
+
     try {
-      await auth().sendPasswordResetEmail(email);
-      setMessage('Check your email for a reset link.');
-      setError(null);
+      await auth().sendPasswordResetEmail(email.trim());
+      setErrorMessage('Check your email for a reset link.');
     } catch (err) {
-      setError(err.message);
-      setMessage(null);
+      setErrorMessage(err.message);
     }
   };
-
   return (
     <View style={styles.container}>
+      {typeof errorMessage === 'string' && errorMessage.length > 0 && (
+        <Banner
+          message={errorMessage}
+          onFinish={() => setErrorMessage(null)}
+          type={errorMessage.toLowerCase().includes('check your email') ? 'success' : 'error'}
+        />
+      )}
+
       <Text style={styles.title}>Forgot your password?</Text>
       <Text style={styles.subtitle}>Enter your email and we’ll send you a reset link.</Text>
 
@@ -36,9 +48,6 @@ const ForgotPasswordScreen = ({ navigation }) => {
         type="email-address"
         autoCapitalize="none"
       />
-
-      {error && <Text style={styles.error}>{error}</Text>}
-      {message && <Text style={styles.success}>{message}</Text>}
 
       <CustomButton
         title="Send Reset Link"
@@ -69,19 +78,11 @@ const createStyles = (colors) =>
       marginBottom: 8,
     },
     subtitle: {
-      fontSize: 14,
       color: colors.gray,
       marginBottom: 20,
     },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.lightGrey,
-      borderRadius: 10,
-      padding: 12,
-      marginBottom: 8,
-    },
-    error: { color: 'red', marginBottom: 8 },
-    success: { color: 'green', marginBottom: 8 },
+    error: { color: colors.red, marginBottom: 8 },
+    success: { color: colors.green, marginBottom: 8 },
     back: {
       marginTop: 24,
       textAlign: 'center',

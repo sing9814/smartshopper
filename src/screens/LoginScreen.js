@@ -8,6 +8,7 @@ import Logo from '../../assets/logo';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
+import Banner from '../components/banner';
 
 const LoginScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -19,20 +20,20 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [bannerMessage, setBannerMessage] = useState(null);
 
   const resetStates = () => {
     setEmail('');
     setName('');
     setPassword('');
-    setErrorMessage(null);
+    setBannerMessage(null);
   };
 
   const handleLogin = async () => {
     if (isSignUp) {
       try {
         if (!email || !name || !password) {
-          setErrorMessage('Please fill in all fields');
+          setBannerMessage('Please fill in all fields');
         } else {
           const userCredential = await auth().createUserWithEmailAndPassword(email, password);
           navigation.navigate('Onboarding', {
@@ -43,18 +44,18 @@ const LoginScreen = ({ navigation }) => {
           dispatch(setUserOnboarded(false));
         }
       } catch (error) {
-        setErrorMessage(error.message);
+        setBannerMessage(error.message);
       }
     } else {
       try {
         if (!email || !password) {
-          setErrorMessage('Email or password is empty');
+          setBannerMessage('Email or password is empty');
         } else {
           await auth().signInWithEmailAndPassword(email, password);
           dispatch(setUserOnboarded(true));
         }
       } catch (error) {
-        setErrorMessage(error.message);
+        setBannerMessage(error.message);
       }
     }
   };
@@ -64,15 +65,17 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.logo}>
         <Logo></Logo>
       </View>
+      {bannerMessage && (
+        <Banner message={bannerMessage} type="error" onFinish={() => setBannerMessage(null)} />
+      )}
 
       <View style={styles.innerContainer}>
-        <View style={[styles.textContainer, errorMessage == null && { marginBottom: 16 }]}>
+        <View style={styles.textContainer}>
           <Text style={styles.title}>{isSignUp ? 'Create an account' : 'Welcome back'}</Text>
           <Text style={styles.subtitle}>
             {isSignUp ? 'To start tracking your spending!' : 'Enter your details below'}
           </Text>
         </View>
-        {errorMessage && <Error title={errorMessage} margin={false}></Error>}
 
         <CustomInput label="Email" value={email} onChangeText={setEmail} />
         {isSignUp && <CustomInput label="Name" value={name} onChangeText={setName} />}

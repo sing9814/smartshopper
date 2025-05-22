@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Text } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
@@ -8,8 +8,6 @@ import { useTheme } from '../theme/themeContext';
 import AddButton from './addButton';
 import CustomInput from './customInput';
 import CustomDropdown from './dropdown';
-import Error from './error';
-import ConfirmationPopup from './confirmationPopup';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from './header';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,14 +18,15 @@ import { generateFirestoreTimestamp } from '../utils/date';
 import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
 import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
+import Banner from './banner';
 
 const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases);
   const categories = useSelector((state) => state.user.categories);
+
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
   const [date, setDate] = useState(new Date());
@@ -41,12 +40,18 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
   const [paidPrice, setPaidPrice] = useState(null);
   const [note, setNote] = useState(null);
   const [disabled, setDisabled] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [confirmationMessage, setConfirmationMessage] = useState('');
   const [showClearButton, setShowClearButton] = useState(false);
 
   const [showCustomSheet, setShowCustomSheet] = useState(false);
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
+
+  const [banner, setBanner] = useState(null);
+  const showBanner = (message, type = 'error') => {
+    setBanner(null);
+    setTimeout(() => {
+      setBanner({ message, type });
+    }, 10);
+  };
 
   useEffect(() => {
     if (purchase) {
@@ -66,16 +71,9 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
   useFocusEffect(
     useCallback(() => {
-      setErrorMessage(null);
+      setBanner(null);
     }, [])
   );
-
-  useEffect(() => {
-    if (confirmationMessage) {
-      const timer = setTimeout(() => setConfirmationMessage(''), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [confirmationMessage]);
 
   useEffect(() => {
     const checkFields = () => {
@@ -99,28 +97,22 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     setRegularPrice(null);
   };
 
-  const validatePrice = (price) => {
-    const regex = /^\d+(\.\d{1,2})?$/;
-    return regex.test(price);
-  };
-
-  const validateName = (name) => {
-    const regex = /^(?=.*[A-Za-z0-9]).+$/;
-    return regex.test(name);
-  };
+  const validatePrice = (price) => /^\d+(\.\d{1,2})?$/.test(price);
+  const validateName = (name) => /^(?=.*[A-Za-z0-9]).+$/.test(name);
 
   const validateFields = () => {
-    setErrorMessage(null);
-    if (!validateName(itemName) || paidPrice === '' || category?.category === null) {
-      return setErrorMessage('Please fill in all missing fields');
+    if (!validateName(itemName) || paidPrice === '' || category?.category == null) {
+      showBanner('Please fill in all missing fields');
+      return false;
     }
     if (!validatePrice(paidPrice) || (regularPrice && !validatePrice(regularPrice))) {
-      return setErrorMessage('Prices must be a valid number with up to 2 decimal places');
+      showBanner('Prices must be a valid number with up to 2 decimal places');
+      return false;
     }
-    if (paidPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
-      return setErrorMessage('Paid price must be less than regular price');
+    if (paidPrice && regularPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
+      showBanner('Paid price must be less than regular price');
+      return false;
     }
-    setErrorMessage(null);
     return true;
   };
 
@@ -137,35 +129,61 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     return updated;
   };
 
-  const updatePurchaseInArray = (purchase) => {
-    return purchases.map((p) => (p.key === purchase.key ? purchase : p));
-  };
+  const updatePurchaseInArray = (purchase) =>
+    purchases.map((p) => (p.key === purchase.key ? purchase : p));
 
   const updatePurchase = async () => {
-    if (validateFields()) {
-      try {
-        const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-        const updatedPurchase = {
-          key: purchase.key,
-          name: itemName,
-          wears: purchase.wears,
-          category: category,
-          note: note,
-          edited: generateFirestoreTimestamp(),
-          regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
-          paidPrice: Math.round(parseFloat(paidPrice) * 100),
-          datePurchased: date.toISOString().split('T')[0],
-          dateCreated: purchase.dateCreated,
-        };
-        await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
-        dispatch(setCurrentPurchase(updatedPurchase));
-        dispatch(setPurchases(updatePurchaseInArray(updatedPurchase)));
-        setConfirmationMessage('Item updated successfully!');
-        navigation.goBack();
-      } catch (error) {
-        console.error('Error updating purchase: ', error);
-        setErrorMessage('An error occurred while updating the purchase. Please try again.');
-      }
+    if (!validateFields()) return;
+
+    try {
+      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
+      const updatedPurchase = {
+        key: purchase.key,
+        name: itemName,
+        wears: purchase.wears,
+        category: category,
+        note: note,
+        edited: generateFirestoreTimestamp(),
+        regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
+        paidPrice: Math.round(parseFloat(paidPrice) * 100),
+        datePurchased: date.toISOString().split('T')[0],
+        dateCreated: purchase.dateCreated,
+      };
+      await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
+      dispatch(setCurrentPurchase(updatedPurchase));
+      dispatch(setPurchases(updatePurchaseInArray(updatedPurchase)));
+      showBanner('Item updated successfully!', 'success');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error updating purchase: ', error);
+      showBanner('An error occurred while updating the purchase.');
+    }
+  };
+
+  const addPurchase = async () => {
+    if (!validateFields()) return;
+
+    try {
+      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
+      const id = uuid.v4();
+      const newPurchase = {
+        key: id,
+        name: itemName,
+        category: category,
+        note: note,
+        wears: [],
+        regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
+        paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
+        datePurchased: date.toISOString().split('T')[0],
+        dateCreated: generateFirestoreTimestamp(),
+      };
+      await userRef.collection('Purchases').doc(id).set(newPurchase);
+      dispatch(setPurchases([newPurchase, ...purchases]));
+      resetFields();
+      showBanner('Purchase added successfully!', 'success');
+    } catch (error) {
+      console.error('Error adding purchase: ', error);
+      showBanner('An error occurred while adding the purchase.');
     }
   };
 
@@ -174,33 +192,6 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
       updatePurchase();
     } else {
       addPurchase();
-    }
-  };
-
-  const addPurchase = async () => {
-    if (validateFields()) {
-      try {
-        const userRef = firestore().collection('users').doc(auth().currentUser.uid);
-        const id = uuid.v4();
-        const newPurchase = {
-          key: id,
-          name: itemName,
-          category: category,
-          note: note,
-          wears: [],
-          regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
-          paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
-          datePurchased: date.toISOString().split('T')[0],
-          dateCreated: generateFirestoreTimestamp(),
-        };
-        await userRef.collection('Purchases').doc(id).set(newPurchase);
-        dispatch(setPurchases([newPurchase, ...purchases]));
-        resetFields();
-        setConfirmationMessage('Purchase added successfully!');
-      } catch (error) {
-        console.error('Error adding purchase: ', error);
-        setErrorMessage('An error occurred while adding the purchase. Please try again.');
-      }
     }
   };
 
@@ -215,11 +206,13 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
-      <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'}></Header>
-      {confirmationMessage !== '' && <ConfirmationPopup message={confirmationMessage} />}
-      <View style={styles.container}>
-        {errorMessage && <Error title={errorMessage} style={{ marginTop: 12 }}></Error>}
+      <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'} />
 
+      {banner && (
+        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
+      )}
+
+      <View style={styles.container}>
         <View style={styles.innerContainer}>
           <CustomInput
             label="Item name"
@@ -244,11 +237,6 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
           <View>
             <Text style={styles.label}>Date</Text>
-            {/* <CustomButton
-              onPress={() => setOpen(true)}
-              title={formattedDate}
-              icon={<Ionicons name={'calendar'} size={20} color="white" />}
-            /> */}
             <TouchableOpacity onPress={() => setOpen(true)} style={[styles.button2]}>
               <View style={styles.innerContainer2}>
                 <Ionicons name={'calendar'} size={20} color={colors.primary} />
@@ -265,9 +253,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
               setOpen(false);
               setDate(date);
             }}
-            onCancel={() => {
-              setOpen(false);
-            }}
+            onCancel={() => setOpen(false)}
             mode={'date'}
           />
 
@@ -284,7 +270,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
           {disabled && (
             <CustomInput
-              placeholder={'Enter regular price (optional)'}
+              placeholder="Enter regular price (optional)"
               value={regularPrice}
               onChangeText={setRegularPrice}
               type="numeric"
@@ -292,7 +278,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
                 <TouchableWithoutFeedback onPress={removeRegularPrice}>
                   <Ionicons
                     style={styles.icon}
-                    name={'remove-outline'}
+                    name="remove-outline"
                     size={16}
                     color={colors.gray}
                   />
@@ -309,17 +295,20 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
             multiline
           />
         </View>
+
         {showClearButton && !edit && (
           <TouchableOpacity style={styles.clearBtn} onPress={resetFields}>
             <Text style={styles.clear}>Clear all</Text>
           </TouchableOpacity>
         )}
+
         <CustomButton
           buttonStyle={[styles.button, { bottom: edit ? 12 : 75 }]}
           onPress={handleSubmit}
           title={edit ? 'Update' : 'Submit'}
         />
       </View>
+
       <CustomCategorySheet
         visible={showCustomSheet}
         onClose={() => setShowCustomSheet(false)}
@@ -328,10 +317,9 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         onSave={(newItem, wasAdded) => {
           const updated = mergeCategory(categories, newItem);
           dispatch(setCategories(updated));
-
           setCategory(newItem);
           setShowCustomSheet(false);
-          setConfirmationMessage(wasAdded ? 'Custom category added!' : 'Category already exists.');
+          showBanner(wasAdded ? 'Custom category added!' : 'Category already exists.', 'success');
         }}
       />
     </View>
@@ -348,8 +336,6 @@ const createStyles = (colors) =>
     innerContainer: {
       width: '100%',
       paddingTop: 2,
-      // padding: 16,
-      // backgroundColor: colors.white,
       gap: 8,
       paddingHorizontal: 8,
       marginTop: 12,
