@@ -27,18 +27,18 @@ const Banner = ({ message, onFinish, type = 'error' }) => {
     translateY.value = withTiming(0, { duration: 300 });
     opacity.value = withTiming(1, { duration: 300 });
 
-    if (type === 'success') {
-      const timeout = setTimeout(() => {
-        translateY.value = withTiming(-100, { duration: 300 });
-        opacity.value = withTiming(0, { duration: 300 }, (finished) => {
-          if (finished && onFinish) {
-            runOnJS(onFinish)();
-          }
-        });
-      }, 3000);
+    // if (type === 'success') {
+    const timeout = setTimeout(() => {
+      translateY.value = withTiming(-100, { duration: 300 });
+      opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+        if (finished && onFinish) {
+          runOnJS(onFinish)();
+        }
+      });
+    }, 3000);
 
-      return () => clearTimeout(timeout);
-    }
+    return () => clearTimeout(timeout);
+    // }
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

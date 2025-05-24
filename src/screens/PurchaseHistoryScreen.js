@@ -5,6 +5,11 @@ import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import CustomInput from '../components/customInput';
 import { useTheme } from '../theme/themeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ConfirmationModal from '../components/confirmationModal';
+import { deletePurchase } from '../utils/firebase';
+import { setPurchases } from '../redux/actions/purchaseActions';
+import Banner from '../components/banner';
 
 const PurchaseHistoryScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -18,6 +23,17 @@ const PurchaseHistoryScreen = ({ navigation }) => {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const purchases = useSelector((state) => state.purchase.purchases);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState('');
+  const [banner, setBanner] = useState(null);
+
+  const showBanner = (message, type = 'error') => {
+    setBanner(null);
+    setTimeout(() => {
+      setBanner({ message, type });
+    }, 10);
+  };
 
   const filteredPurchases = purchases.filter((purchase) =>
     purchase.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -43,20 +59,58 @@ const PurchaseHistoryScreen = ({ navigation }) => {
     );
   };
 
+  const handleTrashPress = () => {
+    setModalData(`${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''}`);
+    setModalVisible(true);
+  };
+
   const clearSelection = () => setSelectedItems([]);
+
+  const handleDelete = async () => {
+    try {
+      await Promise.all(selectedItems.map((id) => deletePurchase(id)));
+
+      const remaining = purchases.filter((p) => !selectedItems.includes(p.key));
+      dispatch(setPurchases(remaining));
+      setSelectedItems([]);
+      setModalVisible(false);
+
+      showBanner(`${selectedItems.length} item(s) deleted successfully`, 'success');
+    } catch (error) {
+      console.error('Failed to delete items:', error);
+      showBanner('Failed to delete some items. Please try again.');
+    }
+  };
 
   return (
     <View style={styles.container}>
       {selectedItems.length > 0 ? (
-        <View style={[styles.selectionHeader, styles.headerContainer]}>
-          <Text style={styles.headerTitle}>{`${selectedItems.length} selected`}</Text>
-          <Text style={styles.clearText} onPress={clearSelection}>
-            Clear
-          </Text>
+        <View style={styles.selectionHeader}>
+          <View style={styles.selectionClose}>
+            <Ionicons name="close" size={22} color="white" onPress={clearSelection} />
+            <Text style={styles.headerTitle}>{`${selectedItems.length} selected`}</Text>
+          </View>
+          <Ionicons
+            name="trash-outline"
+            size={22}
+            color="white"
+            onPress={selectedItems.length > 0 ? handleTrashPress : () => {}}
+          />
         </View>
       ) : (
         <Header title={'Items'} />
       )}
+
+      {banner && (
+        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
+      )}
+
+      <ConfirmationModal
+        data={modalData}
+        visible={modalVisible}
+        onConfirm={handleDelete}
+        onCancel={() => setModalVisible(false)}
+      />
 
       <View style={styles.searchContainer}>
         <CustomInput
@@ -109,6 +163,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    selectionClose: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     headerTitle: {
       fontSize: 18,

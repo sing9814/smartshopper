@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
 import CustomInput from '../components/customInput';
-import Error from '../components/error';
 import Logo from '../../assets/logo';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';

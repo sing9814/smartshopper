@@ -59,8 +59,8 @@ const PurchaseList = ({
   const renderPlaceholder = () => (
     <View>
       <View style={[styles.placeholder, { opacity: 1 }]}></View>
+      <View style={[styles.placeholder, { opacity: 0.9 }]}></View>
       <View style={[styles.placeholder, { opacity: 0.5 }]}></View>
-      <View style={[styles.placeholder, { opacity: 0.3 }]}></View>
       <ActivityIndicator size="large" color={colors.primary} style={styles.loadingIndicator} />
     </View>
   );
@@ -228,12 +228,10 @@ const createStyles = (colors) =>
       color: colors.gray,
     },
     placeholder: {
-      backgroundColor: colors.lightGrey,
-      width: '98%',
+      backgroundColor: colors.white,
+      width: '100%',
       height: 80,
-      marginHorizontal: 4,
       marginBottom: 2,
-      borderRadius: 10,
     },
     loadingIndicator: {
       position: 'absolute',

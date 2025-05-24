@@ -9,7 +9,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
-import ConfirmationPopup from '../components/confirmationPopup';
+import Banner from '../components/banner';
 import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
@@ -24,21 +24,10 @@ const DetailsScreen = ({ navigation }) => {
   const purchases = useSelector((state) => state.purchase.purchases);
   const currentPurchase = useSelector((state) => state.purchase.currentPurchase);
 
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const [isSheetVisible, setIsSheetVisible] = useState(false);
-
-  useEffect(() => {
-    if (showConfirmation) {
-      const timer = setTimeout(() => {
-        setShowConfirmation(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [showConfirmation]);
 
   const handleDelete = () => {
     deletePurchase(currentPurchase.key);
@@ -77,7 +66,13 @@ const DetailsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {showConfirmation && <ConfirmationPopup message={`Wear added successfully!`} />}
+      {showConfirmation && (
+        <Banner
+          message={`Wear added successfully!`}
+          type={'success'}
+          onFinish={() => setShowConfirmation(false)}
+        />
+      )}
 
       <View style={styles.topbar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
