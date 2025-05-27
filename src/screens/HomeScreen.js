@@ -206,7 +206,10 @@ const HomeScreen = ({ navigation }) => {
               onChangeText={setName}
               component={
                 <AddButton
-                  onPress={() => [navigation.navigate('Add', { name: name }), setName('')]}
+                  onPress={() => [
+                    navigation.navigate('Add', { name: name, date: selectedDate }),
+                    setName(''),
+                  ]}
                   size={20}
                 />
               }
@@ -247,11 +250,6 @@ const createStyles = (colors) =>
       width: '100%',
       height: '100%',
     },
-    box: {
-      width: 100,
-      height: 100,
-      backgroundColor: 'tomato',
-    },
     container: {
       flex: 1,
       backgroundColor: colors.bg,
@@ -262,7 +260,7 @@ const createStyles = (colors) =>
     calendar: {
       marginHorizontal: 12,
       borderRadius: 10,
-      elevation: 2,
+      elevation: 1,
       paddingBottom: 6,
     },
     title: {
@@ -278,7 +276,7 @@ const createStyles = (colors) =>
       margin: 10,
       // paddingHorizontal: 20,
       paddingVertical: 16,
-      elevation: 2,
+      elevation: 1,
       alignItems: 'center',
     },
     label: {

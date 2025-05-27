@@ -33,7 +33,13 @@ const CustomInput = ({
   return (
     <View>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputContainer, !editable && styles.disabled]}>
+      <View
+        style={[
+          styles.inputContainer,
+          !editable && styles.disabled,
+          multiline && { maxHeight: 100 },
+        ]}
+      >
         <ScrollView>
           <TextInput
             style={[styles.input, !editable && styles.disabled]}

@@ -168,11 +168,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      borderWidth: 2,
-      borderColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
     },
     selectedText: {
-      fontSize: 15,
+      // fontSize: 15,
     },
     modalOverlay: {
       flex: 1,
@@ -193,7 +193,7 @@ const createStyles = (colors) =>
       borderRadius: 10,
       paddingVertical: 10,
       paddingHorizontal: 12,
-      marginBottom: 12,
+      marginBottom: 6,
       color: colors.black,
       fontSize: 14,
     },
@@ -215,7 +215,7 @@ const createStyles = (colors) =>
       lineHeight: 22,
     },
     item: {
-      paddingVertical: 12,
+      paddingVertical: 16,
       paddingHorizontal: 10,
       borderBottomWidth: 1,
       borderBottomColor: colors.lightestGrey,

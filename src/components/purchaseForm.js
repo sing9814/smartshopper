@@ -20,7 +20,7 @@ import { setCategories } from '../redux/actions/userActions';
 import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
 import Banner from './banner';
 
-const PurchaseForm = ({ purchase, navigation, name, edit }) => {
+const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
   const dispatch = useDispatch();
@@ -29,8 +29,8 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
-  const [date, setDate] = useState(new Date());
-  const formattedDate = date.toLocaleDateString('en-US', {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const formattedDate = selectedDate.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -57,7 +57,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     if (purchase) {
       setItemName(purchase.name);
       setCategory(purchase.category);
-      setDate(new Date(purchase.datePurchased));
+      setSelectedDate(new Date(purchase.datePurchased));
       setRegularPrice(
         purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
       );
@@ -66,8 +66,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
       setDisabled(purchase.paidPrice ? true : false);
     } else if (name) {
       setItemName(name);
+    } else if (date) {
+      setSelectedDate(parseLocalDate(date));
     }
-  }, [purchase, name]);
+  }, [purchase, name, date]);
 
   useFocusEffect(
     useCallback(() => {
@@ -87,6 +89,11 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     };
     setShowClearButton(checkFields());
   }, [itemName, category, regularPrice, paidPrice, note]);
+
+  const parseLocalDate = (dateString) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
@@ -146,7 +153,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         edited: generateFirestoreTimestamp(),
         regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
         paidPrice: Math.round(parseFloat(paidPrice) * 100),
-        datePurchased: date.toISOString().split('T')[0],
+        datePurchased: selectedDate.toISOString().split('T')[0],
         dateCreated: purchase.dateCreated,
       };
       await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
@@ -174,7 +181,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         wears: [],
         regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
         paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
-        datePurchased: date.toISOString().split('T')[0],
+        datePurchased: selectedDate.toISOString().split('T')[0],
         dateCreated: generateFirestoreTimestamp(),
       };
       await userRef.collection('Purchases').doc(id).set(newPurchase);
@@ -201,7 +208,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
     setNote(null);
     setRegularPrice(null);
     setPaidPrice(null);
-    setDate(new Date());
+    setSelectedDate(new Date());
   };
 
   return (
@@ -237,7 +244,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
 
           <View>
             <Text style={styles.label}>Date</Text>
-            <TouchableOpacity onPress={() => setOpen(true)} style={[styles.button2]}>
+            <TouchableOpacity onPress={() => setOpen(true)} style={[styles.dateBtn]}>
               <View style={styles.innerContainer2}>
                 <Ionicons name={'calendar'} size={20} color={colors.primary} />
                 <Text style={[styles.text]}>{formattedDate}</Text>
@@ -248,10 +255,10 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
           <DatePicker
             modal
             open={open}
-            date={date}
+            date={selectedDate}
             onConfirm={(date) => {
               setOpen(false);
-              setDate(date);
+              setSelectedDate(date);
             }}
             onCancel={() => setOpen(false)}
             mode={'date'}
@@ -303,7 +310,7 @@ const PurchaseForm = ({ purchase, navigation, name, edit }) => {
         )}
 
         <CustomButton
-          buttonStyle={[styles.button, { bottom: edit ? 12 : 75 }]}
+          buttonStyle={[styles.submitBtn, { bottom: edit ? 12 : 75 }]}
           onPress={handleSubmit}
           title={edit ? 'Update' : 'Submit'}
         />
@@ -341,7 +348,7 @@ const createStyles = (colors) =>
       marginTop: 12,
       borderRadius: 10,
     },
-    button: {
+    submitBtn: {
       position: 'absolute',
     },
     icon: {
@@ -357,13 +364,13 @@ const createStyles = (colors) =>
       color: colors.primary,
       fontWeight: '500',
     },
-    button2: {
+    dateBtn: {
       width: '100%',
       backgroundColor: colors.white,
       padding: 16,
       borderRadius: 10,
-      borderWidth: 2,
-      borderColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
     },
     innerContainer2: {
       flexDirection: 'row',
@@ -372,7 +379,7 @@ const createStyles = (colors) =>
     },
     text: {
       color: colors.black,
-      fontSize: 16,
+      fontSize: 15,
     },
     label: {
       fontSize: 14,

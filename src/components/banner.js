@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Text, StyleSheet, Dimensions } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,8 +9,6 @@ import Animated, {
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const { width } = Dimensions.get('window');
-
 const Banner = ({ message, onFinish, type = 'error' }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -18,19 +16,17 @@ const Banner = ({ message, onFinish, type = 'error' }) => {
   const translateY = useSharedValue(-100);
   const opacity = useSharedValue(0);
 
-  console.log(type);
-
   const backgroundColor = type === 'error' ? colors.red : colors.green;
   const iconName = type === 'error' ? 'alert-circle-outline' : 'checkmark-circle-outline';
 
   useEffect(() => {
-    translateY.value = withTiming(0, { duration: 300 });
-    opacity.value = withTiming(1, { duration: 300 });
+    translateY.value = withTiming(0, { duration: 400, reduceMotion: 'never' });
+    opacity.value = withTiming(1, { duration: 400, reduceMotion: 'never' });
 
     // if (type === 'success') {
     const timeout = setTimeout(() => {
-      translateY.value = withTiming(-100, { duration: 300 });
-      opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+      translateY.value = withTiming(-100, { duration: 400, reduceMotion: 'never' });
+      opacity.value = withTiming(0, { duration: 400, reduceMotion: 'never' }, (finished) => {
         if (finished && onFinish) {
           runOnJS(onFinish)();
         }
@@ -58,7 +54,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     banner: {
       position: 'absolute',
-      top: 20,
+      top: 12,
       left: 16,
       right: 16,
       paddingVertical: 14,

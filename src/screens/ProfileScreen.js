@@ -122,6 +122,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: 20,
+      elevation: 1,
     },
     amount: {
       color: colors.black,
@@ -148,8 +149,10 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
       marginTop: 24,
       backgroundColor: colors.white,
-      padding: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 16,
       borderRadius: 10,
+      elevation: 1,
     },
     label: {
       fontSize: 16,
