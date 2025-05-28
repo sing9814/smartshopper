@@ -12,6 +12,7 @@ import { formatDateShort } from '../utils/date';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
+import { getWearEmoji } from '../utils/wears';
 
 const PurchaseList = ({
   purchases,
@@ -84,6 +85,7 @@ const PurchaseList = ({
         <View style={styles.textContainer}>
           <View style={styles.row}>
             <View style={styles.topGroup}>
+              {/* {!overlay && <Text style={styles.wears}>{getWearEmoji(item.wears.length)}</Text>} */}
               <Text style={styles.title} numberOfLines={1}>
                 {item.name}
               </Text>
@@ -97,7 +99,7 @@ const PurchaseList = ({
                   {getCategoryName(item.category)}
                 </Text>
               )}
-              {!overlay && <Text style={styles.wears}>• {item.wears.length} wears</Text>}
+              {!overlay && <Text style={styles.wears}>• {item.wears.length} wears </Text>}
             </View>
             <Text style={styles.date}>
               {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}

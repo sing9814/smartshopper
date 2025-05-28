@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import CustomButton from '../components/button';
@@ -14,6 +14,7 @@ import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import { convertCentsToDollars } from '../utils/price';
+import { getWearLevel } from '../utils/wears';
 
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -133,8 +134,8 @@ const DetailsScreen = ({ navigation }) => {
 
           <View style={styles.row}>
             <View>
-              <Text style={styles.label}>Condition</Text>
-              <Text style={styles.text}>Slightly worn</Text>
+              <Text style={styles.label}>Wear level</Text>
+              <Text style={styles.text}>{getWearLevel(currentPurchase.wears.length)}</Text>
             </View>
 
             <View style={styles.alignRight}>
