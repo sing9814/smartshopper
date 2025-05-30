@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
 import { useTheme, useToggleTheme, useIsDark } from '../theme/themeContext';
@@ -8,8 +8,9 @@ import PigSVG from '../../assets/pigSVG';
 import MoneySVG from '../../assets/moneySVG';
 import Header from '../components/header';
 import { useSelector } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
   const toggleTheme = useToggleTheme();
@@ -62,25 +63,41 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <Header title={user?.name || ' '} subtitle={user?.email || ' '} rounded padding />
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        <View style={styles.innerContainer}>
-          <View style={styles.cardContainer}>
-            <View style={styles.card}>
-              <Text style={styles.amount}>${totalSpent}</Text>
-              <MoneySVG />
-              <Text style={styles.title}>Spent</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.amount}>${totalSaved}</Text>
-              <PigSVG />
-              <Text style={styles.title}>Saved</Text>
-            </View>
+
+      <View style={styles.innerContainer}>
+        <View style={styles.cardContainer}>
+          <View style={styles.card}>
+            <Text style={styles.amount}>${totalSpent}</Text>
+            <MoneySVG />
+            <Text style={styles.title}>Spent</Text>
           </View>
-          <View style={styles.toggleRow}>
-            <Text style={[styles.label, { color: colors.black }]}>Dark mode</Text>
+          <View style={styles.card}>
+            <Text style={styles.amount}>${totalSaved}</Text>
+            <PigSVG />
+            <Text style={styles.title}>Saved</Text>
+          </View>
+        </View>
+
+        <View style={styles.settings}>
+          <Text style={styles.settingsText}>Settings</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => navigation.navigate('CustomCategory')}
+          >
+            <View style={styles.innerRowContainer}>
+              <Ionicons
+                name="folder-outline"
+                size={24}
+                color={colors.primary}
+                style={styles.rowIcon}
+              />
+              <Text style={styles.title}>Manage categories</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+          </TouchableOpacity>
+
+          <View style={styles.row}>
+            <Text style={styles.title}>Dark mode</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -88,12 +105,12 @@ const ProfileScreen = () => {
               thumbColor={isDark ? colors.primary : colors.gray}
             />
           </View>
-          <View style={styles.svgContainer}>
-            <WomanSVG />
-          </View>
-          <CustomButton buttonStyle={styles.button} onPress={handleSignOut} title="Log out" />
         </View>
-      </ScrollView>
+        <View style={styles.svgContainer}>
+          <WomanSVG />
+        </View>
+        <CustomButton buttonStyle={styles.button} onPress={handleSignOut} title="Log out" />
+      </View>
     </View>
   );
 };
@@ -110,8 +127,19 @@ const createStyles = (colors) =>
       paddingHorizontal: 12,
       flex: 1,
     },
+    settings: {
+      marginTop: 6,
+      marginHorizontal: 12,
+      gap: 4,
+    },
+    settingsText: {
+      color: colors.gray,
+      marginBottom: 2,
+    },
     button: {
+      position: 'absolute',
       bottom: 75,
+      alignSelf: 'center',
     },
     card: {
       backgroundColor: colors.white,
@@ -142,27 +170,30 @@ const createStyles = (colors) =>
       flexGrow: 1,
       justifyContent: 'center',
     },
-    toggleRow: {
+    row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginHorizontal: 12,
-      marginTop: 24,
       backgroundColor: colors.white,
       paddingHorizontal: 10,
-      paddingVertical: 16,
+      paddingVertical: 10,
       borderRadius: 10,
       elevation: 1,
+      zIndex: 1,
     },
-    label: {
-      fontSize: 16,
-      marginLeft: 10,
+    innerRowContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    rowIcon: {
+      marginRight: 12,
     },
     svgContainer: {
       alignItems: 'center',
-      justifyContent: 'flex-end',
-      flex: 1,
-      marginRight: 20,
+      position: 'absolute',
+      bottom: 56,
+      width: '100%',
     },
   });
 

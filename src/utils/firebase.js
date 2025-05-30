@@ -128,7 +128,12 @@ export const fetchMergedCategories = async (defaultCategories) => {
     }
   }
 
-  return merged;
+  const flattenedCustom = customData.map(({ category, subCategory }) => ({
+    category,
+    name: subCategory,
+  }));
+
+  return { merged, customCategories: flattenedCustom };
 };
 
 export const saveCustomCategory = async ({ category, subCategory }) => {

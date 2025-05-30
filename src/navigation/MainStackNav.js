@@ -1,9 +1,8 @@
-import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DetailsScreen from '../screens/DetailsScreen';
 import MainTabNav from './MainTabNav';
 import EditScreen from '../screens/EditScreen';
-import { TransitionPresets } from '@react-navigation/stack';
+import CustomCategoriesScreen from '../screens/CustomCategoriesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +19,11 @@ function MainStackNav() {
       <Stack.Screen
         name="Edit"
         component={EditScreen}
+        options={{ headerShown: false, animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="CustomCategory"
+        component={CustomCategoriesScreen}
         options={{ headerShown: false, animation: 'fade' }}
       />
     </Stack.Navigator>

@@ -1,9 +1,15 @@
-import { SET_USER, SET_USER_ONBOARDED, SET_CATEGORIES } from '../actions/userActions';
+import {
+  SET_USER,
+  SET_USER_ONBOARDED,
+  SET_CATEGORIES,
+  SET_CUSTOM_CATEGORIES,
+} from '../actions/userActions';
 
 const initialState = {
   user: null,
   userOnboarded: false,
   categories: [],
+  customCategories: [],
 };
 
 const userReducer = (state = initialState, action) => {
@@ -22,6 +28,11 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         categories: action.payload,
+      };
+    case SET_CUSTOM_CATEGORIES:
+      return {
+        ...state,
+        customCategories: action.payload,
       };
     default:
       return state;

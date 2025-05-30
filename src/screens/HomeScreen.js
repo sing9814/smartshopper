@@ -13,7 +13,7 @@ import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
-import { setCategories } from '../redux/actions/userActions';
+import { setCategories, setCustomCategories } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
 import CustomInput from '../components/customInput';
@@ -65,10 +65,11 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchData = async () => {
     const { userData, purchaseData } = await fetchUserDataAndPurchases();
-    const merged = await fetchMergedCategories(defaultCategories);
+    const { merged, customCategories } = await fetchMergedCategories(defaultCategories);
     dispatch(setUser(userData));
     dispatch(setPurchases(purchaseData));
     dispatch(setCategories(merged));
+    dispatch(setCustomCategories(customCategories));
     setLoading(false);
     setRefreshing(false);
   };
