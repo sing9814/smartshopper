@@ -104,31 +104,39 @@ export const fetchMergedCategories = async (defaultCategories) => {
     .collection('customCategories')
     .get();
 
-  const customData = customSnapshot.docs.map((doc) => doc.data());
+  const customData = customSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 
   // Convert default subcategories into { name, custom: false }
   const merged = defaultCategories.map((cat) => ({
     name: cat.name,
-    subCategories: cat.subCategories.map((name) => ({ name, custom: false })),
+    subCategories: cat.subCategories.map((name) => ({
+      id: `${cat.name.toLowerCase()}_${name.toLowerCase().replace(/\s+/g, '_')}`,
+      name,
+      custom: false,
+    })),
   }));
 
-  for (const { category, subCategory } of customData) {
+  for (const { id, category, subCategory } of customData) {
     const catMatch = merged.find((c) => c.name === category);
 
     if (catMatch) {
       const exists = catMatch.subCategories.some((s) => s.name === subCategory);
       if (!exists) {
-        catMatch.subCategories.push({ name: subCategory, custom: true });
+        catMatch.subCategories.push({ id, name: subCategory, custom: true });
       }
     } else {
       merged.push({
         name: category,
-        subCategories: [{ name: subCategory, custom: true }],
+        subCategories: [{ id, name: subCategory, custom: true }],
       });
     }
   }
 
-  const flattenedCustom = customData.map(({ category, subCategory }) => ({
+  const flattenedCustom = customData.map(({ id, category, subCategory }) => ({
+    id,
     category,
     name: subCategory,
   }));
@@ -136,19 +144,40 @@ export const fetchMergedCategories = async (defaultCategories) => {
   return { merged, customCategories: flattenedCustom };
 };
 
-export const saveCustomCategory = async ({ category, subCategory }) => {
-  const userID = auth().currentUser.uid;
-  const customRef = firestore().collection('users').doc(userID).collection('customCategories');
+export const saveCustomCategory = async ({ id, category, subCategory }) => {
+  try {
+    const userID = auth().currentUser.uid;
 
-  const existing = await customRef
-    .where('category', '==', category)
-    .where('subCategory', '==', subCategory)
-    .get();
+    await firestore()
+      .collection('users')
+      .doc(userID)
+      .collection('customCategories')
+      .doc(id)
+      .set({ category, subCategory });
 
-  if (existing.empty) {
-    await customRef.add({ category, subCategory, custom: true });
     return true;
+  } catch (error) {
+    console.error('Failed to save custom category:', error);
+    return false;
   }
+};
 
-  return false;
+export const updateCustomCategory = async ({ id, category, subCategory }) => {
+  const userID = auth().currentUser.uid;
+  try {
+    await firestore()
+      .collection('users')
+      .doc(userID)
+      .collection('customCategories')
+      .doc(id)
+      .update({
+        category,
+        subCategory,
+      });
+
+    return true;
+  } catch (error) {
+    console.error('Failed to update custom category:', error);
+    return false;
+  }
 };

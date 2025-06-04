@@ -1,35 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import BottomSheet from './bottomSheet';
 import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
-import { saveCustomCategory } from '../utils/firebase';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveCustomCategory, updateCustomCategory } from '../utils/firebase';
+import { setCustomCategories, setCategories } from '../redux/actions/userActions';
+import uuid from 'react-native-uuid';
 
-const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName = '', onSave }) => {
+const CustomCategorySheet = ({
+  visible,
+  onClose,
+  items,
+  initialSubcategoryName = '',
+  onSave,
+  editingCategory = null,
+}) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const dispatch = useDispatch();
+
+  const customCategories = useSelector((state) => state.user.customCategories);
+  const categories = useSelector((state) => state.user.categories);
 
   const [customName, setCustomName] = useState(initialSubcategoryName);
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
   useEffect(() => {
     if (visible) {
-      setCustomName(initialSubcategoryName);
+      if (editingCategory) {
+        setCustomName(editingCategory.name);
+        setSelectedCategoryName(editingCategory.category);
+      } else {
+        setCustomName(initialSubcategoryName);
+        setSelectedCategoryName('');
+      }
     }
-  }, [visible, initialSubcategoryName]);
+  }, [visible, initialSubcategoryName, editingCategory]);
 
   const handleSave = async () => {
     if (!customName || !selectedCategoryName) return;
 
-    const wasSaved = await saveCustomCategory({
+    const id = editingCategory?.id || uuid.v4();
+    const payload = {
+      id,
       category: selectedCategoryName,
       subCategory: customName,
-    });
+    };
+
+    const wasSaved = editingCategory
+      ? await updateCustomCategory(payload)
+      : await saveCustomCategory(payload);
+
+    if (!wasSaved) return;
+
+    const updatedCustoms = editingCategory
+      ? customCategories.map((c) =>
+          c.id === id ? { ...c, name: customName, category: selectedCategoryName } : c
+        )
+      : [...customCategories, { id, name: customName, category: selectedCategoryName }];
+    dispatch(setCustomCategories(updatedCustoms));
+
+    const updatedCategories = categories.map((cat) => ({
+      ...cat,
+      subCategories: editingCategory
+        ? cat.subCategories.filter((sub) => sub.id !== editingCategory.id)
+        : cat.subCategories,
+    }));
+
+    const targetGroup = updatedCategories.find((cat) => cat.name === selectedCategoryName);
+    if (targetGroup) {
+      targetGroup.subCategories.push({ id, name: customName, custom: true });
+    }
+
+    dispatch(setCategories(updatedCategories));
 
     onSave?.(
       {
+        id,
         category: selectedCategoryName,
-        subCategory: { name: customName, custom: true },
+        subCategory: { id, name: customName, custom: true },
       },
       wasSaved
     );
@@ -40,7 +90,12 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
   };
 
   return (
-    <BottomSheet title="Create Custom Category" visible={visible} onClose={onClose} height={450}>
+    <BottomSheet
+      title={editingCategory ? 'Edit Custom Category' : 'Create Custom Category'}
+      visible={visible}
+      onClose={onClose}
+      height={450}
+    >
       <Text style={styles.label}>Name</Text>
       <TextInput
         style={styles.sheetInput}
@@ -79,7 +134,7 @@ const CustomCategorySheet = ({ visible, onClose, items, initialSubcategoryName =
       </View>
 
       <CustomButton
-        title="Save new category"
+        title={editingCategory ? 'Save Changes' : 'Save New Category'}
         buttonStyle={{ marginTop: 20 }}
         onPress={handleSave}
       />
