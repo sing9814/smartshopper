@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import CustomButton from '../components/button';
-import { deletePurchase } from '../utils/firebase';
+import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
 import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -31,7 +31,7 @@ const DetailsScreen = ({ navigation }) => {
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   const handleDelete = () => {
-    deletePurchase(currentPurchase.key);
+    deleteDoc('Purchases', currentPurchase.key);
     const updatedPurchaseList = purchases.filter((p) => p.key !== currentPurchase.key);
     dispatch(setPurchases(updatedPurchaseList));
 

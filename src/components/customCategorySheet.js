@@ -94,7 +94,7 @@ const CustomCategorySheet = ({
       title={editingCategory ? 'Edit Custom Category' : 'Create Custom Category'}
       visible={visible}
       onClose={onClose}
-      height={450}
+      height={editingCategory ? 400 : 450}
     >
       <Text style={styles.label}>Name</Text>
       <TextInput

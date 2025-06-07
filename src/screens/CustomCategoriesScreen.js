@@ -6,13 +6,21 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useState } from 'react';
 import CustomCategorySheet from '../components/customCategorySheet';
 import Banner from '../components/banner';
+import ConfirmationModal from '../components/confirmationModal';
+import { deleteDoc } from '../utils/firebase';
+import { setCustomCategories, setCategories } from '../redux/actions/userActions';
+import { useDispatch } from 'react-redux';
 
 const CustomCategoriesScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
   const colors = useTheme();
   const styles = createStyles(colors);
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const [banner, setBanner] = useState(null);
   const showBanner = (message, type = 'error') => {
@@ -31,14 +39,25 @@ const CustomCategoriesScreen = ({ navigation }) => {
         <Text style={styles.pillText}>{item.name}</Text>
       </View>
 
-      <TouchableOpacity
-        onPress={() => {
-          setEditingCategory(item);
-          setShowEditSheet(true);
-        }}
-      >
-        <Ionicons name="pencil-outline" size={20} color={colors.gray} />
-      </TouchableOpacity>
+      <View style={styles.iconContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            setEditingCategory(item);
+            setShowEditSheet(true);
+          }}
+        >
+          <Ionicons name="pencil-outline" size={20} color={colors.gray} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            setPendingDelete(item);
+            setShowDeletePopup(true);
+          }}
+        >
+          <Ionicons name="trash-outline" size={20} color={colors.red} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -79,6 +98,36 @@ const CustomCategoriesScreen = ({ navigation }) => {
           setEditingCategory(null);
         }}
       />
+
+      <ConfirmationModal
+        data={pendingDelete?.name}
+        visible={showDeletePopup}
+        onCancel={() => {
+          setShowDeletePopup(false);
+          setPendingDelete(null);
+        }}
+        onConfirm={async () => {
+          try {
+            await deleteDoc('customCategories', pendingDelete.id);
+
+            const updatedCustoms = customCategories.filter((c) => c.id !== pendingDelete.id);
+            dispatch(setCustomCategories(updatedCustoms));
+
+            const updatedCategories = categories.map((cat) => ({
+              ...cat,
+              subCategories: cat.subCategories.filter((sub) => sub.id !== pendingDelete.id),
+            }));
+            dispatch(setCategories(updatedCategories));
+
+            showBanner('Category deleted!', 'success');
+          } catch (err) {
+            showBanner('Failed to delete category.');
+          }
+
+          setShowDeletePopup(false);
+          setPendingDelete(null);
+        }}
+      />
     </>
   );
 };
@@ -117,6 +166,10 @@ const createStyles = (colors) =>
     },
     pillText: {
       color: colors.white,
+    },
+    iconContainer: {
+      flexDirection: 'row',
+      gap: 16,
     },
   });
 

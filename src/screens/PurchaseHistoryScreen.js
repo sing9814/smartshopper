@@ -7,7 +7,7 @@ import CustomInput from '../components/customInput';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ConfirmationModal from '../components/confirmationModal';
-import { deletePurchase } from '../utils/firebase';
+import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 
@@ -68,7 +68,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   const handleDelete = async () => {
     try {
-      await Promise.all(selectedItems.map((id) => deletePurchase(id)));
+      await Promise.all(selectedItems.map((id) => deleteDoc('Purchases', id)));
 
       const remaining = purchases.filter((p) => !selectedItems.includes(p.key));
       dispatch(setPurchases(remaining));
