@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomButton from '../components/button';
@@ -81,8 +81,14 @@ const createStyles = (colors) =>
       color: colors.gray,
       marginBottom: 20,
     },
-    error: { color: colors.red, marginBottom: 8 },
-    success: { color: colors.green, marginBottom: 8 },
+    error: {
+      color: colors.red,
+      marginBottom: 8,
+    },
+    success: {
+      color: colors.green,
+      marginBottom: 8,
+    },
     back: {
       marginTop: 24,
       textAlign: 'center',

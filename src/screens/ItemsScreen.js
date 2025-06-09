@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, RefreshControl } from 'react-native';
-import Header from '../components/header';
 import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import CustomInput from '../components/customInput';
@@ -11,7 +10,7 @@ import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 
-const PurchaseHistoryScreen = ({ navigation }) => {
+const ItemsScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -84,7 +83,7 @@ const PurchaseHistoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {selectedItems.length > 0 ? (
+      {selectedItems.length > 0 && (
         <View style={styles.selectionHeader}>
           <View style={styles.selectionClose}>
             <Ionicons name="close" size={22} color="white" onPress={clearSelection} />
@@ -97,8 +96,6 @@ const PurchaseHistoryScreen = ({ navigation }) => {
             onPress={selectedItems.length > 0 ? handleTrashPress : () => {}}
           />
         </View>
-      ) : (
-        <Header title={'Items'} />
       )}
 
       {banner && (
@@ -204,4 +201,4 @@ const createStyles = (colors) =>
     },
   });
 
-export default PurchaseHistoryScreen;
+export default ItemsScreen;
