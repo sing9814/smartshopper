@@ -10,7 +10,7 @@ import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 
-const ItemsScreen = ({ navigation }) => {
+const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -19,7 +19,6 @@ const ItemsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedItems, setSelectedItems] = useState([]);
 
   const purchases = useSelector((state) => state.purchase.purchases);
 

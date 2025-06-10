@@ -1,8 +1,10 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
-const CustomTabBar = ({ state, descriptors, navigation }) => {
+const CustomTabBar = ({ state, descriptors, navigation, hidden }) => {
   const colors = useTheme();
+
+  if (hidden) return null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.primary }]}>
@@ -26,7 +28,6 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 styles.label,
                 {
                   color: isFocused ? 'white' : '#aaa',
-                  fontSize: 16,
                 },
               ]}
             >
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 13,
     alignItems: 'center',
   },
   activeTab: {
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'white',
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     letterSpacing: 1,
   },
 });
