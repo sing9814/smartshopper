@@ -7,7 +7,15 @@ const CustomTabBar = ({ state, descriptors, navigation, hidden }) => {
   if (hidden) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.primary }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            state.routes[state.index].name === 'Items' ? colors.primary : colors.primaryDark,
+        },
+      ]}
+    >
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label = options.tabBarLabel ?? route.name;

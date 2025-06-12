@@ -2,12 +2,12 @@ import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
-const Header = ({ title, subtitle, rounded, padding }) => {
+const Header = ({ title, subtitle, rounded, padding, style }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
   return (
-    <View style={[styles.container, rounded && styles.rounded, padding && styles.padding]}>
+    <View style={[styles.container, rounded && styles.rounded, padding && styles.padding, style]}>
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </View>

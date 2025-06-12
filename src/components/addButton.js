@@ -3,14 +3,18 @@ import { TouchableHighlight, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../theme/themeContext';
 
-const AddButton = ({ onPress, size, disabled = false }) => {
+const AddButton = ({ onPress, size, disabled = false, style }) => {
   const colors = useTheme();
 
   return (
     <TouchableHighlight
       underlayColor={colors.primaryDark}
       onPress={onPress}
-      style={[styles.button, { backgroundColor: disabled ? colors.lightGrey : colors.primary }]}
+      style={[
+        styles.button,
+        { backgroundColor: disabled ? colors.lightGrey : colors.primary },
+        style,
+      ]}
       disabled={disabled}
     >
       <Ionicons name="add" size={size || 30} color={colors.white} />

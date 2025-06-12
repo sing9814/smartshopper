@@ -9,10 +9,12 @@ import MoneySVG from '../../assets/moneySVG';
 import Header from '../components/header';
 import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useStatusBar } from '../hooks/useStatusBar';
 
 const ProfileScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  useStatusBar(colors.primary);
   const toggleTheme = useToggleTheme();
   const isDark = useIsDark();
 

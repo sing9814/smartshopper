@@ -23,10 +23,12 @@ import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
 import { convertCentsToDollars } from '../utils/price';
+import { useStatusBar } from '../hooks/useStatusBar';
 
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  useStatusBar(colors.primary);
 
   const calendarTheme = useMemo(
     () => ({

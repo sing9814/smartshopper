@@ -9,10 +9,12 @@ import ConfirmationModal from '../components/confirmationModal';
 import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
+import { useStatusBar } from '../hooks/useStatusBar';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
 
