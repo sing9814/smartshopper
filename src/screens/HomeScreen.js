@@ -213,7 +213,6 @@ const HomeScreen = ({ navigation }) => {
                     navigation.navigate('Add', { name: name, date: selectedDate }),
                     setName(''),
                   ]}
-                  size={20}
                 />
               }
             />

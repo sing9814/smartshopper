@@ -270,9 +270,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
             value={paidPrice}
             onChangeText={setPaidPrice}
             type="numeric"
-            component={
-              <AddButton onPress={() => setDisabled(true)} size={20} disabled={disabled} />
-            }
+            component={<AddButton onPress={() => setDisabled(true)} disabled={disabled} />}
           />
 
           {disabled && (
