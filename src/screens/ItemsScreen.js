@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
 import CustomInput from '../components/customInput';
@@ -10,6 +10,9 @@ import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 import { useStatusBar } from '../hooks/useStatusBar';
+import BottomSheet from '../components/bottomSheet';
+import CustomButton from '../components/button';
+import { addItemsToCollections } from '../utils/firebase';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
@@ -21,12 +24,15 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCollections, setSelectedCollections] = useState([]);
 
   const purchases = useSelector((state) => state.purchase.purchases);
+  const collections = useSelector((state) => state.purchase.collections);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState('');
   const [banner, setBanner] = useState(null);
+  const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -66,6 +72,20 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const clearSelection = () => setSelectedItems([]);
 
+  const handleAddToCollections = async () => {
+    try {
+      await addItemsToCollections(selectedItems, selectedCollections);
+      console.log(selectedItems, selectedCollections);
+      showBanner('Added items to collections', 'success');
+      setCollectionSheetVisible(false);
+      setSelectedCollections([]);
+      setSelectedItems([]);
+    } catch (err) {
+      console.error(err);
+      showBanner('Failed to add items to collections');
+    }
+  };
+
   const handleDelete = async () => {
     try {
       await Promise.all(selectedItems.map((id) => deleteDoc('Purchases', id)));
@@ -87,15 +107,19 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       {selectedItems.length > 0 && (
         <View style={styles.selectionHeader}>
           <View style={styles.selectionClose}>
-            <Ionicons name="close" size={22} color="white" onPress={clearSelection} />
+            <TouchableOpacity onPress={clearSelection}>
+              <Ionicons name="close" size={22} color="white" />
+            </TouchableOpacity>
             <Text style={styles.headerTitle}>{`${selectedItems.length} selected`}</Text>
           </View>
-          <Ionicons
-            name="trash-outline"
-            size={22}
-            color="white"
-            onPress={selectedItems.length > 0 ? handleTrashPress : () => {}}
-          />
+          <View style={styles.selectionActions}>
+            <TouchableOpacity onPress={() => setCollectionSheetVisible(true)}>
+              <Ionicons name="add-circle-outline" size={22} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleTrashPress}>
+              <Ionicons name="trash-outline" size={22} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -143,6 +167,47 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           selectedItems={selectedItems}
         />
       )}
+      <BottomSheet
+        visible={collectionSheetVisible}
+        onClose={() => setCollectionSheetVisible(false)}
+        title="Add to Collections"
+        height="50%"
+      >
+        <ScrollView style={styles.sheetContainer}>
+          {collections.map((collection) => {
+            const isSelected = selectedCollections.includes(collection.id);
+            return (
+              <TouchableOpacity
+                key={collection.id}
+                style={styles.sheetRow}
+                onPress={() => {
+                  setSelectedCollections((prev) =>
+                    isSelected
+                      ? prev.filter((id) => id !== collection.id)
+                      : [...prev, collection.id]
+                  );
+                }}
+              >
+                <View>
+                  <Text style={styles.sheetRowName}>{collection.name}</Text>
+                  <Text style={styles.sheetRowDesc}>{collection.description}</Text>
+                </View>
+                <Ionicons
+                  name={isSelected ? 'checkmark-circle-outline' : 'ellipse-outline'}
+                  size={22}
+                  color={isSelected ? colors.primary : colors.gray}
+                />
+              </TouchableOpacity>
+            );
+          })}
+
+          <CustomButton
+            title="Add to selected collections"
+            onPress={handleAddToCollections}
+            buttonStyle={styles.sheetButton}
+          />
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 };
@@ -152,6 +217,11 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    selectionActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
     },
     selectionHeader: {
       backgroundColor: colors.primary,
@@ -199,6 +269,27 @@ const createStyles = (colors) =>
     emptyText: {
       fontSize: 15,
       color: colors.gray,
+    },
+    sheetContainer: {
+      width: '100%',
+    },
+    sheetRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      justifyContent: 'space-between',
+    },
+    sheetRowName: {
+      fontSize: 15,
+      color: colors.black,
+      fontWeight: '500',
+    },
+    sheetRowDesc: {
+      color: colors.gray,
+    },
+    sheetButton: {
+      marginTop: 12,
     },
   });
 
