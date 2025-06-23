@@ -15,10 +15,12 @@ import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import { convertCentsToDollars } from '../utils/price';
 import { getWearLevel } from '../utils/wears';
+import { useStatusBar } from '../hooks/useStatusBar';
 
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
 
