@@ -13,6 +13,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import { addItemsToCollections } from '../utils/firebase';
+import { setCollections } from '../redux/actions/purchaseActions';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
@@ -75,7 +76,17 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const handleAddToCollections = async () => {
     try {
       await addItemsToCollections(selectedItems, selectedCollections);
-      console.log(selectedItems, selectedCollections);
+
+      const updatedCollections = collections.map((collection) => {
+        if (selectedCollections.includes(collection.id)) {
+          const newItemIds = Array.from(new Set([...(collection.items || []), ...selectedItems]));
+          return { ...collection, items: newItemIds };
+        }
+        return collection;
+      });
+
+      dispatch(setCollections(updatedCollections));
+
       showBanner('Added items to collections', 'success');
       setCollectionSheetVisible(false);
       setSelectedCollections([]);
@@ -189,8 +200,15 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
                 }}
               >
                 <View>
-                  <Text style={styles.sheetRowName}>{collection.name}</Text>
-                  <Text style={styles.sheetRowDesc}>{collection.description}</Text>
+                  <View style={styles.row}>
+                    <Text style={styles.sheetRowName}>{collection.name}</Text>
+                    <Text style={styles.sheetRowDesc}>
+                      ({collection.items.length} {collection.items.length !== 1 ? 'items' : 'item'})
+                    </Text>
+                  </View>
+                  <Text style={styles.sheetRowDesc}>
+                    {collection.description ? collection.description : '(No description)'}
+                  </Text>
                 </View>
                 <Ionicons
                   name={isSelected ? 'checkmark-circle-outline' : 'ellipse-outline'}
@@ -280,10 +298,15 @@ const createStyles = (colors) =>
       paddingHorizontal: 8,
       justifyContent: 'space-between',
     },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     sheetRowName: {
       fontSize: 15,
       color: colors.black,
       fontWeight: '500',
+      marginRight: 6,
     },
     sheetRowDesc: {
       color: colors.gray,

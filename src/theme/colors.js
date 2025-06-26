@@ -38,7 +38,7 @@ export const darkTheme = {
   mode: 'dark',
   primaryLight: '#2c2f45',
   primary: '#536DFE',
-  primaryDark: '#5E6FE5',
+  primaryDark: '#4763fd',
   secondary: '#FF8F33',
   accent: '#FFD54F',
   black: '#FFFFFF',

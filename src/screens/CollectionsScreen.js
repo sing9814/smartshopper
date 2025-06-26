@@ -16,7 +16,12 @@ const CollectionsScreen = ({ navigation }) => {
       style={styles.card}
       onPress={() => navigation.navigate('CollectionDetail', { collection: item })}
     >
-      <Text style={styles.title}>{item.name}</Text>
+      <View style={styles.row}>
+        <Text style={styles.title}>{item.name}</Text>
+        <Text style={styles.description}>
+          {item.items.length} {item.items.length !== 1 ? 'items' : 'item'}
+        </Text>
+      </View>
       {item.description ? <Text style={styles.description}>{item.description}</Text> : null}
     </TouchableOpacity>
   );
@@ -52,6 +57,11 @@ const createStyles = (colors) =>
       shadowRadius: 4,
       elevation: 2,
     },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
     title: {
       fontSize: 16,
       fontWeight: '600',
@@ -65,6 +75,7 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
+      paddingTop: 6,
     },
     flatlist: {
       paddingBottom: 120,

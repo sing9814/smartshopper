@@ -1,26 +1,73 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useSelector } from 'react-redux';
 import PurchaseList from '../components/purchaseList';
 import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { setCollections } from '../redux/actions/purchaseActions';
+import { deleteDoc } from '../utils/firebase';
+import { useDispatch } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Banner from '../components/banner';
+import ConfirmationModal from '../components/confirmationModal';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
   const colors = useTheme();
   const styles = createStyles(colors);
 
+  const [banner, setBanner] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const showBanner = (message, type = 'error') => {
+    setBanner(null);
+    setTimeout(() => {
+      setBanner({ message, type });
+    }, 10);
+  };
+
   useStatusBar(colors.primaryDark);
 
+  const dispatch = useDispatch();
+  const collections = useSelector((state) => state.purchase.collections);
   const purchases = useSelector((state) => state.purchase.purchases);
 
   const itemsInCollection = purchases.filter((item) => collection.items.includes(item.key));
 
+  const confirmDeleteCollection = async () => {
+    try {
+      await deleteDoc('Collections', collection.id);
+
+      const updated = collections.filter((c) => c.id !== collection.id);
+      dispatch(setCollections(updated));
+
+      setModalVisible(false);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to delete collection:', error);
+      showBanner('Failed to delete collection');
+      setModalVisible(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      {banner && (
+        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
+      )}
+      <ConfirmationModal
+        visible={modalVisible}
+        onConfirm={confirmDeleteCollection}
+        onCancel={() => setModalVisible(false)}
+        data={`"${collection.name}"`}
+      />
       <View style={styles.topbar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <Ionicons name="trash-outline" size={22} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
@@ -28,6 +75,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         {collection.description ? (
           <Text style={styles.description}>{collection.description}</Text>
         ) : null}
+        <View style={styles.line}></View>
 
         <PurchaseList
           purchases={itemsInCollection}
@@ -94,6 +142,12 @@ const createStyles = (colors) =>
       color: colors.white,
       fontSize: 16,
       fontWeight: '600',
+    },
+    line: {
+      backgroundColor: colors.bg,
+      height: 1,
+      width: '100%',
+      marginVertical: 10,
     },
   });
 
