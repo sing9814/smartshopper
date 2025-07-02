@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -19,6 +20,20 @@ const CollectionDetailScreen = ({ route, navigation }) => {
 
   const [banner, setBanner] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+
+  useEffect(() => {
+    const checkDismissed = async () => {
+      const dismissed = await AsyncStorage.getItem('messageDismissed');
+      if (dismissed !== 'true') setShowMessage(true);
+    };
+    checkDismissed();
+  }, []);
+
+  const handleDismissTip = async () => {
+    setShowMessage(false);
+    await AsyncStorage.setItem('messageDismissed', 'true');
+  };
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -76,6 +91,16 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           <Text style={styles.description}>{collection.description}</Text>
         ) : null}
         <View style={styles.line}></View>
+        {showMessage && itemsInCollection.length === 0 && (
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>
+              Long press items on the "Items" tab to add them to this collection.
+            </Text>
+            <TouchableOpacity onPress={handleDismissTip}>
+              <Ionicons name="close" size={18} color={colors.gray} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <PurchaseList
           purchases={itemsInCollection}
@@ -148,6 +173,22 @@ const createStyles = (colors) =>
       height: 1,
       width: '100%',
       marginVertical: 10,
+    },
+    messageContainer: {
+      backgroundColor: colors.bg,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    messageText: {
+      color: colors.gray,
+      flex: 1,
+      paddingRight: 10,
+      lineHeight: 22,
     },
   });
 
