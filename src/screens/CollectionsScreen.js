@@ -14,7 +14,9 @@ const CollectionsScreen = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('CollectionDetail', { collection: item })}
+      onPress={() =>
+        navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
+      }
     >
       <View style={styles.row}>
         <Text style={styles.title}>{item.name}</Text>
@@ -78,7 +80,7 @@ const createStyles = (colors) =>
       paddingTop: 6,
     },
     flatlist: {
-      paddingBottom: 120,
+      paddingBottom: 140,
       paddingTop: 12,
     },
     button: {

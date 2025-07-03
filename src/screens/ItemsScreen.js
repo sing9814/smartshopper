@@ -184,7 +184,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         title="Add to Collections"
         height="50%"
       >
-        <ScrollView style={styles.sheetContainer}>
+        <ScrollView style={styles.scrollList}>
           {collections.map((collection) => {
             const isSelected = selectedCollections.includes(collection.id);
             return (
@@ -218,13 +218,13 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
               </TouchableOpacity>
             );
           })}
-
-          <CustomButton
-            title="Add to selected collections"
-            onPress={handleAddToCollections}
-            buttonStyle={styles.sheetButton}
-          />
         </ScrollView>
+
+        <CustomButton
+          title="Add to selected collections"
+          onPress={handleAddToCollections}
+          buttonStyle={styles.sheetButton}
+        />
       </BottomSheet>
     </View>
   );
@@ -288,8 +288,10 @@ const createStyles = (colors) =>
       fontSize: 15,
       color: colors.gray,
     },
-    sheetContainer: {
+    scrollList: {
+      maxHeight: 200,
       width: '100%',
+      flex: 1,
     },
     sheetRow: {
       flexDirection: 'row',
@@ -297,6 +299,8 @@ const createStyles = (colors) =>
       paddingVertical: 10,
       paddingHorizontal: 8,
       justifyContent: 'space-between',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
     },
     row: {
       flexDirection: 'row',
@@ -312,7 +316,9 @@ const createStyles = (colors) =>
       color: colors.gray,
     },
     sheetButton: {
-      marginTop: 12,
+      marginHorizontal: 12,
+      position: 'absolute',
+      bottom: 110,
     },
   });
 

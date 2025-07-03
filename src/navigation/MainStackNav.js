@@ -20,6 +20,11 @@ function MainStackNav() {
         component={CustomCategoriesScreen}
         options={{ headerShown: false, animation: 'fade' }}
       />
+      <Stack.Screen
+        name="Details"
+        component={DetailsScreen}
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
     </Stack.Navigator>
   );
 }

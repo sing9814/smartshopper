@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, Dimensions, Pressable, Text } from 'react-native';
+import { useEffect, useMemo } from 'react';
+import { StyleSheet, Dimensions, Pressable, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -91,13 +91,15 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
           runOnJS(closeSheet)();
         }}
       />
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.sheet, sheetStyle]} onStartShouldSetResponder={() => true}>
-          <Animated.View style={styles.handle} />
-          <Text style={styles.title}>{title}</Text>
-          {children}
-        </Animated.View>
-      </GestureDetector>
+      <Animated.View style={[styles.sheet, sheetStyle]} onStartShouldSetResponder={() => true}>
+        <GestureDetector gesture={panGesture}>
+          <View style={styles.draggableContainer}>
+            <Animated.View style={styles.handle} />
+            <Text style={styles.title}>{title}</Text>
+          </View>
+        </GestureDetector>
+        {children}
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -116,6 +118,10 @@ const createStyles = (colors) =>
       alignItems: 'center',
       // overflow: 'hidden',
       paddingHorizontal: 16,
+    },
+    draggableContainer: {
+      width: '100%',
+      alignItems: 'center',
     },
     handle: {
       width: 50,

@@ -40,7 +40,7 @@ const DetailsSheet = ({
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Options" height={200}>
+    <BottomSheet visible={visible} onClose={onClose} title="Options" height={250}>
       <Pressable style={styles.row} onPress={handleEdit}>
         <FontAwesome name="pencil" size={20} color={colors.black} style={styles.icon} />
         <Text style={styles.text}>Edit</Text>

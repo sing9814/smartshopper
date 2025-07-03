@@ -239,6 +239,7 @@ const HomeScreen = ({ navigation }) => {
 const createStyles = (colors) =>
   StyleSheet.create({
     sheetContainer: {
+      flex: 1,
       width: '100%',
       gap: 8,
     },
@@ -250,8 +251,9 @@ const createStyles = (colors) =>
       marginBottom: 12,
     },
     list: {
+      flex: 1,
       width: '100%',
-      height: '100%',
+      paddingBottom: 40,
     },
     container: {
       flex: 1,
