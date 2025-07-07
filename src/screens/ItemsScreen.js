@@ -165,7 +165,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           contentContainerStyle={styles.scrollView}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <Text style={styles.emptyText}>No purchases found. Pull down to refresh.</Text>
+          <Text style={styles.emptyText}>No items found. Pull down to refresh.</Text>
         </ScrollView>
       ) : (
         <PurchaseList

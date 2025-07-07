@@ -213,7 +213,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
-      <Header title={edit ? `Edit ${purchase.name}` : 'Add Purchase'} />
+      <Header title={edit ? `Edit ${purchase.name}` : 'Add Item'} />
 
       {banner && (
         <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />

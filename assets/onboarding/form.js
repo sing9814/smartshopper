@@ -4,8 +4,8 @@ import Svg, { Rect } from 'react-native-svg';
 const Form = () => {
   return (
     <Svg
-      width="194"
-      height="170"
+      width="164"
+      height="145"
       viewBox="0 0 240 210"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
