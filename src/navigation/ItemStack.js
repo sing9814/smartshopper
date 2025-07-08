@@ -3,6 +3,7 @@ import ItemTabs from './ItemTabs';
 import AddCollectionScreen from '../screens/AddCollectionScreen';
 import CollectionDetailScreen from '../screens/CollectionsDetailsScreen';
 import DetailsScreen from '../screens/DetailsScreen';
+import EditScreen from '../screens/EditScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,11 @@ const ItemStack = () => (
       name="Details"
       component={DetailsScreen}
       options={{ headerShown: false, animation: 'slide_from_right' }}
+    />
+    <Stack.Screen
+      name="Edit"
+      component={EditScreen}
+      options={{ headerShown: false, animation: 'fade' }}
     />
   </Stack.Navigator>
 );

@@ -67,6 +67,13 @@ const DetailsScreen = ({ navigation }) => {
     return purchase.category;
   };
 
+  const formatCostPerWear = (cents) => {
+    if (cents == null) return 'N/A';
+    const dollars = cents / 100;
+    if (dollars > 0 && dollars < 0.01) return '<$0.01';
+    return `$${dollars.toFixed(2)}`;
+  };
+
   return (
     <View style={styles.container}>
       {showConfirmation && (
@@ -157,9 +164,8 @@ const DetailsScreen = ({ navigation }) => {
             <View style={styles.alignRight}>
               <Text style={styles.label}>Cost per wear (CPW)</Text>
               <Text style={styles.text}>
-                $
                 {currentPurchase.wears.length > 0
-                  ? convertCentsToDollars(
+                  ? formatCostPerWear(
                       (currentPurchase.paidPrice || currentPurchase.regularPrice) /
                         currentPurchase.wears.length
                     )
@@ -290,10 +296,12 @@ const createStyles = (colors) =>
       borderRadius: 10,
     },
     bottomContainer: {
-      flex: 1,
       justifyContent: 'flex-end',
       marginBottom: 16,
       gap: 4,
+      position: 'absolute',
+      bottom: 50,
+      left: 16,
     },
     button: {
       marginTop: 10,

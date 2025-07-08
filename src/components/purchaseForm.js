@@ -19,22 +19,25 @@ import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
 import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
 import Banner from './banner';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { useNavigation } from '@react-navigation/native';
 
-const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
+dayjs.extend(utc);
+
+const PurchaseForm = ({ purchase, name, date, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases);
   const categories = useSelector((state) => state.user.categories);
 
+  const navigation = useNavigation();
+
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const formattedDate = selectedDate.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+  const formattedDate = dayjs.utc(selectedDate).format('ddd, MMM D');
   const [open, setOpen] = useState(false);
   const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
@@ -46,10 +49,10 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
 
   const [banner, setBanner] = useState(null);
-  const showBanner = (message, type = 'error') => {
+  const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
     setTimeout(() => {
-      setBanner({ message, type });
+      setBanner({ message, type, onPress });
     }, 10);
   };
 
@@ -67,7 +70,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
     } else if (name) {
       setItemName(name);
     } else if (date) {
-      setSelectedDate(parseLocalDate(date));
+      setSelectedDate(dayjs.utc(date).local().toDate());
     }
   }, [purchase, name, date]);
 
@@ -89,11 +92,6 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
     };
     setShowClearButton(checkFields());
   }, [itemName, category, regularPrice, paidPrice, note]);
-
-  const parseLocalDate = (dateString) => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  };
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
@@ -187,7 +185,17 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
       await userRef.collection('Purchases').doc(id).set(newPurchase);
       dispatch(setPurchases([newPurchase, ...purchases]));
       resetFields();
-      showBanner('Purchase added successfully!', 'success');
+
+      showBanner('Purchase added! Tap to view.', 'success', () => {
+        dispatch(setCurrentPurchase(newPurchase));
+        navigation.navigate('Purchases', {
+          screen: 'ItemsScreen',
+        });
+        setTimeout(() => {
+          dispatch(setCurrentPurchase(newPurchase));
+          navigation.navigate('Details');
+        }, 10);
+      });
     } catch (error) {
       console.error('Error adding purchase: ', error);
       showBanner('An error occurred while adding the purchase.');
@@ -195,7 +203,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
   };
 
   const handleSubmit = () => {
-    if (purchase) {
+    if (edit) {
       updatePurchase();
     } else {
       addPurchase();
@@ -216,7 +224,12 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
       <Header title={edit ? `Edit ${purchase.name}` : 'Add Item'} />
 
       {banner && (
-        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
+        <Banner
+          message={banner.message}
+          type={banner.type}
+          onPress={banner.onPress}
+          onFinish={() => setBanner(null)}
+        />
       )}
 
       <View style={styles.container}>
@@ -226,7 +239,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
             placeholder="Enter item name"
             value={itemName}
             onChangeText={setItemName}
-            editable={edit && false}
+            editable={!edit}
           />
           <View>
             <Text style={styles.label}>Category</Text>
@@ -308,7 +321,7 @@ const PurchaseForm = ({ purchase, navigation, name, date, edit }) => {
         )}
 
         <CustomButton
-          buttonStyle={[styles.submitBtn, { bottom: edit ? 12 : 75 }]}
+          buttonStyle={styles.submitBtn}
           onPress={handleSubmit}
           title={edit ? 'Update' : 'Submit'}
         />
@@ -348,6 +361,7 @@ const createStyles = (colors) =>
     },
     submitBtn: {
       position: 'absolute',
+      bottom: 75,
     },
     icon: {
       padding: 8,

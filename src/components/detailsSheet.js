@@ -1,20 +1,9 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Text, Pressable, StyleSheet } from 'react-native';
 import BottomSheet from './bottomSheet';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { generateFirestoreTimestamp } from '../utils/date';
 import { useTheme } from '../theme/themeContext';
 
-const DetailsSheet = ({
-  visible,
-  onClose,
-  navigation,
-  currentPurchase,
-  purchases,
-  dispatch,
-  setPurchases,
-  setModalVisible,
-}) => {
+const DetailsSheet = ({ visible, onClose, navigation, currentPurchase, setModalVisible }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -25,13 +14,9 @@ const DetailsSheet = ({
 
   const handleDuplicate = () => {
     onClose();
-    const duplicatedPurchase = {
-      ...currentPurchase,
-      key: Date.now().toString(),
-      dateCreated: generateFirestoreTimestamp(),
-    };
-    dispatch(setPurchases([duplicatedPurchase, ...purchases]));
-    navigation.navigate('Edit', { purchase: duplicatedPurchase });
+    navigation.navigate('Add', {
+      purchase: { ...currentPurchase },
+    });
   };
 
   const handleDelete = () => {

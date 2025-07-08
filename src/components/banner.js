@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +9,7 @@ import Animated, {
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Banner = ({ message, onFinish, type = 'error' }) => {
+const Banner = ({ message, onFinish, onPress, type = 'error' }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -23,7 +23,6 @@ const Banner = ({ message, onFinish, type = 'error' }) => {
     translateY.value = withTiming(0, { duration: 400, reduceMotion: 'never' });
     opacity.value = withTiming(1, { duration: 400, reduceMotion: 'never' });
 
-    // if (type === 'success') {
     const timeout = setTimeout(() => {
       translateY.value = withTiming(-100, { duration: 400, reduceMotion: 'never' });
       opacity.value = withTiming(0, { duration: 400, reduceMotion: 'never' }, (finished) => {
@@ -34,7 +33,6 @@ const Banner = ({ message, onFinish, type = 'error' }) => {
     }, 3000);
 
     return () => clearTimeout(timeout);
-    // }
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -43,24 +41,33 @@ const Banner = ({ message, onFinish, type = 'error' }) => {
   }));
 
   return (
-    <Animated.View style={[styles.banner, { backgroundColor }, animatedStyle]}>
-      <Ionicons name={iconName} size={20} color="white" />
-      <Text style={styles.text}>{message}</Text>
-    </Animated.View>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      disabled={!onPress}
+      style={styles.touchable}
+    >
+      <Animated.View style={[styles.banner, { backgroundColor }, animatedStyle]}>
+        <Ionicons name={iconName} size={20} color="white" />
+        <Text style={styles.text}>{message}</Text>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    banner: {
+    touchable: {
       position: 'absolute',
       top: 12,
       left: 16,
       right: 16,
+      zIndex: 999,
+    },
+    banner: {
       paddingVertical: 14,
       paddingHorizontal: 16,
       borderRadius: 10,
-      zIndex: 999,
       elevation: 10,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
