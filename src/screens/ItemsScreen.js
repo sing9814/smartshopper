@@ -34,6 +34,10 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [modalData, setModalData] = useState('');
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
+  const [sortSheetVisible, setSortSheetVisible] = useState(false);
+
+  const [sortField, setSortField] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -42,9 +46,30 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     }, 10);
   };
 
-  const filteredPurchases = purchases.filter((purchase) =>
-    purchase.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPurchases = purchases
+    .filter((purchase) => purchase.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      let aValue, bValue;
+
+      if (sortField === 'date') {
+        aValue = new Date(a.datePurchased);
+        bValue = new Date(b.datePurchased);
+      } else if (sortField === 'wears') {
+        aValue = a.wears?.length || 0;
+        bValue = b.wears?.length || 0;
+      } else if (sortField === 'price') {
+        aValue = a.paidPrice ?? a.regularPrice ?? 0;
+        bValue = b.paidPrice ?? b.regularPrice ?? 0;
+      }
+
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+
+  const sortOptions = [
+    { label: 'Date Purchased', value: 'date' },
+    { label: 'Wears', value: 'wears' },
+    { label: 'Price', value: 'price' },
+  ];
 
   const fetchData = async () => {
     setLoading(false);
@@ -145,18 +170,33 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         onCancel={() => setModalVisible(false)}
       />
 
-      <View style={styles.searchContainer}>
-        <CustomInput
-          placeholder="Search"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          type="default"
-          editable={true}
-        />
+      <View style={styles.searchRow}>
+        <View style={styles.searchWrapper}>
+          <CustomInput
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            type="default"
+            editable={true}
+          />
+        </View>
+        <TouchableOpacity onPress={() => setSortSheetVisible(true)} style={styles.sortButton}>
+          <Ionicons name="swap-vertical-outline" size={22} color={colors.gray} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.countContainer}>
-        <Text style={styles.count}>Results</Text>
+        <View style={styles.resultsLeft}>
+          <Text style={styles.count}>
+            Results ({sortOptions.find((opt) => opt.value === sortField)?.label}{' '}
+          </Text>
+          <Ionicons
+            name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
+            size={14}
+            color={colors.gray}
+          />
+          <Text style={styles.count}>)</Text>
+        </View>
         <Text style={styles.count}>{filteredPurchases.length} found</Text>
       </View>
 
@@ -226,6 +266,36 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           buttonStyle={styles.sheetButton}
         />
       </BottomSheet>
+      <BottomSheet
+        visible={sortSheetVisible}
+        onClose={() => setSortSheetVisible(false)}
+        title="Sort by"
+        height={250}
+      >
+        {sortOptions.map((option, index) => {
+          const isActive = sortField === option.value;
+          const arrow = isActive ? (sortDirection === 'asc' ? 'arrow-up' : 'arrow-down') : null;
+          const isLast = index === sortOptions.length - 1;
+
+          return (
+            <TouchableOpacity
+              key={option.value}
+              onPress={() => {
+                if (isActive) {
+                  setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                } else {
+                  setSortField(option.value);
+                  setSortDirection('desc');
+                }
+              }}
+              style={[styles.sortContainer, { borderBottomWidth: isLast ? 0 : 1 }]}
+            >
+              <Text style={styles.sortLabel}>{option.label}</Text>
+              {arrow && <Ionicons name={arrow} size={18} color={colors.gray} />}
+            </TouchableOpacity>
+          );
+        })}
+      </BottomSheet>
     </View>
   );
 };
@@ -264,16 +334,42 @@ const createStyles = (colors) =>
       fontSize: 14,
       textDecorationLine: 'underline',
     },
-    searchContainer: {
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: colors.white,
       padding: 10,
+      gap: 8,
       marginBottom: 4,
+    },
+    searchWrapper: {
+      flex: 1,
+    },
+    sortButton: {
+      padding: 6,
+    },
+    sortContainer: {
+      width: '100%',
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottomColor: colors.bg,
+    },
+    sortLabel: {
+      fontSize: 15,
+      color: colors.black,
     },
     countContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 12,
       paddingBottom: 6,
+    },
+    resultsLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     count: {
       color: colors.gray,
