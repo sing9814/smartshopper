@@ -67,10 +67,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       setPaidPrice(convertCentsToDollars(purchase.paidPrice));
       setNote(purchase.note);
       setDisabled(purchase.paidPrice ? true : false);
-    } else if (name) {
+    }
+    if (name) {
       setItemName(name);
-    } else if (date) {
-      setSelectedDate(dayjs.utc(date).local().toDate());
+    } else if (name === null) {
+      setItemName('');
+    }
+    if (date) {
+      setSelectedDate(dayjs(date + 'T12:00:00').toDate());
     }
   }, [purchase, name, date]);
 
@@ -239,7 +243,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
             placeholder="Enter item name"
             value={itemName}
             onChangeText={setItemName}
-            editable={!edit}
           />
           <View>
             <Text style={styles.label}>Category</Text>

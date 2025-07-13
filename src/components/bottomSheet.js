@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, Dimensions, Pressable, Text, View } from 'react-native';
+import { StyleSheet, Dimensions, Pressable, Text, View, Keyboard } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,7 +19,6 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
-  // Convert % string or number to a pixel value
   const resolvedHeight = useMemo(() => {
     if (typeof height === 'string' && height.endsWith('%')) {
       const percent = parseFloat(height) / 100;
@@ -30,6 +29,23 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
 
   const translateY = useSharedValue(resolvedHeight);
   const backdropOpacity = useSharedValue(0);
+  const keyboardHeight = useSharedValue(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      const halfHeight = e.endCoordinates.height / 2;
+      keyboardHeight.value = withTiming(halfHeight, { duration: 250 });
+    });
+
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      keyboardHeight.value = withTiming(0, { duration: 250 });
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -78,7 +94,7 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-    height: resolvedHeight + SHEET_OFFSET,
+    height: resolvedHeight + SHEET_OFFSET + keyboardHeight.value,
   }));
 
   if (!visible) return null;
@@ -99,6 +115,7 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
           </View>
         </GestureDetector>
         {children}
+        <Animated.View style={{ height: keyboardHeight }} />
       </Animated.View>
     </Animated.View>
   );
@@ -116,7 +133,6 @@ const createStyles = (colors) =>
       borderTopRightRadius: 20,
       paddingTop: 10,
       alignItems: 'center',
-      // overflow: 'hidden',
       paddingHorizontal: 16,
     },
     draggableContainer: {

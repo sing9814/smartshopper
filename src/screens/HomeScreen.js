@@ -59,7 +59,7 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [name, setName] = useState(false);
+  const [name, setName] = useState('');
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
@@ -198,26 +198,30 @@ const HomeScreen = ({ navigation }) => {
       <BottomSheet
         title={selectedDate ? formatDate(selectedDate) : ''}
         visible={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          setName('');
+        }}
         height={'50%'}
       >
         <View style={styles.sheetContainer}>
           {/* <Text style={styles.sheetText}>{selectedDate ? formatDate(selectedDate) : ''}</Text> */}
-          <View style={styles.input}>
-            <CustomInput
-              label="Add item"
-              value={name}
-              onChangeText={setName}
-              component={
-                <AddButton
-                  onPress={() => [
-                    navigation.navigate('Add', { name: name, date: selectedDate }),
-                    setName(''),
-                  ]}
-                />
-              }
-            />
-          </View>
+          <CustomInput
+            label="Add item"
+            value={name}
+            onChangeText={setName}
+            component={
+              <AddButton
+                onPress={() => [
+                  navigation.navigate('Add', {
+                    name: name === '' ? null : name,
+                    date: selectedDate,
+                  }),
+                  setName(''),
+                ]}
+              />
+            }
+          />
           <View style={styles.list}>
             <PurchaseList
               purchases={
@@ -246,9 +250,6 @@ const createStyles = (colors) =>
     sheetText: {
       alignSelf: 'center',
       color: colors.gray,
-    },
-    input: {
-      marginBottom: 12,
     },
     list: {
       flex: 1,
