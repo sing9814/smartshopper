@@ -1,13 +1,11 @@
 import { View, StyleSheet, FlatList, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
-import { useStatusBar } from '../hooks/useStatusBar';
 import AddButton from '../components/addButton';
 import { useSelector } from 'react-redux';
 
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-  useStatusBar(colors.primaryDark);
 
   const collections = useSelector((state) => state.purchase.collections);
 

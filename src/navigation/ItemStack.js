@@ -7,9 +7,11 @@ import EditScreen from '../screens/EditScreen';
 
 const Stack = createNativeStackNavigator();
 
-const ItemStack = () => (
+const ItemStack = ({ myIndex }) => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="ItemTabs" component={ItemTabs} />
+    <Stack.Screen name="ItemTabs">
+      {(props) => <ItemTabs {...props} myIndex={myIndex} />}
+    </Stack.Screen>
     <Stack.Screen name="AddCollection" component={AddCollectionScreen} />
     <Stack.Screen
       name="CollectionDetail"

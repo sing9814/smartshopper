@@ -13,12 +13,12 @@ import { setCollections, setCurrentPurchase } from '../redux/actions/purchaseAct
 import uuid from 'react-native-uuid';
 import { generateFirestoreTimestamp } from '../utils/date';
 import Banner from '../components/banner';
-import { useStatusBar } from '../hooks/useStatusBar';
+import { useStatusBarWhenFullyFocused } from '../hooks/useStatusBarWhenFocused';
 
 const CollectionForm = ({ collection, navigation, name, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-  useStatusBar(colors.primaryDark);
+  useStatusBarWhenFullyFocused(2, colors.primaryDark);
 
   const dispatch = useDispatch();
 

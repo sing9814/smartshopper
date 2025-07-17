@@ -9,7 +9,6 @@ import ConfirmationModal from '../components/confirmationModal';
 import { deleteDoc } from '../utils/firebase';
 import { setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
-import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import { addItemsToCollections } from '../utils/firebase';
@@ -18,7 +17,6 @@ import { setCollections } from '../redux/actions/purchaseActions';
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-  useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
 

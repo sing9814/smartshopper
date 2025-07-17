@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useSelector } from 'react-redux';
 import PurchaseList from '../components/purchaseList';
-import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { setCollections } from '../redux/actions/purchaseActions';
 import { deleteDoc } from '../utils/firebase';
@@ -12,11 +11,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStatusBarWhenFullyFocused } from '../hooks/useStatusBarWhenFocused';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
   const colors = useTheme();
   const styles = createStyles(colors);
+  useStatusBarWhenFullyFocused(2, colors.primaryDark);
 
   const [banner, setBanner] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,8 +42,6 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       setBanner({ message, type });
     }, 10);
   };
-
-  useStatusBar(colors.primaryDark);
 
   const dispatch = useDispatch();
   const collections = useSelector((state) => state.purchase.collections);
