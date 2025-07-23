@@ -72,7 +72,7 @@ const createStyles = (colors) =>
     description: {
       fontSize: 14,
       color: colors.gray,
-      marginTop: 4,
+      marginTop: 6,
     },
     container: {
       flex: 1,

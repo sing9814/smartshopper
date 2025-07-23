@@ -239,7 +239,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
                   );
                 }}
               >
-                <View>
+                <View style={styles.collection}>
                   <View style={styles.row}>
                     <Text style={styles.sheetRowName}>{collection.name}</Text>
                     <Text style={styles.sheetRowDesc}>
@@ -261,7 +261,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         </ScrollView>
 
         <CustomButton
-          title="Add to selected collections"
+          title="Add selected items"
           onPress={handleAddToCollections}
           buttonStyle={styles.sheetButton}
         />
@@ -397,6 +397,9 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
+    },
+    collection: {
+      gap: 6,
     },
     row: {
       flexDirection: 'row',

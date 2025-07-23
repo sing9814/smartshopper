@@ -48,7 +48,7 @@ const OnboardingScreen = ({ route }) => {
       diagonal: true,
       svg: Form,
       title: 'Track items',
-      description: 'Log what you own in seconds using our simple form',
+      description: 'Quickly add and edit your clothing items using our simple form',
     },
     {
       colors: [lightTheme.primaryDark, lightTheme.primary],
@@ -61,8 +61,8 @@ const OnboardingScreen = ({ route }) => {
       colors: [lightTheme.primaryDark, lightTheme.accent],
       diagonal: true,
       image: require('../../assets/onboarding/progress.png'),
-      title: 'Budget',
-      description: 'Set a monthly limit and keep your spending in check',
+      title: 'Get started',
+      description: 'Set a monthly budget to keep your spending on track',
       button: true,
     },
   ];
@@ -220,7 +220,8 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: 'center',
-    gap: 5,
+    gap: 10,
+    marginHorizontal: 10,
   },
   title: {
     fontSize: 26,
