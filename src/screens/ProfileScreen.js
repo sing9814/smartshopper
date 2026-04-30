@@ -10,6 +10,7 @@ import Header from '../components/header';
 import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useStatusBar } from '../hooks/useStatusBar';
+import ConfirmationModal from '../components/confirmationModal';
 
 const ProfileScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -22,6 +23,7 @@ const ProfileScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [totalSpent, setTotalSpent] = useState(0);
   const [totalSaved, setTotalSaved] = useState(0);
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
 
   const purchaseData = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
@@ -50,6 +52,16 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleSignOut = async () => {
+    if (user?.isGuest) {
+      setShowLogoutWarning(true);
+      return;
+    }
+
+    auth().signOut();
+  };
+
+  const confirmGuestSignOut = () => {
+    setShowLogoutWarning(false);
     auth().signOut();
   };
 
@@ -64,6 +76,16 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <ConfirmationModal
+        visible={showLogoutWarning}
+        title="Leave guest account?"
+        message="If you log out, you will not be able to return to this guest account later. Create an account first if you want to keep your data."
+        confirmText="Log out"
+        confirmButtonStyle={styles.logoutConfirmButton}
+        onConfirm={confirmGuestSignOut}
+        onCancel={() => setShowLogoutWarning(false)}
+      />
+
       <Header
         title={user?.name || ' '}
         subtitle={user?.isGuest ? 'Guest account' : user?.email || ' '}
@@ -147,6 +169,9 @@ const createStyles = (colors) =>
       position: 'absolute',
       bottom: 75,
       alignSelf: 'center',
+    },
+    logoutConfirmButton: {
+      backgroundColor: colors.red,
     },
     card: {
       backgroundColor: colors.white,

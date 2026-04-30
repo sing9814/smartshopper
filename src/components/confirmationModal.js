@@ -1,28 +1,43 @@
 import React from 'react';
-import { View, Text, Modal, Button, StyleSheet } from 'react-native';
+import { View, Text, Modal, StyleSheet } from 'react-native';
 import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
 
-const ConfirmationModal = ({ visible, onConfirm, onCancel, data }) => {
+const ConfirmationModal = ({
+  visible,
+  onConfirm,
+  onCancel,
+  data,
+  title = 'Delete item',
+  message,
+  cancelText = 'Cancel',
+  confirmText = 'Delete',
+  confirmButtonStyle,
+  cancelButtonStyle,
+}) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const modalMessage =
+    message || `Are you sure you want to delete ${data}? This action cannot be undone.`;
 
   return (
     <Modal transparent={true} visible={visible} onRequestClose={onCancel}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Delete item</Text>
-          <Text style={styles.modalText}>
-            Are you sure you want to delete {data}? This action cannot be undone.
-          </Text>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <Text style={styles.modalText}>{modalMessage}</Text>
           <View style={styles.buttonContainer}>
             <CustomButton
-              buttonStyle={styles.buttonCancel}
+              buttonStyle={[styles.buttonCancel, cancelButtonStyle]}
               underlayColor="#777"
               onPress={onCancel}
-              title="Cancel"
+              title={cancelText}
             />
-            <CustomButton buttonStyle={styles.button} onPress={onConfirm} title="Delete" />
+            <CustomButton
+              buttonStyle={[styles.button, confirmButtonStyle]}
+              onPress={onConfirm}
+              title={confirmText}
+            />
           </View>
         </View>
       </View>
