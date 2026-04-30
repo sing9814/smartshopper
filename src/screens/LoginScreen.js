@@ -20,6 +20,7 @@ const LoginScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [bannerMessage, setBannerMessage] = useState(null);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   const resetStates = () => {
     setEmail('');
@@ -59,6 +60,27 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    setBannerMessage(null);
+
+    try {
+      const userCredential = await auth().signInAnonymously();
+
+      navigation.navigate('Onboarding', {
+        name: 'Guest',
+        email: null,
+        userId: userCredential.user.uid,
+        isGuest: true,
+      });
+      dispatch(setUserOnboarded(false));
+    } catch (error) {
+      setBannerMessage(error.message);
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.logo}>
@@ -84,6 +106,14 @@ const LoginScreen = ({ navigation }) => {
           buttonStyle={styles.button}
           onPress={handleLogin}
           title={isSignUp ? 'Register' : 'Sign in'}
+        />
+        <CustomButton
+          buttonStyle={styles.guestButton}
+          textStyle={styles.guestButtonText}
+          underlayColor={colors.lightGrey}
+          onPress={handleGuestLogin}
+          title={isGuestLoading ? 'Starting...' : 'Explore as Guest'}
+          disabled={isGuestLoading}
         />
         {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
         {!isSignUp && (
@@ -153,6 +183,16 @@ const createStyles = (colors) =>
     },
     button: {
       marginTop: 16,
+    },
+    guestButton: {
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      marginTop: 4,
+    },
+    guestButtonText: {
+      color: colors.primary,
+      fontWeight: '500',
     },
     bottomText: {
       color: colors.gray,

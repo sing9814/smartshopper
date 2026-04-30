@@ -26,7 +26,7 @@ const AnimatedFlatList = Animated.createAnimatedComponent(require('react-native'
 const OnboardingScreen = ({ route }) => {
   const dispatch = useDispatch();
   const scrollX = useSharedValue(0);
-  const { name = '', email = '', userId = '' } = route.params || {};
+  const { name = '', email = null, userId = '', isGuest = false } = route.params || {};
   const { width } = useWindowDimensions();
   const [isSliding, setIsSliding] = useState(false);
   const [sliderValue, setSliderValue] = useState(100);
@@ -90,6 +90,7 @@ const OnboardingScreen = ({ route }) => {
       await firestore().collection('users').doc(userId).set({
         email,
         name,
+        isGuest,
         budget: sliderValue,
         registrationDate: firestore.FieldValue.serverTimestamp(),
       });

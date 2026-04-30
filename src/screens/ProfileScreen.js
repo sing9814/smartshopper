@@ -64,7 +64,12 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title={user?.name || ' '} subtitle={user?.email || ' '} rounded padding />
+      <Header
+        title={user?.name || ' '}
+        subtitle={user?.isGuest ? 'Guest account' : user?.email || ' '}
+        rounded
+        padding
+      />
 
       <View style={styles.innerContainer}>
         <View style={styles.cardContainer}>

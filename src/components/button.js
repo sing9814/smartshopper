@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableHighlight, Text, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
-const CustomButton = ({ onPress, title, buttonStyle, textStyle, underlayColor, icon }) => {
+const CustomButton = ({ onPress, title, buttonStyle, textStyle, underlayColor, icon, disabled }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -10,7 +10,8 @@ const CustomButton = ({ onPress, title, buttonStyle, textStyle, underlayColor, i
     <TouchableHighlight
       underlayColor={underlayColor || colors.primaryDark}
       onPress={onPress}
-      style={[styles.button, buttonStyle]}
+      disabled={disabled}
+      style={[styles.button, disabled && styles.disabled, buttonStyle]}
     >
       <View style={styles.innerContainer}>
         {icon}
@@ -37,6 +38,9 @@ const createStyles = (colors) =>
     text: {
       color: 'white',
       fontSize: 16,
+    },
+    disabled: {
+      opacity: 0.7,
     },
   });
 
