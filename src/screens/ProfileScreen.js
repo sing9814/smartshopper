@@ -246,56 +246,86 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.settings}>
-          <Text style={styles.settingsText}>Settings</Text>
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => navigation.navigate('CustomCategory')}
-          >
-            <View style={styles.innerRowContainer}>
-              <Ionicons
-                name="folder-outline"
-                size={24}
-                color={colors.primary}
-                style={styles.rowIcon}
-              />
-              <Text style={styles.title}>Manage categories</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.gray} />
-          </TouchableOpacity>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          <View style={styles.sectionGroup}>
+            <TouchableOpacity
+              style={[styles.sectionRow, styles.rowDivider]}
+              onPress={() => navigation.navigate('CustomCategory')}
+            >
+              <View style={styles.innerRowContainer}>
+                <Ionicons
+                  name="folder-outline"
+                  size={22}
+                  color={colors.primary}
+                  style={styles.rowIcon}
+                />
+                <Text style={styles.title}>Manage categories</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+            </TouchableOpacity>
 
-          <View style={styles.row}>
-            <Text style={styles.title}>Dark mode</Text>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.lightGrey, true: colors.lightGrey }}
-              thumbColor={isDark ? colors.primary : colors.gray}
-            />
+            <View style={styles.sectionRow}>
+              <View style={styles.innerRowContainer}>
+                <Ionicons
+                  name={isDark ? 'moon' : 'sunny-outline'}
+                  size={22}
+                  color={colors.primary}
+                  style={styles.rowIcon}
+                />
+                <Text style={styles.title}>Dark mode</Text>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.lightGrey, true: colors.lightGrey }}
+                thumbColor={isDark ? colors.primary : colors.gray}
+              />
+            </View>
           </View>
         </View>
 
-        <View style={styles.svgContainer}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.sectionGroup}>
+            {isGuestAccount && (
+              <TouchableOpacity
+                style={[styles.sectionRow, styles.rowDivider]}
+                onPress={openUpgradeModal}
+              >
+                <View style={styles.innerRowContainer}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={22}
+                    color={colors.primary}
+                    style={styles.rowIcon}
+                  />
+                  <Text style={styles.title}>Save this account</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={styles.sectionRow} onPress={handleSignOut}>
+              <View style={styles.innerRowContainer}>
+                <Ionicons
+                  name="log-out-outline"
+                  size={22}
+                  color={isGuestAccount ? colors.red : colors.primary}
+                  style={styles.rowIcon}
+                />
+                <Text style={[styles.title, isGuestAccount && styles.dangerText]}>
+                  {isGuestAccount ? 'Leave guest session' : 'Log out'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* <View style={styles.svgContainer}>
           <WomanSVG />
-        </View>
-        <View style={styles.accountActions}>
-          {isGuestAccount && (
-            <CustomButton
-              buttonStyle={styles.createAccountButton}
-              textStyle={styles.createAccountButtonText}
-              underlayColor={colors.primaryLight}
-              onPress={openUpgradeModal}
-              title="Save this account"
-            />
-          )}
-          <CustomButton
-            buttonStyle={isGuestAccount && styles.leaveGuestButton}
-            textStyle={isGuestAccount && styles.leaveGuestButtonText}
-            underlayColor={isGuestAccount ? colors.lightGrey : undefined}
-            onPress={handleSignOut}
-            title={isGuestAccount ? 'Leave guest session' : 'Log out'}
-          />
-        </View>
+        </View> */}
       </View>
     </View>
   );
@@ -313,40 +343,38 @@ const createStyles = (colors) =>
       paddingHorizontal: 12,
       flex: 1,
     },
-    settings: {
-      marginTop: 6,
+    section: {
+      marginTop: 12,
       marginHorizontal: 12,
-      gap: 4,
+      gap: 6,
     },
-    settingsText: {
+    sectionTitle: {
       color: colors.gray,
       marginBottom: 2,
     },
-    accountActions: {
-      position: 'absolute',
-      bottom: 75,
-      alignSelf: 'center',
-      width: '100%',
-      gap: 8,
+    sectionGroup: {
+      backgroundColor: colors.white,
+      borderRadius: 10,
+      overflow: 'hidden',
+      elevation: 1,
+    },
+    sectionRow: {
+      minHeight: 52,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      backgroundColor: colors.white,
+    },
+    rowDivider: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
     },
     logoutConfirmButton: {
       backgroundColor: colors.red,
     },
-    createAccountButton: {
-      backgroundColor: colors.white,
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-    createAccountButtonText: {
-      color: colors.primary,
-      fontWeight: '600',
-    },
-    leaveGuestButton: {
-      backgroundColor: colors.white,
-      borderWidth: 1,
-      borderColor: colors.red,
-    },
-    leaveGuestButtonText: {
+    dangerText: {
       color: colors.red,
       fontWeight: '600',
     },
@@ -426,17 +454,6 @@ const createStyles = (colors) =>
     scrollViewContent: {
       flexGrow: 1,
       justifyContent: 'center',
-    },
-    row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: colors.white,
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-      borderRadius: 10,
-      elevation: 1,
-      zIndex: 1,
     },
     innerRowContainer: {
       flexDirection: 'row',
