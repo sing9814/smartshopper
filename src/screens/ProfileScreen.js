@@ -172,9 +172,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Create account</Text>
-            <Text style={styles.modalText}>
-              Save this guest data to an email and password account.
-            </Text>
+            <Text style={styles.modalText}>Add an email and password to keep your items safe.</Text>
 
             {upgradeError && <Text style={styles.errorText}>{upgradeError}</Text>}
 
@@ -235,14 +233,18 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.innerContainer}>
         <View style={styles.cardContainer}>
           <View style={styles.card}>
-            <Text style={styles.amount}>${totalSpent}</Text>
-            <MoneySVG />
-            <Text style={styles.title}>Spent</Text>
+            <View style={styles.statIcon}>
+              <MoneySVG color={colors.secondary} size={44} />
+            </View>
+            <Text style={styles.statLabel}>Spent</Text>
+            <Text style={[styles.amount, styles.spentAmount]}>${totalSpent}</Text>
           </View>
           <View style={styles.card}>
-            <Text style={styles.amount}>${totalSaved}</Text>
-            <PigSVG />
-            <Text style={styles.title}>Saved</Text>
+            <View style={styles.statIcon}>
+              <PigSVG color={colors.green} size={44} />
+            </View>
+            <Text style={styles.statLabel}>Saved</Text>
+            <Text style={[styles.amount, styles.savedAmount]}>${totalSaved}</Text>
           </View>
         </View>
 
@@ -429,9 +431,11 @@ const createStyles = (colors) =>
     card: {
       backgroundColor: colors.white,
       borderRadius: 10,
-      paddingHorizontal: 50,
+      width: '47%',
+      minHeight: 132,
+      paddingHorizontal: 14,
       paddingVertical: 16,
-      gap: 20,
+      gap: 8,
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: 20,
@@ -439,8 +443,26 @@ const createStyles = (colors) =>
     },
     amount: {
       color: colors.black,
-      fontSize: 16,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+    spentAmount: {
+      color: colors.secondary,
+    },
+    savedAmount: {
+      color: colors.green,
+    },
+    statIcon: {
+      width: 54,
+      height: 54,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    statLabel: {
+      color: colors.gray,
+      fontSize: 13,
+      fontWeight: '500',
     },
     title: {
       color: colors.black,
@@ -449,7 +471,8 @@ const createStyles = (colors) =>
     cardContainer: {
       width: '100%',
       flexDirection: 'row',
-      justifyContent: 'space-around',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
     },
     scrollViewContent: {
       flexGrow: 1,
