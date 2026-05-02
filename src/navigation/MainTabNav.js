@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { StyleSheet, View } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../theme/themeContext';
@@ -10,6 +11,7 @@ const Tab = createBottomTabNavigator();
 
 function MainTabNav() {
   const theme = useTheme();
+  const styles = createStyles(theme);
 
   return (
     <Tab.Navigator
@@ -17,14 +19,16 @@ function MainTabNav() {
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: theme.white,
-          borderTopLeftRadius: 10,
-          borderTopRightRadius: 10,
-          height: 60,
-          borderBlockColor: theme.lightGrey,
+          borderTopLeftRadius: 18,
+          borderTopRightRadius: 18,
+          height: 68,
+          paddingTop: 8,
+          paddingBottom: 8,
+          borderTopWidth: 0,
         },
         headerShown: false,
         tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.lightGrey,
+        tabBarInactiveTintColor: theme.gray,
         tabBarLabelStyle: {
           display: 'none',
         },
@@ -41,7 +45,11 @@ function MainTabNav() {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={26} color={color} />;
+          return (
+            <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+              <Ionicons name={iconName} size={24} color={color} />
+            </View>
+          );
         },
       })}
     >
@@ -52,5 +60,19 @@ function MainTabNav() {
     </Tab.Navigator>
   );
 }
+
+const createStyles = (theme) =>
+  StyleSheet.create({
+    iconContainer: {
+      width: 48,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    activeIconContainer: {
+      backgroundColor: theme.primaryLight,
+    },
+  });
 
 export default MainTabNav;
