@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -277,12 +277,23 @@ const ProfileScreen = ({ navigation }) => {
                 />
                 <Text style={styles.title}>Dark mode</Text>
               </View>
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: colors.lightGrey, true: colors.lightGrey }}
-                thumbColor={isDark ? colors.primary : colors.gray}
-              />
+              <TouchableOpacity
+                style={[
+                  styles.themeToggle,
+                  isDark ? styles.themeToggleOn : styles.themeToggleOff,
+                ]}
+                onPress={toggleTheme}
+                activeOpacity={0.8}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: isDark }}
+              >
+                <View
+                  style={[
+                    styles.themeToggleThumb,
+                    isDark && styles.themeToggleThumbOn,
+                  ]}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -485,6 +496,30 @@ const createStyles = (colors) =>
     },
     rowIcon: {
       marginRight: 12,
+    },
+    themeToggle: {
+      width: 38,
+      height: 20,
+      borderRadius: 10,
+      padding: 2,
+      justifyContent: 'center',
+    },
+    themeToggleOff: {
+      backgroundColor: colors.primaryLight,
+    },
+    themeToggleOn: {
+      backgroundColor: colors.primaryLight,
+    },
+    themeToggleThumb: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.white,
+      elevation: 2,
+    },
+    themeToggleThumbOn: {
+      backgroundColor: colors.primary,
+      transform: [{ translateX: 18 }],
     },
     svgContainer: {
       alignItems: 'center',
