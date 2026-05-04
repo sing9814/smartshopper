@@ -11,6 +11,7 @@ import Logo from '../../assets/logo';
 import Form from '../../assets/onboarding/form';
 import WomanSVG from '../../assets/womanSVG';
 import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -75,6 +76,11 @@ const OnboardingScreen = ({ route }) => {
     scrollX.value = event.contentOffset.x;
   });
 
+  const swipeHintAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(scrollX.value, [0, width * 0.45, width], [0.88, 0.35, 0], 'clamp');
+    return { opacity };
+  });
+
   useAnimatedReaction(
     () => scrollX.value,
     (value) => {
@@ -100,7 +106,7 @@ const OnboardingScreen = ({ route }) => {
     }
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <View style={[styles.slide, { width }]}>
       {item.image && <Image source={item.image} style={styles.image} resizeMode="contain" />}
       {item.svg && <item.svg {...item.svgProps} />}
@@ -198,6 +204,11 @@ const OnboardingScreen = ({ route }) => {
           return <Animated.View key={i} style={[styles.dot, animatedDotStyle]} />;
         })}
       </View>
+
+      <Animated.View style={[styles.swipeHint, swipeHintAnimatedStyle]} pointerEvents="none">
+        <Text style={styles.swipeHintText}>Swipe</Text>
+        <Ionicons name="chevron-forward" size={16} color="#fff" />
+      </Animated.View>
     </View>
   );
 };
@@ -251,6 +262,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#fff',
     marginHorizontal: 8,
+  },
+  swipeHint: {
+    position: 'absolute',
+    right: 24,
+    bottom: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    opacity: 0.88,
+  },
+  swipeHintText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
