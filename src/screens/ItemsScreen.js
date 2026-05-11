@@ -173,7 +173,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       <View style={styles.searchRow}>
         <View style={styles.searchWrapper}>
           <CustomInput
-            placeholder="Search"
+            placeholder="Search items"
             value={searchQuery}
             onChangeText={setSearchQuery}
             type="default"
@@ -188,16 +188,15 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       <View style={styles.countContainer}>
         <View style={styles.resultsLeft}>
           <Text style={styles.count}>
-            Results ({sortOptions.find((opt) => opt.value === sortField)?.label}{' '}
+            Sorted by {sortOptions.find((opt) => opt.value === sortField)?.label}
           </Text>
           <Ionicons
             name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
             size={14}
             color={colors.gray}
           />
-          <Text style={styles.count}>)</Text>
         </View>
-        <Text style={styles.count}>{filteredPurchases.length} found</Text>
+        <Text style={styles.resultCount}>{filteredPurchases.length} found</Text>
       </View>
 
       {!loading && filteredPurchases.length === 0 ? (
@@ -205,7 +204,11 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           contentContainerStyle={styles.scrollView}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <Text style={styles.emptyText}>No items found. Pull down to refresh.</Text>
+          <Ionicons name="search-outline" size={28} color={colors.gray} />
+          <Text style={styles.emptyText}>
+            {searchQuery ? `No items match "${searchQuery}".` : 'No items found.'}
+          </Text>
+          <Text style={styles.emptyHint}>Pull down to refresh.</Text>
         </ScrollView>
       ) : (
         <PurchaseList
@@ -338,15 +341,23 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.white,
-      padding: 10,
+      paddingHorizontal: 12,
+      paddingTop: 12,
+      paddingBottom: 8,
       gap: 8,
-      marginBottom: 4,
     },
     searchWrapper: {
       flex: 1,
     },
     sortButton: {
-      padding: 6,
+      width: 50,
+      height: 50,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      backgroundColor: colors.white,
     },
     sortContainer: {
       width: '100%',
@@ -364,25 +375,42 @@ const createStyles = (colors) =>
     countContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 12,
-      paddingBottom: 6,
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      paddingHorizontal: 14,
+      paddingBottom: 10,
+      marginBottom: 4,
     },
     resultsLeft: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 4,
     },
     count: {
       color: colors.gray,
       fontSize: 13,
     },
+    resultCount: {
+      color: colors.black,
+      fontSize: 13,
+      fontWeight: '500',
+    },
     scrollView: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 24,
     },
     emptyText: {
       fontSize: 15,
+      color: colors.black,
+      fontWeight: '500',
+      textAlign: 'center',
+    },
+    emptyHint: {
       color: colors.gray,
+      textAlign: 'center',
     },
     scrollList: {
       maxHeight: 200,

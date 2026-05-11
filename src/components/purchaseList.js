@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { formatDateShort } from '../utils/date';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
-import { getWearEmoji } from '../utils/wears';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const PurchaseList = ({
   purchases,
@@ -47,7 +47,7 @@ const PurchaseList = ({
   };
 
   const getCategoryName = (item) => {
-    if (item?.subCategory.name) {
+    if (item?.subCategory?.name) {
       const akaIndex = item.subCategory.name.toLowerCase().indexOf('aka');
       if (akaIndex !== -1) {
         return item.subCategory.name.substring(0, akaIndex);
@@ -59,9 +59,9 @@ const PurchaseList = ({
 
   const renderPlaceholder = () => (
     <View>
-      <View style={[styles.placeholder, { opacity: 1 }]}></View>
-      <View style={[styles.placeholder, { opacity: 0.9 }]}></View>
-      <View style={[styles.placeholder, { opacity: 0.5 }]}></View>
+      <View style={[styles.placeholder, { opacity: 1 }]} />
+      <View style={[styles.placeholder, { opacity: 0.9 }]} />
+      <View style={[styles.placeholder, { opacity: 0.5 }]} />
       <ActivityIndicator size="large" color={colors.primary} style={styles.loadingIndicator} />
     </View>
   );
@@ -82,40 +82,49 @@ const PurchaseList = ({
           },
         ]}
       >
-        <View style={styles.textContainer}>
-          <View style={styles.row}>
-            <View style={styles.topGroup}>
-              {/* {!overlay && <Text style={styles.wears}>{getWearEmoji(item.wears.length)}</Text>} */}
-              <Text style={styles.title} numberOfLines={1}>
-                {item.name}
-              </Text>
-              {item.category?.category && (
-                <Text
-                  style={[
-                    styles.category,
-                    { backgroundColor: colors[item.category?.category.split(' ')[0]] },
-                  ]}
-                >
-                  {getCategoryName(item.category)}
-                </Text>
-              )}
-              {!overlay && <Text style={styles.wears}>• {item.wears.length} wears </Text>}
-            </View>
-            <Text style={styles.date}>
-              {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
-            </Text>
+        {selectedItems.length > 0 && (
+          <View style={styles.selectionIndicator}>
+            <Ionicons
+              name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+              size={22}
+              color={isSelected ? colors.primary : colors.lightGrey}
+            />
           </View>
-          <View style={styles.row}>
-            <Text numberOfLines={1} style={styles.note}>
-              {item.note || '(no note)'}
+        )}
+
+        <View style={styles.textContainer}>
+          <View style={styles.headerRow}>
+            <Text style={styles.title} numberOfLines={1}>
+              {item.name}
             </Text>
-            <View style={styles.group}>
+            <View style={styles.priceGroup}>
               <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
               {item.regularPrice && (
                 <Text style={styles.regularPrice}>${convertCentsToDollars(item.regularPrice)}</Text>
               )}
             </View>
           </View>
+
+          <View style={styles.metaRow}>
+            {item.category?.category && (
+              <Text
+                style={[
+                  styles.category,
+                  { backgroundColor: colors[item.category?.category.split(' ')[0]] },
+                ]}
+              >
+                {getCategoryName(item.category)}
+              </Text>
+            )}
+            <Text style={styles.metaText}>{item.wears.length} wears</Text>
+            <Text style={styles.metaText}>
+              {overlay ? 'Tracked' : formatDateShort(item.datePurchased)}
+            </Text>
+          </View>
+
+          <Text numberOfLines={1} style={styles.note}>
+            {item.note || '(no note)'}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -151,49 +160,56 @@ const createStyles = (colors) =>
       flex: 1,
     },
     list: {
+      paddingTop: 4,
       paddingBottom: 65,
       flexGrow: 0,
     },
     itemContainer: {
       backgroundColor: colors.white,
       flexDirection: 'row',
-      padding: 10,
+      alignItems: 'center',
+      paddingVertical: 12,
       borderBottomColor: colors.bg,
-      marginBottom: 2,
+      marginBottom: 3,
       paddingHorizontal: 14,
+    },
+    selectionIndicator: {
+      marginRight: 10,
     },
     textContainer: {
       flex: 1,
       justifyContent: 'center',
+      gap: 6,
     },
     title: {
+      flex: 1,
       flexShrink: 1,
       color: colors.black,
       fontWeight: '600',
       fontSize: 16,
+      marginRight: 12,
     },
     note: {
       color: colors.gray,
+      fontSize: 13,
       flexShrink: 1,
-      marginRight: 30,
-      // maxWidth: '70%',
     },
-    group: {
+    priceGroup: {
       alignItems: 'center',
       flexDirection: 'row',
       gap: 4,
     },
-    topGroup: {
-      flex: 1,
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4,
-    },
-    row: {
+    headerRow: {
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 6,
     },
     category: {
       color: colors.white,
@@ -201,10 +217,11 @@ const createStyles = (colors) =>
       paddingBottom: 5,
       paddingHorizontal: 8,
       borderRadius: 50,
-      fontSize: 14,
+      fontSize: 13,
+      overflow: 'hidden',
     },
     paidPrice: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: '600',
       color: colors.green,
       marginRight: 2,
@@ -212,14 +229,10 @@ const createStyles = (colors) =>
     regularPrice: {
       textDecorationLine: 'line-through',
       color: colors.gray,
+      fontSize: 13,
     },
-    date: {
-      fontSize: 14,
-      color: colors.gray,
-      marginLeft: 10,
-    },
-    wears: {
-      fontSize: 14,
+    metaText: {
+      fontSize: 13,
       color: colors.gray,
     },
     footer: {
