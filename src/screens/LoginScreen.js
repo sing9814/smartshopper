@@ -8,6 +8,7 @@ import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
 import Banner from '../components/banner';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const LoginScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -19,6 +20,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [bannerMessage, setBannerMessage] = useState(null);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
 
@@ -101,20 +103,41 @@ const LoginScreen = ({ navigation }) => {
         <CustomInput label="Email" value={email} onChangeText={setEmail} />
         {isSignUp && <CustomInput label="Name" value={name} onChangeText={setName} />}
 
-        <CustomInput label="Password" value={password} onChangeText={setPassword} secureTextEntry />
+        <CustomInput
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!isPasswordVisible}
+          component={
+            <Pressable
+              style={styles.passwordToggle}
+              onPress={() => setIsPasswordVisible((visible) => !visible)}
+              accessibilityRole="button"
+              accessibilityLabel={isPasswordVisible ? 'Hide password' : 'Show password'}
+            >
+              <Ionicons
+                name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                size={22}
+                color={colors.gray}
+              />
+            </Pressable>
+          }
+        />
         <CustomButton
           buttonStyle={styles.button}
           onPress={handleLogin}
           title={isSignUp ? 'Register' : 'Sign in'}
         />
-        <CustomButton
-          buttonStyle={styles.guestButton}
-          textStyle={styles.guestButtonText}
-          underlayColor={colors.lightGrey}
-          onPress={handleGuestLogin}
-          title={isGuestLoading ? 'Starting...' : 'Explore as Guest'}
-          disabled={isGuestLoading}
-        />
+        {isSignUp && (
+          <CustomButton
+            buttonStyle={styles.guestButton}
+            textStyle={styles.guestButtonText}
+            underlayColor={colors.lightGrey}
+            onPress={handleGuestLogin}
+            title={isGuestLoading ? 'Starting...' : 'Explore as Guest'}
+            disabled={isGuestLoading}
+          />
+        )}
         {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
         {!isSignUp && (
           <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
@@ -200,6 +223,10 @@ const createStyles = (colors) =>
     link: {
       color: colors.primary,
       fontWeight: '500',
+    },
+    passwordToggle: {
+      paddingLeft: 12,
+      paddingVertical: 10,
     },
   });
 
