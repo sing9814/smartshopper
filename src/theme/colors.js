@@ -25,6 +25,37 @@ export const lightTheme = {
   Accessories: '#4ED8A8',
   Other: '#8A9399',
 
+  wearLevels: {
+    new_arrival: {
+      bg: '#E8F5E9',
+      text: '#2E7D32',
+    },
+    lightly_worn: {
+      bg: '#E3F2FD',
+      text: '#1565C0',
+    },
+    in_rotation: {
+      bg: '#E8EBFF',
+      text: '#3756FF',
+    },
+    well_worn: {
+      bg: '#FFF3E0',
+      text: '#C45A00',
+    },
+    long_term_use: {
+      bg: '#F3E5F5',
+      text: '#7B1FA2',
+    },
+    wardrobe_mvp: {
+      bg: '#FFF8E1',
+      text: '#9A6A00',
+    },
+    legacy_item: {
+      bg: '#ECEFF1',
+      text: '#455A64',
+    },
+  },
+
   textSectionTitleColor: '#b6c1cd',
   dayTextColor: '#2d4150',
   textDisabledColor: '#a1a1a1',
@@ -60,6 +91,37 @@ export const darkTheme = {
   Footwear: '#FFCC80',
   Accessories: '#80EEC9',
   Other: '#B0BEC5',
+
+  wearLevels: {
+    new_arrival: {
+      bg: '#17351F',
+      text: '#8BE29A',
+    },
+    lightly_worn: {
+      bg: '#12304A',
+      text: '#8DCBFF',
+    },
+    in_rotation: {
+      bg: '#252A55',
+      text: '#AEB8FF',
+    },
+    well_worn: {
+      bg: '#3D2A12',
+      text: '#FFC06A',
+    },
+    long_term_use: {
+      bg: '#35183F',
+      text: '#D8A4EA',
+    },
+    wardrobe_mvp: {
+      bg: '#3D320B',
+      text: '#FFE27A',
+    },
+    legacy_item: {
+      bg: '#263238',
+      text: '#CFD8DC',
+    },
+  },
 
   textSectionTitleColor: '#b6c1cd',
   dayTextColor: '#a1a1a1',

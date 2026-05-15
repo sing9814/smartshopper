@@ -8,11 +8,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../theme/themeContext';
-import { formatDateShort } from '../utils/date';
+import { formatDateShort, formatTimeStampNoTime } from '../utils/date';
 import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getWearLevelData } from '../utils/wears';
 
 const PurchaseList = ({
   purchases,
@@ -46,15 +46,12 @@ const PurchaseList = ({
     }
   };
 
-  const getCategoryName = (item) => {
-    if (item?.subCategory?.name) {
-      const akaIndex = item.subCategory.name.toLowerCase().indexOf('aka');
-      if (akaIndex !== -1) {
-        return item.subCategory.name.substring(0, akaIndex);
-      }
-      return item.subCategory.name;
-    }
-    return item.category;
+  const getLastWornText = (item) => {
+    const lastWear = item.wears?.[item.wears.length - 1];
+
+    if (!lastWear) return 'Never worn';
+    if (lastWear.seconds) return `Last worn ${formatTimeStampNoTime(lastWear)}`;
+    return `Last worn ${formatDateShort(lastWear)}`;
   };
 
   const renderPlaceholder = () => (
@@ -68,6 +65,11 @@ const PurchaseList = ({
 
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.key);
+    const wearLevel = getWearLevelData(item.wears.length);
+    const wearLevelColors = colors.wearLevels?.[wearLevel.code] || {
+      bg: colors.primaryLight,
+      text: colors.primary,
+    };
 
     return (
       <TouchableOpacity
@@ -82,49 +84,41 @@ const PurchaseList = ({
           },
         ]}
       >
-        {selectedItems.length > 0 && (
-          <View style={styles.selectionIndicator}>
-            <Ionicons
-              name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-              size={22}
-              color={isSelected ? colors.primary : colors.lightGrey}
-            />
-          </View>
-        )}
-
         <View style={styles.textContainer}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <View style={styles.priceGroup}>
-              <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
-              {item.regularPrice && (
-                <Text style={styles.regularPrice}>${convertCentsToDollars(item.regularPrice)}</Text>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.metaRow}>
-            {item.category?.category && (
+          <View style={styles.row}>
+            <View style={styles.topGroup}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.name}
+              </Text>
               <Text
                 style={[
-                  styles.category,
-                  { backgroundColor: colors[item.category?.category.split(' ')[0]] },
+                  styles.wearLevel,
+                  {
+                    backgroundColor: wearLevelColors.bg,
+                    color: wearLevelColors.text,
+                  },
                 ]}
               >
-                {getCategoryName(item.category)}
+                {wearLevel.emoji} {wearLevel.label}
               </Text>
-            )}
-            <Text style={styles.metaText}>{item.wears.length} wears</Text>
-            <Text style={styles.metaText}>
-              {overlay ? 'Tracked' : formatDateShort(item.datePurchased)}
+              {!overlay && (
+                <Text style={styles.wears}>
+                  {'\u2022'} {item.wears.length} wears
+                </Text>
+              )}
+            </View>
+            <Text style={styles.date}>
+              {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
             </Text>
           </View>
-
-          <Text numberOfLines={1} style={styles.note}>
-            {item.note || '(no note)'}
-          </Text>
+          <View style={styles.row}>
+            <Text numberOfLines={1} style={styles.lastWorn}>
+              {getLastWornText(item)}
+            </Text>
+            <View style={styles.group}>
+              <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -160,21 +154,16 @@ const createStyles = (colors) =>
       flex: 1,
     },
     list: {
-      paddingTop: 4,
       paddingBottom: 65,
       flexGrow: 0,
     },
     itemContainer: {
       backgroundColor: colors.white,
       flexDirection: 'row',
-      alignItems: 'center',
       paddingVertical: 12,
       borderBottomColor: colors.bg,
-      marginBottom: 3,
-      paddingHorizontal: 14,
-    },
-    selectionIndicator: {
-      marginRight: 10,
+      marginBottom: 2,
+      paddingHorizontal: 16,
     },
     textContainer: {
       flex: 1,
@@ -182,57 +171,55 @@ const createStyles = (colors) =>
       gap: 6,
     },
     title: {
-      flex: 1,
       flexShrink: 1,
       color: colors.black,
       fontWeight: '600',
       fontSize: 16,
-      marginRight: 12,
     },
-    note: {
+    lastWorn: {
       color: colors.gray,
-      fontSize: 13,
       flexShrink: 1,
+      marginRight: 30,
     },
-    priceGroup: {
+    group: {
       alignItems: 'center',
       flexDirection: 'row',
       gap: 4,
     },
-    headerRow: {
+    topGroup: {
+      flex: 1,
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
+    },
+    row: {
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    metaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      gap: 6,
-    },
-    category: {
-      color: colors.white,
+    wearLevel: {
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,
       borderRadius: 50,
-      fontSize: 13,
+      fontSize: 14,
+      fontWeight: '500',
       overflow: 'hidden',
     },
     paidPrice: {
-      fontSize: 20,
+      fontSize: 17,
       fontWeight: '600',
-      color: colors.green,
+      color: colors.black,
       marginRight: 2,
     },
-    regularPrice: {
-      textDecorationLine: 'line-through',
+    date: {
+      fontSize: 14,
       color: colors.gray,
-      fontSize: 13,
+      marginLeft: 10,
     },
-    metaText: {
-      fontSize: 13,
+    wears: {
+      fontSize: 14,
       color: colors.gray,
     },
     footer: {

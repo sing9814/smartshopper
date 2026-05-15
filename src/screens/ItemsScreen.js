@@ -379,7 +379,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.white,
       paddingHorizontal: 14,
       paddingBottom: 10,
-      marginBottom: 4,
+      marginBottom: 2,
     },
     resultsLeft: {
       flexDirection: 'row',
