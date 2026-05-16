@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import PurchaseList from '../components/purchaseList';
 import { useSelector, useDispatch } from 'react-redux';
-import CustomInput from '../components/customInput';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ConfirmationModal from '../components/confirmationModal';
@@ -14,6 +13,7 @@ import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import { addItemsToCollections } from '../utils/firebase';
 import { setCollections } from '../redux/actions/purchaseActions';
+import SearchBar from '../components/searchBar';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
@@ -171,15 +171,12 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       />
 
       <View style={styles.searchRow}>
-        <View style={styles.searchWrapper}>
-          <CustomInput
-            placeholder="Search items"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            type="default"
-            editable={true}
-          />
-        </View>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search items"
+          style={styles.searchBar}
+        />
         <TouchableOpacity onPress={() => setSortSheetVisible(true)} style={styles.sortButton}>
           <Ionicons name="swap-vertical-outline" size={22} color={colors.gray} />
         </TouchableOpacity>
@@ -341,18 +338,18 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.white,
-      paddingHorizontal: 12,
+      paddingHorizontal: 14,
       paddingTop: 12,
       paddingBottom: 8,
-      gap: 8,
+      gap: 10,
     },
-    searchWrapper: {
+    searchBar: {
       flex: 1,
     },
     sortButton: {
-      width: 50,
-      height: 50,
-      borderRadius: 10,
+      width: 46,
+      height: 46,
+      borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
