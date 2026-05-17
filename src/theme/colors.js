@@ -26,6 +26,10 @@ export const lightTheme = {
   Other: '#8A9399',
 
   wearLevels: {
+    unworn: {
+      bg: '#ECEFF1',
+      text: '#607D8B',
+    },
     new_arrival: {
       bg: '#E8F5E9',
       text: '#2E7D32',
@@ -41,10 +45,6 @@ export const lightTheme = {
     well_worn: {
       bg: '#FFF3E0',
       text: '#C45A00',
-    },
-    long_term_use: {
-      bg: '#F3E5F5',
-      text: '#7B1FA2',
     },
     wardrobe_mvp: {
       bg: '#FFF8E1',
@@ -93,6 +93,10 @@ export const darkTheme = {
   Other: '#B0BEC5',
 
   wearLevels: {
+    unworn: {
+      bg: '#263238',
+      text: '#CFD8DC',
+    },
     new_arrival: {
       bg: '#17351F',
       text: '#8BE29A',
@@ -108,10 +112,6 @@ export const darkTheme = {
     well_worn: {
       bg: '#3D2A12',
       text: '#FFC06A',
-    },
-    long_term_use: {
-      bg: '#35183F',
-      text: '#D8A4EA',
     },
     wardrobe_mvp: {
       bg: '#3D320B',
