@@ -83,7 +83,7 @@ android {
         applicationId "com.icuaht.smartshopper"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
+        versionCode 9
         versionName "2.0.0"
         resConfigs "en"
     }

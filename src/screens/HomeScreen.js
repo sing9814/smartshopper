@@ -1,12 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { fetchAllUserData, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
@@ -194,7 +187,9 @@ const HomeScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {!loading && (
+        {loading ? (
+          <HomeLoadingPlaceholders styles={styles} />
+        ) : (
           <>
             <View style={styles.totalWearsCard}>
               <View style={styles.totalWearsIcon}>
@@ -243,57 +238,21 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.mutedText}>No items yet.</Text>
               )}
             </View>
-          </>
-        )}
-
-        <View style={styles.progress}>
-          {!loading && (
-            <>
-              <Text style={styles.label}>{`Your spending`}</Text>
-              <AnimatedCircularProgress
-                size={100}
-                width={17}
-                fill={(convertCentsToDollars(totalRegularPrice) / user?.budget) * 100}
-                tintColor={'#51fa05'}
-                backgroundColor="#e0e0e0"
-                rotation={230}
-                lineCap="round"
-                arcSweepAngle={260}
-                tintColorSecondary={'#f03702'}
-              >
-                {() => <Text style={styles.labelProgress}>{formatPercent()}%</Text>}
-              </AnimatedCircularProgress>
-              <Text style={styles.subLabel}>
-                {formatDollar(convertCentsToDollars(totalRegularPrice))} of your{' '}
-                {formatDollar(user?.budget)} budget used
-              </Text>
-            </>
-          )}
-        </View>
-        {loading ? (
-          <View>
-            <View style={styles.placeholder}></View>
-            <ActivityIndicator
-              size="large"
-              color={colors.primary}
-              style={styles.loadingIndicator}
+            <Calendar
+              key={colors.mode}
+              theme={calendarTheme}
+              style={styles.calendar}
+              onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+                setOpen(true);
+              }}
+              onMonthChange={(month) => {
+                setCurrentMonth(month.month);
+                setCurrentYear(month.year);
+              }}
+              markedDates={getMarkedDates()}
             />
-          </View>
-        ) : (
-          <Calendar
-            key={colors.mode}
-            theme={calendarTheme}
-            style={styles.calendar}
-            onDayPress={(day) => {
-              setSelectedDate(day.dateString);
-              setOpen(true);
-            }}
-            onMonthChange={(month) => {
-              setCurrentMonth(month.month);
-              setCurrentYear(month.year);
-            }}
-            markedDates={getMarkedDates()}
-          />
+          </>
         )}
       </ScrollView>
 
@@ -339,6 +298,44 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </BottomSheet>
     </View>
+  );
+};
+
+const PlaceholderBlock = ({ style, styles }) => <View style={[styles.pBlock, style]} />;
+
+const HomeLoadingPlaceholders = ({ styles }) => {
+  return (
+    <>
+      <View style={styles.totalWearsCard}>
+        <View style={styles.pWearsTopRow}>
+          <PlaceholderBlock styles={styles} style={styles.pTotalWearsValue} />
+          <PlaceholderBlock styles={styles} style={styles.pIcon} />
+        </View>
+        <PlaceholderBlock styles={styles} style={styles.pTotalWearsSubtext} />
+      </View>
+
+      <View style={styles.analyticsCard}>
+        <View style={styles.pInsightsHeaderRow}>
+          <PlaceholderBlock styles={styles} style={styles.pInsightsTitle} />
+          <PlaceholderBlock styles={styles} style={styles.pIcon} />
+        </View>
+        <View style={styles.pInsightsCoverageRow}>
+          <PlaceholderBlock styles={styles} style={styles.pIcon} />
+          <PlaceholderBlock styles={styles} style={styles.pInsightsCoverageText} />
+        </View>
+      </View>
+
+      <View style={styles.pCalendarCard}>
+        <View style={styles.pCalendarHeader}>
+          <PlaceholderBlock styles={styles} style={styles.pCalendarArrow} />
+          <PlaceholderBlock styles={styles} style={styles.pCalendarMonth} />
+          <PlaceholderBlock styles={styles} style={styles.pCalendarArrow} />
+        </View>
+        <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
+        <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
+        <PlaceholderBlock styles={styles} style={styles.pCalendarShortLine} />
+      </View>
+    </>
   );
 };
 
@@ -431,19 +428,96 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: 'grey',
     },
-    placeholder: {
-      left: 0,
-      right: 0,
+    pCalendarCard: {
+      backgroundColor: colors.white,
       marginHorizontal: 12,
       borderRadius: 10,
-      height: 250,
-      backgroundColor: colors.white,
+      paddingHorizontal: 14,
+      paddingTop: 16,
+      paddingBottom: 18,
+      elevation: 1,
+      gap: 14,
     },
-    loadingIndicator: {
+    pBlock: {
+      backgroundColor: colors.lightestGrey,
+      borderRadius: 8,
+    },
+    pWearsTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    pTotalWearsValue: {
+      width: 48,
+      height: 40,
+      marginBottom: 10,
+    },
+    pTotalWearsSubtext: {
+      width: 90,
+      height: 14,
+    },
+    pTotalWearsIcon: {
       position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 10,
+      top: 16,
+      right: 16,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+    },
+    pInsightsHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    pInsightsTitle: {
+      width: 118,
+      height: 18,
+    },
+    pIcon: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.primaryLight,
+    },
+    pInsightsCoverageRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: colors.white,
+      elevation: 2,
+      marginBottom: 4,
+    },
+    pInsightsCoverageText: {
+      flex: 1,
+      height: 14,
+      marginRight: 80,
+    },
+    pCalendarHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 2,
+    },
+    pCalendarArrow: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+    },
+    pCalendarMonth: {
+      width: 110,
+      height: 18,
+    },
+    pCalendarLine: {
+      width: '100%',
+      height: 34,
+      borderRadius: 8,
+    },
+    pCalendarShortLine: {
+      width: '72%',
+      height: 34,
+      borderRadius: 8,
     },
     analyticsCard: {
       backgroundColor: colors.white,
