@@ -5,7 +5,6 @@ import firestore from '@react-native-firebase/firestore';
 import CustomButton from '../components/button';
 import { useTheme } from '../theme/themeContext';
 import CustomInput from '../components/customInput';
-import CustomDropdown from '../components/dropdown';
 import Header from '../components/header';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';

@@ -21,7 +21,7 @@ function MainTabNav() {
           backgroundColor: theme.white,
           borderTopLeftRadius: 18,
           borderTopRightRadius: 18,
-          height: 68,
+          height: 65,
           paddingTop: 8,
           paddingBottom: 8,
           borderTopWidth: 0,

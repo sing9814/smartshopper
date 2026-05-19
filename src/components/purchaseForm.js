@@ -15,7 +15,7 @@ import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
 import AddButton from './addButton';
 import CustomInput from './customInput';
-import CustomDropdown from './dropdown';
+import CategoryPickerSheet from './categoryPickerSheet';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from './header';
 import { useFocusEffect } from '@react-navigation/native';
@@ -56,9 +56,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [showClearButton, setShowClearButton] = useState(false);
 
   const [showCustomSheet, setShowCustomSheet] = useState(false);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
 
   const [banner, setBanner] = useState(null);
+  const selectedCategoryText = category
+    ? `${category.category}${category.subCategory ? ` - ${category.subCategory.name}` : ''}`
+    : 'Select category';
+
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
     setTimeout(() => {
@@ -256,18 +261,23 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Item details</Text>
               <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
-              <View>
-                <CustomDropdown
-                  items={categories}
-                  onSelect={handleSelect}
-                  selectedItem={category}
-                  setSelectedItem={setCategory}
-                  onOpenCustomSheet={(searchValue) => {
-                    setCustomSubcategoryName(searchValue);
-                    setShowCustomSheet(true);
-                  }}
-                />
-              </View>
+              <TouchableOpacity
+                style={styles.categorySelector}
+                onPress={() => setShowCategorySheet(true)}
+              >
+                <View style={styles.categoryContent}>
+                  <View style={styles.categoryIcon}>
+                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                  </View>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.categoryText, { color: category ? colors.black : colors.gray }]}
+                  >
+                    {selectedCategoryText}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.section}>
@@ -364,6 +374,17 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
           showBanner(wasAdded ? 'Custom category added!' : 'Category already exists.', 'success');
         }}
       />
+      <CategoryPickerSheet
+        visible={showCategorySheet}
+        onClose={() => setShowCategorySheet(false)}
+        items={categories}
+        onSelect={handleSelect}
+        setSelectedItem={setCategory}
+        onOpenCustomSheet={(searchValue) => {
+          setCustomSubcategoryName(searchValue);
+          setShowCustomSheet(true);
+        }}
+      />
     </View>
   );
 };
@@ -432,6 +453,34 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+    },
+    categorySelector: {
+      width: '100%',
+      backgroundColor: colors.white,
+      minHeight: 52,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    categoryContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    categoryIcon: {
+      width: 20,
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    categoryText: {
+      flex: 1,
+      fontSize: 15,
+      lineHeight: 22,
     },
     dateContent: {
       flexDirection: 'row',
