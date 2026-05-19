@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput, View, StyleSheet, ScrollView, Text } from 'react-native';
+import { TextInput, View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
 const CustomInput = ({
@@ -12,6 +12,7 @@ const CustomInput = ({
   type = 'default',
   multiline,
   component,
+  prefix,
   editable = true,
   budget,
 }) => {
@@ -31,30 +32,34 @@ const CustomInput = ({
   };
 
   return (
-    <View>
+    <View style={styles.wrapper}>
       {label && <Text style={styles.label}>{label}</Text>}
       <View
         style={[
           styles.inputContainer,
           !editable && styles.disabled,
-          multiline && { maxHeight: 100 },
+          multiline && styles.multilineContainer,
         ]}
       >
-        <ScrollView>
-          <TextInput
-            style={[styles.input, !editable && styles.disabled]}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={placeholder || label}
-            placeholderTextColor={colors.placeholder}
-            keyboardType={type}
-            maxLength={length()}
-            secureTextEntry={secureTextEntry}
-            multiline={multiline}
-            editable={editable}
-            autoCapitalize={autoCapitalize}
-          />
-        </ScrollView>
+        {prefix && <Text style={styles.prefix}>{prefix}</Text>}
+        <TextInput
+          style={[
+            styles.input,
+            multiline && styles.multilineInput,
+            !editable && styles.disabledText,
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder || label}
+          placeholderTextColor={colors.placeholder}
+          keyboardType={type}
+          maxLength={length()}
+          secureTextEntry={secureTextEntry}
+          multiline={multiline}
+          editable={editable}
+          autoCapitalize={autoCapitalize}
+          textAlignVertical={multiline ? 'top' : 'center'}
+        />
         {component}
       </View>
     </View>
@@ -63,31 +68,58 @@ const CustomInput = ({
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    wrapper: {
+      width: '100%',
+    },
     label: {
       fontSize: 13,
       color: colors.gray,
-      marginBottom: 4,
+      fontWeight: '600',
+      marginBottom: 6,
       marginLeft: 2,
     },
     inputContainer: {
       backgroundColor: colors.white,
       borderRadius: 10,
-      paddingHorizontal: 12,
+      minHeight: 52,
+      paddingHorizontal: 14,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderWidth: 1,
       borderColor: colors.lightGrey,
     },
+    multilineContainer: {
+      minHeight: 96,
+      alignItems: 'flex-start',
+      paddingTop: 10,
+      paddingBottom: 10,
+    },
     input: {
+      flex: 1,
       color: colors.black,
-      maxHeight: 200,
-      lineHeight: 26,
-      // fontSize: 15,
+      lineHeight: 22,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    },
+    multilineInput: {
+      minHeight: 74,
+    },
+    prefix: {
+      color: colors.gray,
+      fontSize: 15,
+      lineHeight: 22,
+      width: 20,
+      marginRight: 10,
+      marginLeft: 5,
+      textAlign: 'center',
     },
     disabled: {
-      backgroundColor: colors.lightgrey,
-      color: colors.black,
+      backgroundColor: colors.lightestGrey,
+      opacity: 0.8,
+    },
+    disabledText: {
+      color: colors.gray,
     },
   });
 

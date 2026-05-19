@@ -107,7 +107,7 @@ const CustomDropdown = ({ items, onSelect, selectedItem, setSelectedItem, onOpen
         <Ionicons
           name="chevron-down"
           size={18}
-          color={colors.black}
+          color={colors.gray}
           style={visible && styles.arrowUp}
         />
       </Pressable>

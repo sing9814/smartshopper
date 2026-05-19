@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Text } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
@@ -11,6 +19,7 @@ import CustomDropdown from './dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from './header';
 import { useFocusEffect } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import uuid from 'react-native-uuid';
@@ -31,6 +40,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases);
   const categories = useSelector((state) => state.user.categories);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const navigation = useNavigation();
 
@@ -224,7 +234,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.white }}>
+    <View style={styles.screen}>
       <Header title={edit ? `Edit ${purchase.name}` : 'Add Item'} />
 
       {banner && (
@@ -236,99 +246,110 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         />
       )}
 
-      <View style={styles.container}>
-        <View style={styles.innerContainer}>
-          <CustomInput
-            label="Item name"
-            placeholder="Enter item name"
-            value={itemName}
-            onChangeText={setItemName}
-          />
-          <View>
-            <Text style={styles.label}>Category</Text>
-            <CustomDropdown
-              items={categories}
-              onSelect={handleSelect}
-              selectedItem={category}
-              setSelectedItem={setCategory}
-              onOpenCustomSheet={(searchValue) => {
-                setCustomSubcategoryName(searchValue);
-                setShowCustomSheet(true);
-              }}
-            />
-          </View>
-
-          <View>
-            <Text style={styles.label}>Date</Text>
-            <TouchableOpacity onPress={() => setOpen(true)} style={[styles.dateBtn]}>
-              <View style={styles.innerContainer2}>
-                <Ionicons name={'calendar'} size={20} color={colors.primary} />
-                <Text style={[styles.text]}>{formattedDate}</Text>
+      <KeyboardAvoidingView style={styles.keyboardView}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.formCard}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Item details</Text>
+              <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
+              <View>
+                <CustomDropdown
+                  items={categories}
+                  onSelect={handleSelect}
+                  selectedItem={category}
+                  setSelectedItem={setCategory}
+                  onOpenCustomSheet={(searchValue) => {
+                    setCustomSubcategoryName(searchValue);
+                    setShowCustomSheet(true);
+                  }}
+                />
               </View>
-            </TouchableOpacity>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Purchase details</Text>
+              <View>
+                <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateBtn}>
+                  <View style={styles.dateContent}>
+                    <Ionicons name={'calendar'} size={20} color={colors.primary} />
+                    <Text style={styles.text}>{formattedDate}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+                </TouchableOpacity>
+              </View>
+
+              <DatePicker
+                modal
+                open={open}
+                date={selectedDate}
+                onConfirm={(date) => {
+                  setOpen(false);
+                  setSelectedDate(date);
+                }}
+                onCancel={() => setOpen(false)}
+                mode={'date'}
+              />
+
+              <CustomInput
+                placeholder="Price"
+                value={paidPrice}
+                onChangeText={setPaidPrice}
+                type="numeric"
+                prefix="$"
+                component={<AddButton onPress={() => setDisabled(true)} disabled={disabled} />}
+              />
+
+              {disabled && (
+                <CustomInput
+                  placeholder="Enter regular price (optional)"
+                  value={regularPrice}
+                  onChangeText={setRegularPrice}
+                  type="numeric"
+                  prefix="$"
+                  component={
+                    <TouchableWithoutFeedback onPress={removeRegularPrice}>
+                      <Ionicons
+                        style={styles.icon}
+                        name="remove-outline"
+                        size={16}
+                        color={colors.gray}
+                      />
+                    </TouchableWithoutFeedback>
+                  }
+                />
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Notes</Text>
+              <CustomInput
+                placeholder="Add notes (optional)"
+                value={note}
+                onChangeText={setNote}
+                multiline
+              />
+            </View>
           </View>
+        </ScrollView>
 
-          <DatePicker
-            modal
-            open={open}
-            date={selectedDate}
-            onConfirm={(date) => {
-              setOpen(false);
-              setSelectedDate(date);
-            }}
-            onCancel={() => setOpen(false)}
-            mode={'date'}
-          />
-
-          <CustomInput
-            label="Price"
-            placeholder="Enter price"
-            value={paidPrice}
-            onChangeText={setPaidPrice}
-            type="numeric"
-            component={<AddButton onPress={() => setDisabled(true)} disabled={disabled} />}
-          />
-
-          {disabled && (
-            <CustomInput
-              placeholder="Enter regular price (optional)"
-              value={regularPrice}
-              onChangeText={setRegularPrice}
-              type="numeric"
-              component={
-                <TouchableWithoutFeedback onPress={removeRegularPrice}>
-                  <Ionicons
-                    style={styles.icon}
-                    name="remove-outline"
-                    size={16}
-                    color={colors.gray}
-                  />
-                </TouchableWithoutFeedback>
-              }
-            />
+        <View style={[styles.actionArea, { paddingBottom: tabBarHeight + 12 }]}>
+          {showClearButton && !edit && (
+            <TouchableOpacity style={styles.clearBtn} onPress={resetFields}>
+              <Text style={styles.clear}>Clear all</Text>
+            </TouchableOpacity>
           )}
 
-          <CustomInput
-            label="Note"
-            placeholder="Add notes (optional)"
-            value={note}
-            onChangeText={setNote}
-            multiline
+          <CustomButton
+            buttonStyle={styles.submitBtn}
+            onPress={handleSubmit}
+            title={edit ? 'Update item' : 'Save item'}
           />
         </View>
-
-        {showClearButton && !edit && (
-          <TouchableOpacity style={styles.clearBtn} onPress={resetFields}>
-            <Text style={styles.clear}>Clear all</Text>
-          </TouchableOpacity>
-        )}
-
-        <CustomButton
-          buttonStyle={styles.submitBtn}
-          onPress={handleSubmit}
-          title={edit ? 'Update' : 'Submit'}
-        />
-      </View>
+      </KeyboardAvoidingView>
 
       <CustomCategorySheet
         visible={showCustomSheet}
@@ -349,35 +370,57 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    container: {
+    screen: {
       flex: 1,
-      alignItems: 'center',
-      paddingHorizontal: 12,
+      backgroundColor: colors.white,
     },
-    innerContainer: {
+    keyboardView: {
+      flex: 1,
+    },
+    container: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 20,
+    },
+    formCard: {
       width: '100%',
-      paddingTop: 2,
-      gap: 8,
-      paddingHorizontal: 8,
-      marginTop: 12,
-      borderRadius: 10,
+      gap: 18,
+    },
+    section: {
+      gap: 10,
+    },
+    sectionTitle: {
+      color: colors.gray,
+      fontSize: 12,
+      fontWeight: '700',
+      marginBottom: 2,
+      textTransform: 'uppercase',
     },
     submitBtn: {
-      position: 'absolute',
-      bottom: 75,
+      borderRadius: 10,
     },
     icon: {
       padding: 8,
       borderRadius: 50,
     },
+    actionArea: {
+      width: '100%',
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      backgroundColor: colors.white,
+      borderTopWidth: 1,
+      borderTopColor: colors.lightestGrey,
+    },
     clearBtn: {
       alignSelf: 'flex-end',
-      marginTop: 8,
-      marginRight: 8,
+      paddingVertical: 4,
+      paddingHorizontal: 2,
     },
     clear: {
       color: colors.primary,
-      fontWeight: '500',
+      fontWeight: '600',
     },
     dateBtn: {
       width: '100%',
@@ -386,8 +429,11 @@ const createStyles = (colors) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: colors.lightGrey,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
-    innerContainer2: {
+    dateContent: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
@@ -395,12 +441,6 @@ const createStyles = (colors) =>
     text: {
       color: colors.black,
       fontSize: 15,
-    },
-    label: {
-      fontSize: 14,
-      color: colors.gray,
-      marginBottom: 4,
-      marginLeft: 2,
     },
   });
 
