@@ -54,6 +54,19 @@ const PurchaseList = ({
     return `Last worn ${formatDateShort(lastWear)}`;
   };
 
+  const getCostPerWearText = (item) => {
+    const wearCount = item.wears?.length || 0;
+    if (wearCount === 0) return 'No CPW yet';
+
+    const price = item.paidPrice ?? 0;
+    return `$${convertCentsToDollars(price / wearCount)} CPW`;
+  };
+
+  const getPriceText = (item) => {
+    const price = item.paidPrice ?? 0;
+    return `$${convertCentsToDollars(price)}`;
+  };
+
   const renderPlaceholder = () => (
     <View>
       <View style={[styles.placeholder, { opacity: 1 }]} />
@@ -108,7 +121,7 @@ const PurchaseList = ({
               )}
             </View>
             <Text style={styles.date}>
-              {overlay ? `${item.wears.length} wears` : formatDateShort(item.datePurchased)}
+              {overlay ? `${item.wears.length} wears` : getPriceText(item)}
             </Text>
           </View>
           <View style={styles.row}>
@@ -116,7 +129,7 @@ const PurchaseList = ({
               {getLastWornText(item)}
             </Text>
             <View style={styles.group}>
-              <Text style={styles.paidPrice}>${convertCentsToDollars(item.paidPrice)}</Text>
+              <Text style={styles.costPerWear}>{getCostPerWearText(item)}</Text>
             </View>
           </View>
         </View>
@@ -211,6 +224,12 @@ const createStyles = (colors) =>
       fontSize: 17,
       fontWeight: '600',
       color: colors.black,
+      marginRight: 2,
+    },
+    costPerWear: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.gray,
       marginRight: 2,
     },
     date: {

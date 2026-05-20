@@ -8,20 +8,24 @@ export const formatDate = (date) => {
   });
 };
 
-export const formatDateShort = (date) => {
-  const [year, month, day] = date.split('-');
-  const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+const formatShortDateObject = (date) => {
   const options = {
     month: 'short',
     day: 'numeric',
   };
   const currentYear = new Date().getFullYear();
 
-  if (dateObj.getFullYear() !== currentYear) {
+  if (date.getFullYear() !== currentYear) {
     options.year = 'numeric';
   }
 
-  return dateObj.toLocaleDateString('en-US', options);
+  return date.toLocaleDateString('en-US', options);
+};
+
+export const formatDateShort = (date) => {
+  const [year, month, day] = date.split('-');
+  const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+  return formatShortDateObject(dateObj);
 };
 
 export const formatTimeStamp = (timestamp) => {
@@ -44,9 +48,7 @@ export const formatTimeStamp = (timestamp) => {
 export const formatTimeStampNoTime = (timestamp) => {
   try {
     const date = new Date(timestamp.seconds * 1000);
-    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    const formattedDate = date.toLocaleDateString('en-US', dateOptions);
-    return `${formattedDate}`;
+    return formatShortDateObject(date);
   } catch {
     return 'N/A';
   }
