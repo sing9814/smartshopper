@@ -278,21 +278,13 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={styles.title}>Dark mode</Text>
               </View>
               <TouchableOpacity
-                style={[
-                  styles.themeToggle,
-                  isDark ? styles.themeToggleOn : styles.themeToggleOff,
-                ]}
+                style={[styles.themeToggle, isDark ? styles.themeToggleOn : styles.themeToggleOff]}
                 onPress={toggleTheme}
                 activeOpacity={0.8}
                 accessibilityRole="switch"
                 accessibilityState={{ checked: isDark }}
               >
-                <View
-                  style={[
-                    styles.themeToggleThumb,
-                    isDark && styles.themeToggleThumbOn,
-                  ]}
-                />
+                <View style={[styles.themeToggleThumb, isDark && styles.themeToggleThumbOn]} />
               </TouchableOpacity>
             </View>
           </View>
@@ -353,12 +345,11 @@ const createStyles = (colors) =>
     },
     innerContainer: {
       width: '100%',
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
       flex: 1,
     },
     section: {
       marginTop: 12,
-      marginHorizontal: 12,
       gap: 6,
     },
     sectionTitle: {
@@ -442,7 +433,7 @@ const createStyles = (colors) =>
     card: {
       backgroundColor: colors.white,
       borderRadius: 10,
-      width: '47%',
+      width: '48%',
       minHeight: 132,
       paddingHorizontal: 14,
       paddingVertical: 16,
@@ -483,7 +474,6 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 12,
     },
     scrollViewContent: {
       flexGrow: 1,

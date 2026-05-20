@@ -106,7 +106,7 @@ const createStyles = (colors) =>
       minHeight: 74,
     },
     prefix: {
-      color: colors.gray,
+      color: colors.primary,
       fontSize: 15,
       lineHeight: 22,
       width: 20,

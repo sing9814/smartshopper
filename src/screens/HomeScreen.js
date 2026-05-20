@@ -55,6 +55,14 @@ const HomeScreen = ({ navigation }) => {
       textMonthFontSize: 17,
       textMonthFontWeight: 'bold',
       monthTextColor: colors.black,
+      'stylesheet.calendar.main': {
+        week: {
+          marginTop: 6,
+          marginBottom: 0,
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+        },
+      },
     }),
     [colors]
   );
@@ -390,12 +398,12 @@ const createStyles = (colors) =>
       flexGrow: 1,
       paddingTop: 10,
       paddingBottom: 78,
+      paddingHorizontal: 16,
     },
     calendar: {
-      marginHorizontal: 12,
       borderRadius: 10,
       elevation: 1,
-      paddingBottom: 6,
+      paddingBottom: 8,
     },
     title: {
       color: 'black',
@@ -408,7 +416,6 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
       borderRadius: 10,
       marginBottom: 10,
-      // paddingHorizontal: 20,
       paddingVertical: 16,
       elevation: 1,
       alignItems: 'center',
@@ -430,7 +437,6 @@ const createStyles = (colors) =>
     },
     pCalendarCard: {
       backgroundColor: colors.white,
-      marginHorizontal: 12,
       borderRadius: 10,
       paddingHorizontal: 14,
       paddingTop: 16,
@@ -516,12 +522,11 @@ const createStyles = (colors) =>
     },
     pCalendarShortLine: {
       width: '72%',
-      height: 34,
+      height: 28,
       borderRadius: 8,
     },
     analyticsCard: {
       backgroundColor: colors.white,
-      marginHorizontal: 12,
       marginBottom: 10,
       borderRadius: 10,
       padding: 14,
@@ -530,7 +535,6 @@ const createStyles = (colors) =>
     },
     totalWearsCard: {
       backgroundColor: colors.white,
-      marginHorizontal: 12,
       marginBottom: 10,
       borderRadius: 10,
       padding: 18,
