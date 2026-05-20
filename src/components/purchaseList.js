@@ -67,6 +67,12 @@ const PurchaseList = ({
     return `$${convertCentsToDollars(price)}`;
   };
 
+  const getCategoryText = (item) => {
+    if (item.category?.category) return item.category.category;
+    if (typeof item.category === 'string') return item.category;
+    return 'Other';
+  };
+
   const renderPlaceholder = () => (
     <View>
       <View style={[styles.placeholder, { opacity: 1 }]} />
@@ -99,31 +105,35 @@ const PurchaseList = ({
       >
         <View style={styles.textContainer}>
           <View style={styles.row}>
-            <View style={styles.topGroup}>
-              <Text style={styles.title} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text
-                style={[
-                  styles.wearLevel,
-                  {
-                    backgroundColor: wearLevelColors.bg,
-                    color: wearLevelColors.text,
-                  },
-                ]}
-              >
-                {wearLevel.emoji} {wearLevel.label}
-              </Text>
-              {!overlay && (
-                <Text style={styles.wears}>
-                  {'\u2022'} {item.wears.length} wears
-                </Text>
-              )}
-            </View>
+            <Text style={styles.title} numberOfLines={1}>
+              {item.name}
+            </Text>
             <Text style={styles.date}>
               {overlay ? `${item.wears.length} wears` : getPriceText(item)}
             </Text>
           </View>
+          {!overlay && (
+            <View style={styles.row}>
+              <View style={styles.wearRow}>
+                <Text
+                  style={[
+                    styles.wearLevel,
+                    {
+                      backgroundColor: wearLevelColors.bg,
+                      color: wearLevelColors.text,
+                    },
+                  ]}
+                >
+                  {wearLevel.emoji} {wearLevel.label}
+                </Text>
+                <Text style={styles.metaDot}>{'\u2022'}</Text>
+                <Text style={styles.categoryText} numberOfLines={1}>
+                  {getCategoryText(item)}
+                </Text>
+              </View>
+              <Text style={styles.wears}>{item.wears.length} wears</Text>
+            </View>
+          )}
           <View style={styles.row}>
             <Text numberOfLines={1} style={styles.lastWorn}>
               {getLastWornText(item)}
@@ -199,11 +209,21 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       gap: 4,
     },
-    topGroup: {
+    wearRow: {
       flex: 1,
       alignItems: 'center',
       flexDirection: 'row',
       gap: 4,
+      marginRight: 10,
+    },
+    categoryText: {
+      color: colors.gray,
+      fontSize: 14,
+      flexShrink: 1,
+    },
+    metaDot: {
+      color: colors.gray,
+      fontSize: 14,
     },
     row: {
       width: '100%',
