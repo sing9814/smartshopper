@@ -19,6 +19,14 @@ import { convertCentsToDollars } from '../utils/price';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getWearLevelData } from '../utils/wears';
+import {
+  USE_FAKE_DATA,
+  createMockCategories,
+  mockCollections,
+  mockCustomCategories,
+  mockPurchases,
+  mockUserData,
+} from '../utils/mockData';
 
 const getWearDate = (wear) => {
   if (!wear) return null;
@@ -81,6 +89,17 @@ const HomeScreen = ({ navigation }) => {
   const user = useSelector((state) => state.user.user);
 
   const fetchData = async () => {
+    if (USE_FAKE_DATA) {
+      dispatch(setUser(mockUserData));
+      dispatch(setPurchases(mockPurchases));
+      dispatch(setCollections(mockCollections));
+      dispatch(setCategories(createMockCategories(defaultCategories)));
+      dispatch(setCustomCategories(mockCustomCategories));
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
     const { userData, purchaseData, collectionData } = await fetchAllUserData();
     const { merged, customCategories } = await fetchMergedCategories(defaultCategories);
     dispatch(setUser(userData));
