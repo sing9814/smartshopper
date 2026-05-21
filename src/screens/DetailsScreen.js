@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../theme/themeContext';
-import CustomButton from '../components/button';
 import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
 import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/date';
@@ -14,12 +13,14 @@ import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import { convertCentsToDollars } from '../utils/price';
-import { getWearLevel } from '../utils/wears';
+import { getWearLevelData } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
   useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const DetailsScreen = ({ navigation }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isAddingWear, setIsAddingWear] = useState(false);
 
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
@@ -41,10 +43,12 @@ const DetailsScreen = ({ navigation }) => {
   };
 
   const onPressAddWear = async () => {
+    if (isAddingWear) return;
+
+    setIsAddingWear(true);
     const date = generateFirestoreTimestamp();
 
     const newWears = [...(currentPurchase.wears || []), date];
-    console.log(newWears);
 
     const updatedPurchases = purchases.map((purchase) =>
       purchase.key === currentPurchase.key ? { ...purchase, wears: newWears } : purchase
@@ -52,12 +56,16 @@ const DetailsScreen = ({ navigation }) => {
     dispatch(setPurchases(updatedPurchases));
     dispatch(setCurrentPurchase({ ...currentPurchase, wears: newWears }));
 
-    await updatePurchaseWears(currentPurchase.key, newWears);
-    setShowConfirmation(true);
+    try {
+      await updatePurchaseWears(currentPurchase.key, newWears);
+      setShowConfirmation(true);
+    } finally {
+      setIsAddingWear(false);
+    }
   };
 
   const displayCategoryName = (purchase) => {
-    if (purchase.subCategory.name) {
+    if (purchase.subCategory?.name) {
       const akaIndex = purchase.subCategory.name.toLowerCase().indexOf('aka');
       if (akaIndex !== -1) {
         return `${purchase.category} - ${purchase.subCategory.name.substring(0, akaIndex)}`;
@@ -74,6 +82,24 @@ const DetailsScreen = ({ navigation }) => {
     return `$${dollars.toFixed(2)}`;
   };
 
+  const wearCount = currentPurchase.wears?.length || 0;
+  const wearLevel = getWearLevelData(wearCount);
+  const wearLevelColors = colors.wearLevels?.[wearLevel.code] || {
+    bg: colors.primaryLight,
+    text: colors.primary,
+  };
+  const lastWear = currentPurchase.wears?.[wearCount - 1];
+  const categoryName =
+    currentPurchase.category?.category ||
+    (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'Other');
+  const categoryLabel = currentPurchase.category?.category
+    ? displayCategoryName(currentPurchase.category)
+    : categoryName;
+  const paidPrice = currentPurchase.paidPrice ?? 0;
+  const regularPrice = currentPurchase.regularPrice;
+  const costPerWear =
+    wearCount > 0 ? formatCostPerWear(currentPurchase.paidPrice / wearCount) : 'N/A';
+
   return (
     <View style={styles.container}>
       {showConfirmation && (
@@ -88,110 +114,119 @@ const DetailsScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setIsSheetVisible(true)}>
-          <FontAwesome6 name="ellipsis" size={26} color="white" />
-        </TouchableOpacity>
+        <View style={styles.topbarActions}>
+          <TouchableOpacity
+            onPress={() => setIsSheetVisible(true)}
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            style={styles.topbarAction}
+          >
+            <FontAwesome6 name="ellipsis" size={26} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.paddingContainer}>
-        <View style={styles.topContainer}>
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Name</Text>
-              <Text style={styles.title}>{currentPurchase.name}</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroRow}>
+          <View style={styles.heroText}>
+            <Text style={styles.label}>Name</Text>
+            <Text style={styles.title} numberOfLines={2}>
+              {currentPurchase.name}
+            </Text>
+          </View>
+
+          <View style={styles.priceBlock}>
+            <Text style={styles.label}>Price</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.paidPrice}>${convertCentsToDollars(paidPrice)}</Text>
+              {regularPrice && (
+                <Text style={styles.regularPrice}>${convertCentsToDollars(regularPrice)}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+        <View>
+          <View style={styles.listRow}>
+            <View style={[styles.rowText, styles.categoryTextBlock]}>
+              <Text style={styles.titleLabel}>Category</Text>
+              <Text style={styles.categoryValue} numberOfLines={1}>
+                {categoryLabel}
+              </Text>
             </View>
 
-            <View style={styles.alignRight}>
-              <Text style={styles.label}>Price</Text>
-              <View style={styles.priceContainer}>
-                <Text style={styles.paidPrice}>
-                  ${convertCentsToDollars(currentPurchase.paidPrice)}
-                </Text>
-                {currentPurchase.regularPrice && (
-                  <Text style={styles.regularPrice}>
-                    ${convertCentsToDollars(currentPurchase.regularPrice)}
-                  </Text>
-                )}
+            <View style={styles.rowMeta}>
+              <Text style={styles.titleLabel}>Purchased</Text>
+              <Text style={styles.valueText}>{formatDate(currentPurchase.datePurchased)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.listRow}>
+            <View style={styles.rowText}>
+              <Text style={styles.titleLabel}>Wear level</Text>
+              <Text
+                style={[
+                  styles.wearLevel,
+                  {
+                    backgroundColor: wearLevelColors.bg,
+                    color: wearLevelColors.text,
+                  },
+                ]}
+              >
+                {wearLevel.emoji} {wearLevel.label}
+              </Text>
+            </View>
+
+            <View style={styles.rowMeta}>
+              <Text style={styles.titleLabel}>Wear count</Text>
+              <View style={styles.wearCountRow}>
+                <Text style={styles.valueText}>{wearCount} wears</Text>
+                <TouchableOpacity
+                  onPress={onPressAddWear}
+                  disabled={isAddingWear}
+                  activeOpacity={0.75}
+                  hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                  style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
+                >
+                  <FontAwesome6 name="plus" size={11} color={colors.primary} />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
 
-          <View>
-            <Text style={styles.label}>Category</Text>
-            <View style={styles.row}>
-              {currentPurchase.category?.category && (
-                <View>
-                  <Text
-                    style={[
-                      styles.category,
-                      { backgroundColor: colors[currentPurchase.category?.category.split(' ')[0]] },
-                    ]}
-                  >
-                    {displayCategoryName(currentPurchase.category)}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View>
-            <Text style={styles.label}>Description</Text>
-            <Text style={styles.note}>{currentPurchase.note || '(no note)'}</Text>
-          </View>
-
-          <View style={styles.line}></View>
-
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Wear level</Text>
-              <Text style={styles.text}>{getWearLevel(currentPurchase.wears.length)}</Text>
-            </View>
-
-            <View style={styles.alignRight}>
-              <Text style={styles.label}>Wear count</Text>
-              <Text style={styles.text}>{currentPurchase.wears.length}</Text>
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Last worn</Text>
-              <Text style={styles.text}>
-                {formatTimeStampNoTime(currentPurchase.wears[currentPurchase.wears.length - 1])}
+          <View style={styles.listRow}>
+            <View style={styles.rowText}>
+              <Text style={styles.titleLabel}>Last worn</Text>
+              <Text style={styles.valueText}>
+                {lastWear ? formatTimeStampNoTime(lastWear) : 'Never worn'}
               </Text>
             </View>
 
-            <View style={styles.alignRight}>
-              <Text style={styles.label}>Cost per wear (CPW)</Text>
-              <Text style={styles.text}>
-                {currentPurchase.wears.length > 0
-                  ? formatCostPerWear(
-                      (currentPurchase.paidPrice || currentPurchase.regularPrice) /
-                        currentPurchase.wears.length
-                    )
-                  : 'N/A'}
-              </Text>
+            <View style={styles.rowMeta}>
+              <Text style={styles.titleLabel}>Cost per wear</Text>
+              <Text style={styles.valueText}>{costPerWear}</Text>
             </View>
           </View>
-
-          <CustomButton buttonStyle={styles.button} onPress={onPressAddWear} title="Add wear" />
         </View>
 
-        <View style={styles.bottomContainer}>
-          <Text style={styles.label}>Purchased: {formatDate(currentPurchase.datePurchased)}</Text>
-          <Text style={styles.label}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
-          {currentPurchase.edited && (
-            <Text style={styles.label}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
-          )}
+        <View style={styles.noteBlock}>
+          <Text style={styles.titleLabel}>Notes</Text>
+          <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
         </View>
+      </ScrollView>
 
-        <ConfirmationModal
-          data={currentPurchase.name}
-          visible={modalVisible}
-          onConfirm={handleDelete}
-          onCancel={() => setModalVisible(false)}
-        />
+      <View style={styles.bottomContainer}>
+        <Text style={styles.label}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
+        {currentPurchase.edited && (
+          <Text style={styles.label}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
+        )}
       </View>
+
+      <ConfirmationModal
+        data={currentPurchase.name}
+        visible={modalVisible}
+        onConfirm={handleDelete}
+        onCancel={() => setModalVisible(false)}
+      />
 
       <DetailsSheet
         visible={isSheetVisible}
@@ -207,19 +242,11 @@ const DetailsScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (colors, insets) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.white,
-    },
-    paddingContainer: {
-      flex: 1,
-      paddingHorizontal: 20,
-      paddingTop: 10,
-    },
-    alignRight: {
-      alignItems: 'flex-end',
+      backgroundColor: colors.bg,
     },
     label: {
       fontSize: 13,
@@ -233,78 +260,143 @@ const createStyles = (colors) =>
       paddingTop: 10,
       paddingBottom: 13,
       paddingHorizontal: 20,
-      marginBottom: 6,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    text: {
-      color: colors.black,
-      fontWeight: 'bold',
+    topbarActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    topbarAction: {
+      width: 28,
+      height: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    content: {
+      paddingBottom: 160 + insets.bottom,
+    },
+    heroRow: {
+      backgroundColor: colors.white,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingHorizontal: 16,
+      paddingVertical: 18,
+      marginBottom: 2,
+      gap: 16,
+    },
+    heroText: {
+      flex: 1,
     },
     title: {
       color: colors.black,
       fontWeight: '700',
-      fontSize: 24,
+      fontSize: 21,
       flexShrink: 1,
-      marginRight: 16,
     },
-    note: {
-      color: colors.black,
-      lineHeight: 22,
-      backgroundColor: colors.bg,
-      padding: 16,
-      borderRadius: 10,
-    },
-    topContainer: {
-      gap: 12,
+    priceBlock: {
+      alignItems: 'flex-end',
     },
     priceContainer: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4,
+      alignItems: 'flex-end',
+      gap: 2,
     },
-    row: {
+    listRow: {
+      backgroundColor: colors.white,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 2,
     },
-    category: {
-      color: colors.white,
+    rowText: {
+      flex: 1,
+      gap: 6,
+      alignItems: 'flex-start',
+    },
+    categoryTextBlock: {
+      flex: 1.35,
+    },
+    rowMeta: {
+      flex: 1,
+      gap: 6,
+      alignItems: 'flex-end',
+      minWidth: 0,
+    },
+    titleLabel: {
+      fontSize: 13,
+      color: colors.gray,
+    },
+    wearLevel: {
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,
       borderRadius: 50,
       fontSize: 14,
+      fontWeight: '500',
+      minHeight: 27,
+      overflow: 'hidden',
+    },
+    valueText: {
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
+      textAlign: 'right',
+    },
+    categoryValue: {
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
+      flexShrink: 1,
+    },
+    wearCountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      minHeight: 27,
+    },
+    addWearButton: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addWearButtonDisabled: {
+      opacity: 0.55,
     },
     paidPrice: {
-      fontSize: 24,
+      fontSize: 21,
       fontWeight: '600',
-      color: colors.green,
+      color: colors.black,
     },
     regularPrice: {
       textDecorationLine: 'line-through',
       color: colors.gray,
       marginLeft: 2,
     },
-    line: {
-      width: '100%',
-      height: 1,
-      backgroundColor: colors.lightGrey,
-      opacity: 0.5,
-      marginVertical: 10,
-      borderRadius: 10,
+    noteBlock: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 2,
+      gap: 4,
+    },
+    note: {
+      color: colors.black,
+      fontSize: 15,
+      lineHeight: 22,
     },
     bottomContainer: {
-      justifyContent: 'flex-end',
-      marginBottom: 16,
-      gap: 4,
       position: 'absolute',
-      bottom: 50,
       left: 16,
-    },
-    button: {
-      marginTop: 10,
+      bottom: 80 + insets.bottom,
+      gap: 4,
+      paddingRight: 16,
     },
   });
 
