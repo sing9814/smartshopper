@@ -36,8 +36,17 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
 
-  const [sortField, setSortField] = useState('date');
+  const [sortField, setSortField] = useState('lastWorn');
   const [sortDirection, setSortDirection] = useState('desc');
+
+  const getLastWearTime = (purchase) => {
+    const lastWear = purchase.wears?.[purchase.wears.length - 1];
+
+    if (!lastWear) return 0;
+    if (lastWear.seconds) return lastWear.seconds * 1000;
+
+    return new Date(lastWear).getTime() || 0;
+  };
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -51,9 +60,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     .sort((a, b) => {
       let aValue, bValue;
 
-      if (sortField === 'date') {
-        aValue = new Date(a.datePurchased);
-        bValue = new Date(b.datePurchased);
+      if (sortField === 'lastWorn') {
+        aValue = getLastWearTime(a);
+        bValue = getLastWearTime(b);
       } else if (sortField === 'wears') {
         aValue = a.wears?.length || 0;
         bValue = b.wears?.length || 0;
@@ -66,8 +75,8 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     });
 
   const sortOptions = [
-    { label: 'Date Purchased', value: 'date' },
-    { label: 'Wears', value: 'wears' },
+    { label: 'Last worn', value: 'lastWorn' },
+    { label: 'Wear count', value: 'wears' },
     { label: 'Price', value: 'price' },
   ];
 

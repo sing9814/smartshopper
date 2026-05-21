@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Linking, Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -14,6 +14,9 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
 import { setUser } from '../redux/actions/userActions';
+
+const FEEDBACK_FORM_URL =
+  'https://docs.google.com/forms/d/1BWQtUvXFn9GeCFqAAg4uTJHN6H-54EXAnHxqzphthRg/viewform';
 
 const ProfileScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -68,6 +71,10 @@ const ProfileScreen = ({ navigation }) => {
     }
 
     auth().signOut();
+  };
+
+  const handleSendFeedback = () => {
+    Linking.openURL(FEEDBACK_FORM_URL);
   };
 
   const confirmGuestSignOut = () => {
@@ -287,6 +294,24 @@ const ProfileScreen = ({ navigation }) => {
                 <View style={[styles.themeToggleThumb, isDark && styles.themeToggleThumbOn]} />
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Feedback</Text>
+          <View style={styles.sectionGroup}>
+            <TouchableOpacity style={styles.sectionRow} onPress={handleSendFeedback}>
+              <View style={styles.innerRowContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={22}
+                  color={colors.primary}
+                  style={styles.rowIcon}
+                />
+                <Text style={styles.title}>Send feedback</Text>
+              </View>
+              <Ionicons name="open-outline" size={20} color={colors.gray} />
+            </TouchableOpacity>
           </View>
         </View>
 
