@@ -9,8 +9,6 @@ import { setUser } from '../redux/actions/userActions';
 import { setCategories, setCustomCategories } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
-import CustomInput from '../components/customInput';
-import AddButton from '../components/addButton';
 import { formatDate } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
@@ -30,15 +28,72 @@ import {
 
 const getWearDate = (wear) => {
   if (!wear) return null;
-  if (wear.seconds) return new Date(wear.seconds * 1000);
+  if (typeof wear.toDate === 'function') return wear.toDate();
+  if (wear.seconds || wear._seconds) return new Date((wear.seconds || wear._seconds) * 1000);
+  if (wear instanceof Date) return Number.isNaN(wear.getTime()) ? null : wear;
 
   const date = new Date(wear);
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const getDateKey = (dateLike) => {
+  if (typeof dateLike === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateLike)) {
+    return dateLike;
+  }
+
+  const date = dateLike instanceof Date ? dateLike : getWearDate(dateLike);
+  if (!date) return null;
+
+  const year = date.getUTCFullYear();
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getUTCDate()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
 const getLastWearDate = (item) => {
   const wears = item.wears || [];
   return getWearDate(wears[wears.length - 1]);
+};
+
+const itemWasWornOnDate = (item, dateKey) => {
+  return (item.wears || []).some((wear) => {
+    const wearDate = getWearDate(wear);
+    return wearDate ? getDateKey(wearDate) === dateKey : false;
+  });
+};
+
+const getWearNumbersForDate = (item, dateKey) => {
+  return (item.wears || []).reduce((wearNumbers, wear, index) => {
+    const wearDate = getWearDate(wear);
+
+    if (wearDate && getDateKey(wearDate) === dateKey) {
+      wearNumbers.push(index + 1);
+    }
+
+    return wearNumbers;
+  }, []);
+};
+
+const getWearNumberText = (item, dateKey) => {
+  const wearNumbers = getWearNumbersForDate(item, dateKey);
+  const wears = item.wears || [];
+  const latestWearNumber = wears.length;
+
+  if (wearNumbers.length === 0) return '';
+  if (wearNumbers.length === 1 && wearNumbers[0] === latestWearNumber) {
+    return 'Most recent wear';
+  }
+  if (wearNumbers.length === 1) return `Wear #${wearNumbers[0]}`;
+
+  if (wearNumbers.includes(latestWearNumber)) {
+    const previousWearNumbers = wearNumbers.filter((wearNumber) => wearNumber !== latestWearNumber);
+    return previousWearNumbers.length
+      ? `Wears #${previousWearNumbers.join(', #')} + most recent`
+      : 'Most recent wear';
+  }
+
+  return `Wears #${wearNumbers.join(', #')}`;
 };
 
 const HomeScreen = ({ navigation }) => {
@@ -83,8 +138,6 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [name, setName] = useState('');
-
   const purchases = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
 
@@ -120,22 +173,38 @@ const HomeScreen = ({ navigation }) => {
     fetchData();
   };
 
-  const getMarkedDates = () => {
-    if (!loading) {
-      const markedDates = {};
-      if (selectedDate) {
-        markedDates[selectedDate] = {
-          selected: true,
-        };
-      }
-      purchases.forEach((item) => {
-        if (!markedDates[item.datePurchased]) {
-          markedDates[item.datePurchased] = { marked: true };
-        }
-      });
-      return markedDates;
+  const markedDates = useMemo(() => {
+    if (loading) return {};
+
+    const dates = {};
+    if (selectedDate) {
+      dates[selectedDate] = {
+        selected: true,
+      };
     }
-  };
+
+    purchases.forEach((item) => {
+      const wears = item.wears || [];
+      const lastWearDateKey = getDateKey(wears[wears.length - 1]);
+
+      wears.forEach((wear) => {
+        const wearDate = getWearDate(wear);
+        if (!wearDate) return;
+
+        const dateKey = getDateKey(wearDate);
+        if (!dateKey) return;
+        const isLatestWear = dateKey === lastWearDateKey;
+
+        dates[dateKey] = {
+          ...dates[dateKey],
+          marked: true,
+          dotColor: isLatestWear ? colors.secondary : dates[dateKey]?.dotColor || colors.primary,
+        };
+      });
+    });
+
+    return dates;
+  }, [colors.primary, colors.secondary, loading, purchases, selectedDate]);
 
   const formatDollar = (amount) => {
     return `$${amount.toLocaleString(undefined, {
@@ -277,7 +346,7 @@ const HomeScreen = ({ navigation }) => {
                 setCurrentMonth(month.month);
                 setCurrentYear(month.year);
               }}
-              markedDates={getMarkedDates()}
+              markedDates={markedDates}
             />
           </>
         )}
@@ -288,36 +357,21 @@ const HomeScreen = ({ navigation }) => {
         visible={open}
         onClose={() => {
           setOpen(false);
-          setName('');
         }}
         height={'50%'}
       >
         <View style={styles.sheetContainer}>
-          {/* <Text style={styles.sheetText}>{selectedDate ? formatDate(selectedDate) : ''}</Text> */}
-          <CustomInput
-            label="Add item"
-            value={name}
-            onChangeText={setName}
-            component={
-              <AddButton
-                onPress={() => [
-                  navigation.navigate('Add', {
-                    name: name === '' ? null : name,
-                    date: selectedDate,
-                  }),
-                  setName(''),
-                ]}
-              />
-            }
-          />
           <View style={styles.list}>
             <PurchaseList
               purchases={
                 selectedDate
-                  ? purchases.filter((product) => product.datePurchased === selectedDate)
+                  ? purchases.filter((product) => itemWasWornOnDate(product, selectedDate))
                   : []
               }
               overlay
+              wornDate={selectedDate}
+              getOverlayText={(item) => getWearNumberText(item, selectedDate)}
+              emptyText="Nothing worn on this day"
               navigation={navigation}
               onItemLongPress={() => {}}
             />

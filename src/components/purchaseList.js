@@ -21,6 +21,9 @@ const PurchaseList = ({
   onRefresh,
   onItemLongPress,
   overlay,
+  wornDate,
+  getOverlayText,
+  emptyText = 'No items yet',
   navigation,
   selectedItems = [],
 }) => {
@@ -47,6 +50,9 @@ const PurchaseList = ({
   };
 
   const getLastWornText = (item) => {
+    if (getOverlayText) return getOverlayText(item);
+    if (wornDate) return `Worn ${formatDateShort(wornDate)}`;
+
     const lastWear = item.wears?.[item.wears.length - 1];
 
     if (!lastWear) return 'Never worn';
@@ -163,7 +169,7 @@ const PurchaseList = ({
     }
     return (
       <View style={styles.footer}>
-        <Text style={styles.footerText}>No data to show</Text>
+        <Text style={styles.footerText}>{emptyText}</Text>
       </View>
     );
   };
