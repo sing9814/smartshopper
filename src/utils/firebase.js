@@ -69,7 +69,149 @@ export const fetchAllUserData = async () => {
   const purchaseData = await fetchUserPurchases();
   const collectionData = await fetchUserCollections();
 
+  if (hasLegacyTimestampData(userData, purchaseData, collectionData)) {
+    try {
+      await migrateCurrentUserTimestamps();
+
+      return {
+        userData: await fetchUserDetails(),
+        purchaseData: await fetchUserPurchases(),
+        collectionData: await fetchUserCollections(),
+      };
+    } catch (error) {
+      console.error('Failed to migrate legacy timestamps:', error);
+    }
+  }
+
   return { userData, purchaseData, collectionData };
+};
+
+const isNativeTimestamp = (value) => value && typeof value.toDate === 'function';
+
+const isLegacyTimestamp = (value) => {
+  if (!value || isNativeTimestamp(value)) return false;
+  if (typeof value === 'number') return true;
+
+  const seconds = value.seconds ?? value._seconds;
+  return typeof seconds === 'number';
+};
+
+const convertToFirestoreTimestamp = (value) => {
+  if (!value || isNativeTimestamp(value)) return value;
+
+  if (typeof value === 'number') {
+    const milliseconds = value > 1000000000000 ? value : value * 1000;
+    return firestore.Timestamp.fromDate(new Date(milliseconds));
+  }
+
+  const seconds = value.seconds ?? value._seconds;
+  const nanoseconds = value.nanoseconds ?? value._nanoseconds ?? 0;
+
+  if (typeof seconds !== 'number') return value;
+
+  return firestore.Timestamp.fromDate(new Date(seconds * 1000 + Math.floor(nanoseconds / 1000000)));
+};
+
+const isLegacyDatePurchased = (value) => {
+  return (
+    isLegacyTimestamp(value) || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value))
+  );
+};
+
+const convertDatePurchasedToFirestoreTimestamp = (value) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-');
+    return firestore.Timestamp.fromDate(new Date(year, month - 1, day));
+  }
+
+  return convertToFirestoreTimestamp(value);
+};
+
+const convertTimestampArray = (values = []) => values.map(convertToFirestoreTimestamp);
+
+const hasLegacyTimestampArray = (values) => Array.isArray(values) && values.some(isLegacyTimestamp);
+
+const hasLegacyTimestampData = (userData, purchaseData = [], collectionData = []) => {
+  if (isLegacyTimestamp(userData?.upgradedAt) || isLegacyTimestamp(userData?.registrationDate)) {
+    return true;
+  }
+
+  return (
+    purchaseData.some(
+      (purchase) =>
+        isLegacyTimestamp(purchase.dateCreated) ||
+        isLegacyTimestamp(purchase.edited) ||
+        isLegacyDatePurchased(purchase.datePurchased) ||
+        hasLegacyTimestampArray(purchase.wears)
+    ) || collectionData.some((collection) => isLegacyTimestamp(collection.dateCreated))
+  );
+};
+
+export const migrateCurrentUserTimestamps = async () => {
+  const user = auth().currentUser;
+  if (!user) throw new Error('User not authenticated');
+
+  const userRef = firestore().collection('users').doc(user.uid);
+  const batch = firestore().batch();
+  let updateCount = 0;
+
+  const userSnapshot = await userRef.get();
+  const userData = userSnapshot.data() || {};
+  const userUpdates = {};
+
+  if (isLegacyTimestamp(userData.upgradedAt)) {
+    userUpdates.upgradedAt = convertToFirestoreTimestamp(userData.upgradedAt);
+  }
+  if (isLegacyTimestamp(userData.registrationDate)) {
+    userUpdates.registrationDate = convertToFirestoreTimestamp(userData.registrationDate);
+  }
+
+  if (Object.keys(userUpdates).length > 0) {
+    batch.update(userRef, userUpdates);
+    updateCount += 1;
+  }
+
+  const purchasesSnapshot = await userRef.collection('Purchases').get();
+  purchasesSnapshot.docs.forEach((doc) => {
+    const purchase = doc.data();
+    const updates = {};
+
+    if (isLegacyTimestamp(purchase.dateCreated)) {
+      updates.dateCreated = convertToFirestoreTimestamp(purchase.dateCreated);
+    }
+    if (isLegacyTimestamp(purchase.edited)) {
+      updates.edited = convertToFirestoreTimestamp(purchase.edited);
+    }
+    if (isLegacyDatePurchased(purchase.datePurchased)) {
+      updates.datePurchased = convertDatePurchasedToFirestoreTimestamp(purchase.datePurchased);
+    }
+    if (hasLegacyTimestampArray(purchase.wears)) {
+      updates.wears = convertTimestampArray(purchase.wears);
+    }
+
+    if (Object.keys(updates).length > 0) {
+      batch.update(doc.ref, updates);
+      updateCount += 1;
+    }
+  });
+
+  const collectionsSnapshot = await userRef.collection('Collections').get();
+  collectionsSnapshot.docs.forEach((doc) => {
+    const collection = doc.data();
+
+    if (isLegacyTimestamp(collection.dateCreated)) {
+      batch.update(doc.ref, {
+        dateCreated: convertToFirestoreTimestamp(collection.dateCreated),
+      });
+      updateCount += 1;
+    }
+  });
+
+  if (updateCount > 0) {
+    await batch.commit();
+  }
+
+  return updateCount;
 };
 
 export const updatePurchaseWears = async (purchaseId, newWears) => {

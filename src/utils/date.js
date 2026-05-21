@@ -1,6 +1,18 @@
+import firestore from '@react-native-firebase/firestore';
+
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const isDateKey = (value) => typeof value === 'string' && DATE_KEY_PATTERN.test(value);
+
+const dateKeyToDate = (dateKey) => {
+  const [year, month, day] = dateKey.split('-');
+  return new Date(year, month - 1, day);
+};
+
 export const formatDate = (date) => {
-  const [year, month, day] = date.split('-');
-  const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
+  const dateObj = timestampToDate(date);
+  if (!dateObj) return 'N/A';
+
   return dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -8,28 +20,85 @@ export const formatDate = (date) => {
   });
 };
 
-const formatShortDateObject = (date) => {
+export const getDeviceTimeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+};
+
+export const timestampToDate = (timestamp) => {
+  if (!timestamp) return null;
+  if (isDateKey(timestamp)) return dateKeyToDate(timestamp);
+  if (typeof timestamp.toDate === 'function') return timestamp.toDate();
+  if (timestamp.seconds != null || timestamp._seconds != null) {
+    return new Date((timestamp.seconds ?? timestamp._seconds) * 1000);
+  }
+  if (timestamp instanceof Date) return Number.isNaN(timestamp.getTime()) ? null : timestamp;
+
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+export const getDateKeyInTimeZone = (dateLike, timeZone = getDeviceTimeZone()) => {
+  if (isDateKey(dateLike)) return dateLike;
+
+  const date = timestampToDate(dateLike);
+  if (!date) return null;
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date);
+
+    const year = parts.find((part) => part.type === 'year')?.value;
+    const month = parts.find((part) => part.type === 'month')?.value;
+    const day = parts.find((part) => part.type === 'day')?.value;
+
+    if (year && month && day) return `${year}-${month}-${day}`;
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+const formatShortDateObject = (date, timeZone = getDeviceTimeZone()) => {
   const options = {
     month: 'short',
     day: 'numeric',
+    timeZone,
   };
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+  }).format(new Date());
+  const dateYear = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+  }).format(date);
 
-  if (date.getFullYear() !== currentYear) {
+  if (dateYear !== currentYear) {
     options.year = 'numeric';
   }
 
   return date.toLocaleDateString('en-US', options);
 };
 
-export const formatDateShort = (date) => {
-  const [year, month, day] = date.split('-');
-  const dateObj = new Date(year, month - 1, day); // Month is 0-indexed
-  return formatShortDateObject(dateObj);
+export const formatDateShort = (dateLike, timeZone = getDeviceTimeZone()) => {
+  const date = timestampToDate(dateLike);
+  if (!date) return 'N/A';
+
+  return formatShortDateObject(date, timeZone);
 };
 
 export const formatTimeStamp = (timestamp) => {
-  const date = new Date(timestamp.seconds * 1000);
+  const date = timestampToDate(timestamp);
+  if (!date) return 'N/A';
 
   const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
   const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
@@ -38,16 +107,12 @@ export const formatTimeStamp = (timestamp) => {
   const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
 
   return `${formattedDate} @ ${formattedTime}`;
-
-  // const milliseconds = timestamp.seconds * 1000 + Math.floor(timestamp.nanoseconds / 1000000);
-  // const date = new Date(milliseconds);
-  // const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  // return date.toLocaleDateString('en-US', options);
 };
 
 export const formatTimeStampNoTime = (timestamp) => {
   try {
-    const date = new Date(timestamp.seconds * 1000);
+    const date = timestampToDate(timestamp);
+    if (!date) return 'N/A';
     return formatShortDateObject(date);
   } catch {
     return 'N/A';
@@ -55,12 +120,9 @@ export const formatTimeStampNoTime = (timestamp) => {
 };
 
 export const generateFirestoreTimestamp = () => {
-  const date = new Date();
-  const seconds = Math.floor(date.getTime() / 1000);
-  const nanoseconds = date.getMilliseconds() * 1e6;
+  return firestore.Timestamp.now();
+};
 
-  return {
-    seconds: seconds,
-    nanoseconds: nanoseconds,
-  };
+export const generateFirestoreTimestampFromDate = (date) => {
+  return firestore.Timestamp.fromDate(date);
 };

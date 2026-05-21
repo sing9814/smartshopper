@@ -9,7 +9,12 @@ import { setUser } from '../redux/actions/userActions';
 import { setCategories, setCustomCategories } from '../redux/actions/userActions';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
-import { formatDate } from '../utils/date';
+import {
+  formatDate,
+  getDateKeyInTimeZone,
+  getDeviceTimeZone,
+  timestampToDate,
+} from '../utils/date';
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
@@ -26,48 +31,20 @@ import {
   mockUserData,
 } from '../utils/mockData';
 
-const getWearDate = (wear) => {
-  if (!wear) return null;
-  if (typeof wear.toDate === 'function') return wear.toDate();
-  if (wear.seconds || wear._seconds) return new Date((wear.seconds || wear._seconds) * 1000);
-  if (wear instanceof Date) return Number.isNaN(wear.getTime()) ? null : wear;
-
-  const date = new Date(wear);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const getDateKey = (dateLike) => {
-  if (typeof dateLike === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateLike)) {
-    return dateLike;
-  }
-
-  const date = dateLike instanceof Date ? dateLike : getWearDate(dateLike);
-  if (!date) return null;
-
-  const year = date.getUTCFullYear();
-  const month = `${date.getUTCMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getUTCDate()}`.padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-};
-
 const getLastWearDate = (item) => {
   const wears = item.wears || [];
-  return getWearDate(wears[wears.length - 1]);
+  return timestampToDate(wears[wears.length - 1]);
 };
 
-const itemWasWornOnDate = (item, dateKey) => {
+const itemWasWornOnDate = (item, dateKey, timeZone) => {
   return (item.wears || []).some((wear) => {
-    const wearDate = getWearDate(wear);
-    return wearDate ? getDateKey(wearDate) === dateKey : false;
+    return getDateKeyInTimeZone(wear, timeZone) === dateKey;
   });
 };
 
-const getWearNumbersForDate = (item, dateKey) => {
+const getWearNumbersForDate = (item, dateKey, timeZone) => {
   return (item.wears || []).reduce((wearNumbers, wear, index) => {
-    const wearDate = getWearDate(wear);
-
-    if (wearDate && getDateKey(wearDate) === dateKey) {
+    if (getDateKeyInTimeZone(wear, timeZone) === dateKey) {
       wearNumbers.push(index + 1);
     }
 
@@ -75,8 +52,8 @@ const getWearNumbersForDate = (item, dateKey) => {
   }, []);
 };
 
-const getWearNumberText = (item, dateKey) => {
-  const wearNumbers = getWearNumbersForDate(item, dateKey);
+const getWearNumberText = (item, dateKey, timeZone) => {
+  const wearNumbers = getWearNumbersForDate(item, dateKey, timeZone);
   const wears = item.wears || [];
   const latestWearNumber = wears.length;
 
@@ -99,6 +76,7 @@ const getWearNumberText = (item, dateKey) => {
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
 
   const calendarTheme = useMemo(
@@ -185,13 +163,10 @@ const HomeScreen = ({ navigation }) => {
 
     purchases.forEach((item) => {
       const wears = item.wears || [];
-      const lastWearDateKey = getDateKey(wears[wears.length - 1]);
+      const lastWearDateKey = getDateKeyInTimeZone(wears[wears.length - 1], timeZone);
 
       wears.forEach((wear) => {
-        const wearDate = getWearDate(wear);
-        if (!wearDate) return;
-
-        const dateKey = getDateKey(wearDate);
+        const dateKey = getDateKeyInTimeZone(wear, timeZone);
         if (!dateKey) return;
         const isLatestWear = dateKey === lastWearDateKey;
 
@@ -204,7 +179,7 @@ const HomeScreen = ({ navigation }) => {
     });
 
     return dates;
-  }, [colors.primary, colors.secondary, loading, purchases, selectedDate]);
+  }, [colors.primary, colors.secondary, loading, purchases, selectedDate, timeZone]);
 
   const formatDollar = (amount) => {
     return `$${amount.toLocaleString(undefined, {
@@ -227,9 +202,11 @@ const HomeScreen = ({ navigation }) => {
 
   const totalRegularPrice = useMemo(() => {
     return purchases.reduce((total, purchase) => {
-      const purchaseDate = new Date(purchase.datePurchased);
+      const purchaseDate = timestampToDate(purchase.datePurchased);
+      if (!purchaseDate) return total;
+
       const purchaseYear = purchaseDate.getFullYear();
-      const purchaseMonth = purchaseDate.getUTCMonth() + 1;
+      const purchaseMonth = purchaseDate.getMonth() + 1;
 
       if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
         return total + parseFloat(purchase.paidPrice || purchase.regularPrice);
@@ -365,12 +342,14 @@ const HomeScreen = ({ navigation }) => {
             <PurchaseList
               purchases={
                 selectedDate
-                  ? purchases.filter((product) => itemWasWornOnDate(product, selectedDate))
+                  ? purchases.filter((product) =>
+                      itemWasWornOnDate(product, selectedDate, timeZone)
+                    )
                   : []
               }
               overlay
               wornDate={selectedDate}
-              getOverlayText={(item) => getWearNumberText(item, selectedDate)}
+              getOverlayText={(item) => getWearNumberText(item, selectedDate, timeZone)}
               emptyText="Nothing worn on this day"
               navigation={navigation}
               onItemLongPress={() => {}}

@@ -23,7 +23,11 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import uuid from 'react-native-uuid';
-import { generateFirestoreTimestamp } from '../utils/date';
+import {
+  generateFirestoreTimestamp,
+  generateFirestoreTimestampFromDate,
+  timestampToDate,
+} from '../utils/date';
 import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
 import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
@@ -75,7 +79,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     if (purchase) {
       setItemName(purchase.name);
       setCategory(purchase.category);
-      setSelectedDate(new Date(purchase.datePurchased));
+      setSelectedDate(timestampToDate(purchase.datePurchased) || new Date());
       setRegularPrice(
         purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
       );
@@ -170,7 +174,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         edited: generateFirestoreTimestamp(),
         regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
         paidPrice: Math.round(parseFloat(paidPrice) * 100),
-        datePurchased: selectedDate.toISOString().split('T')[0],
+        datePurchased: generateFirestoreTimestampFromDate(selectedDate),
         dateCreated: purchase.dateCreated,
       };
       await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
@@ -198,7 +202,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         wears: [],
         regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
         paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
-        datePurchased: selectedDate.toISOString().split('T')[0],
+        datePurchased: generateFirestoreTimestampFromDate(selectedDate),
         dateCreated: generateFirestoreTimestamp(),
       };
       await userRef.collection('Purchases').doc(id).set(newPurchase);
