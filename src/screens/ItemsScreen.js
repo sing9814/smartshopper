@@ -14,6 +14,7 @@ import CustomButton from '../components/button';
 import { addItemsToCollections } from '../utils/firebase';
 import { setCollections } from '../redux/actions/purchaseActions';
 import SearchBar from '../components/searchBar';
+import { timestampToDate } from '../utils/date';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
@@ -41,11 +42,11 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const getLastWearTime = (purchase) => {
     const lastWear = purchase.wears?.[purchase.wears.length - 1];
+    return timestampToDate(lastWear)?.getTime() || 0;
+  };
 
-    if (!lastWear) return 0;
-    if (lastWear.seconds) return lastWear.seconds * 1000;
-
-    return new Date(lastWear).getTime() || 0;
+  const getDateCreatedTime = (purchase) => {
+    return timestampToDate(purchase.dateCreated)?.getTime() || 0;
   };
 
   const showBanner = (message, type = 'error') => {
@@ -69,6 +70,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       } else if (sortField === 'price') {
         aValue = a.paidPrice ?? a.regularPrice ?? 0;
         bValue = b.paidPrice ?? b.regularPrice ?? 0;
+      } else if (sortField === 'dateAdded') {
+        aValue = getDateCreatedTime(a);
+        bValue = getDateCreatedTime(b);
       }
 
       return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
@@ -76,6 +80,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const sortOptions = [
     { label: 'Last worn', value: 'lastWorn' },
+    { label: 'Date added', value: 'dateAdded' },
     { label: 'Wear count', value: 'wears' },
     { label: 'Price', value: 'price' },
   ];
@@ -279,7 +284,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         visible={sortSheetVisible}
         onClose={() => setSortSheetVisible(false)}
         title="Sort by"
-        height={250}
+        height={300}
       >
         {sortOptions.map((option, index) => {
           const isActive = sortField === option.value;

@@ -60,6 +60,10 @@ const PurchaseList = ({
     return `Last worn ${formatDateShort(lastWear)}`;
   };
 
+  const isMostRecentOverlay = (item) => {
+    return overlay && getLastWornText(item).toLowerCase().includes('most recent');
+  };
+
   const getCostPerWearText = (item) => {
     const wearCount = item.wears?.length || 0;
     if (wearCount === 0) return 'No CPW yet';
@@ -141,7 +145,10 @@ const PurchaseList = ({
             </View>
           )}
           <View style={styles.row}>
-            <Text numberOfLines={1} style={styles.lastWorn}>
+            <Text
+              numberOfLines={1}
+              style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
+            >
               {getLastWornText(item)}
             </Text>
             <View style={styles.group}>
@@ -209,6 +216,10 @@ const createStyles = (colors) =>
       color: colors.gray,
       flexShrink: 1,
       marginRight: 30,
+    },
+    mostRecentWear: {
+      color: colors.secondary,
+      fontWeight: '500',
     },
     group: {
       alignItems: 'center',

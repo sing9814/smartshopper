@@ -86,14 +86,14 @@ const HomeScreen = ({ navigation }) => {
       textSectionTitleColor: colors.textSectionTitleColor,
       selectedDayBackgroundColor: colors.lightGrey,
       selectedDayTextColor: colors.white,
-      todayTextColor: 'white',
+      todayTextColor: colors.dayTextColor,
       dayTextColor: colors.dayTextColor,
       textDisabledColor: colors.textDisabledColor,
       arrowColor: colors.black,
-      todayBackgroundColor: colors.primary,
+      todayBackgroundColor: colors.primaryLight,
       todayDotColor: colors.white,
       dotColor: colors.primary,
-      textMonthFontSize: 17,
+      textMonthFontSize: 16,
       textMonthFontWeight: 'bold',
       monthTextColor: colors.black,
       'stylesheet.calendar.main': {
@@ -155,11 +155,6 @@ const HomeScreen = ({ navigation }) => {
     if (loading) return {};
 
     const dates = {};
-    if (selectedDate) {
-      dates[selectedDate] = {
-        selected: true,
-      };
-    }
 
     purchases.forEach((item) => {
       const wears = item.wears || [];
@@ -179,7 +174,7 @@ const HomeScreen = ({ navigation }) => {
     });
 
     return dates;
-  }, [colors.primary, colors.secondary, loading, purchases, selectedDate, timeZone]);
+  }, [colors.primary, colors.secondary, loading, purchases, timeZone]);
 
   const formatDollar = (amount) => {
     return `$${amount.toLocaleString(undefined, {
@@ -334,6 +329,7 @@ const HomeScreen = ({ navigation }) => {
         visible={open}
         onClose={() => {
           setOpen(false);
+          setSelectedDate(null);
         }}
         height={'50%'}
       >
