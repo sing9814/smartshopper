@@ -25,6 +25,8 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 
+const DEFAULT_WEAR_GOAL = 10;
+
 const sortWearsByDate = (wears) => {
   return [...wears].sort((a, b) => {
     const aTime = timestampToDate(a)?.getTime() || 0;
@@ -134,7 +136,7 @@ const DetailsScreen = ({ navigation }) => {
   const lastWear = currentPurchase.wears?.[wearCount - 1];
   const categoryName =
     currentPurchase.category?.category ||
-    (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'Other');
+    (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'N/A');
   const categoryLabel = currentPurchase.category?.category
     ? displayCategoryName(currentPurchase.category)
     : categoryName;
@@ -142,6 +144,7 @@ const DetailsScreen = ({ navigation }) => {
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
     wearCount > 0 ? formatCostPerWear(currentPurchase.paidPrice / wearCount) : 'N/A';
+  const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
 
   return (
     <View style={styles.container}>
@@ -218,7 +221,9 @@ const DetailsScreen = ({ navigation }) => {
             <View style={styles.rowMeta}>
               <Text style={styles.titleLabel}>Wear count</Text>
               <View style={styles.wearCountRow}>
-                <Text style={styles.valueText}>{wearCount} wears</Text>
+                <Text style={styles.valueText}>
+                  {wearCount} / {wearGoal} wears
+                </Text>
                 <TouchableOpacity
                   onPress={onPressAddWear}
                   disabled={isAddingWear}

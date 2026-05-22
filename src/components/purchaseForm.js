@@ -38,6 +38,8 @@ import { useNavigation } from '@react-navigation/native';
 
 dayjs.extend(utc);
 
+const DEFAULT_WEAR_GOAL = 10;
+
 const PurchaseForm = ({ purchase, name, date, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -50,11 +52,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
   const [itemName, setItemName] = useState('');
   const [category, setCategory] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const formattedDate = dayjs.utc(selectedDate).format('ddd, MMM D');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const formattedDate = selectedDate ? dayjs.utc(selectedDate).format('ddd, MMM D') : null;
   const [open, setOpen] = useState(false);
   const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
+  const [wearGoal, setWearGoal] = useState('');
   const [note, setNote] = useState(null);
   const [disabled, setDisabled] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
@@ -66,7 +69,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [banner, setBanner] = useState(null);
   const selectedCategoryText = category
     ? `${category.category}${category.subCategory ? ` - ${category.subCategory.name}` : ''}`
-    : 'Select category';
+    : 'Category';
 
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
@@ -79,11 +82,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     if (purchase) {
       setItemName(purchase.name);
       setCategory(purchase.category);
-      setSelectedDate(timestampToDate(purchase.datePurchased) || new Date());
+      setSelectedDate(timestampToDate(purchase.datePurchased));
       setRegularPrice(
         purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
       );
       setPaidPrice(convertCentsToDollars(purchase.paidPrice));
+      setWearGoal(purchase.wearGoal != null ? String(purchase.wearGoal) : '');
       setNote(purchase.note);
       setDisabled(purchase.paidPrice ? true : false);
     }
@@ -110,11 +114,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         category !== null ||
         regularPrice !== null ||
         paidPrice !== null ||
+        wearGoal !== '' ||
         note !== null
       );
     };
     setShowClearButton(checkFields());
-  }, [itemName, category, regularPrice, paidPrice, note]);
+  }, [itemName, category, regularPrice, paidPrice, wearGoal, note]);
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
@@ -127,9 +132,11 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
   const validatePrice = (price) => /^\d+(\.\d{1,2})?$/.test(price);
   const validateName = (name) => /^(?=.*[A-Za-z0-9]).+$/.test(name);
+  const validateWearGoal = (goal) => /^\d+$/.test(goal) && parseInt(goal, 10) > 0;
+  const savedWearGoal = wearGoal ? parseInt(wearGoal, 10) : DEFAULT_WEAR_GOAL;
 
   const validateFields = () => {
-    if (!validateName(itemName) || paidPrice === '' || category?.category == null) {
+    if (!validateName(itemName) || paidPrice === '') {
       showBanner('Please fill in all missing fields');
       return false;
     }
@@ -139,6 +146,10 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     }
     if (paidPrice && regularPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
       showBanner('Paid price must be less than regular price');
+      return false;
+    }
+    if (wearGoal && !validateWearGoal(wearGoal)) {
+      showBanner('Wear goal must be a whole number greater than 0');
       return false;
     }
     return true;
@@ -169,12 +180,13 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         key: purchase.key,
         name: itemName,
         wears: purchase.wears,
-        category: category,
+        category: category || null,
         note: note,
         edited: generateFirestoreTimestamp(),
         regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
         paidPrice: Math.round(parseFloat(paidPrice) * 100),
-        datePurchased: generateFirestoreTimestampFromDate(selectedDate),
+        wearGoal: savedWearGoal,
+        datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: purchase.dateCreated,
       };
       await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
@@ -197,12 +209,13 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       const newPurchase = {
         key: id,
         name: itemName,
-        category: category,
+        category: category || null,
         note: note,
         wears: [],
         regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
         paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
-        datePurchased: generateFirestoreTimestampFromDate(selectedDate),
+        wearGoal: savedWearGoal,
+        datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: generateFirestoreTimestamp(),
       };
       await userRef.collection('Purchases').doc(id).set(newPurchase);
@@ -239,7 +252,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     setNote(null);
     setRegularPrice(null);
     setPaidPrice(null);
-    setSelectedDate(new Date());
+    setWearGoal('');
+    setSelectedDate(null);
   };
 
   return (
@@ -265,49 +279,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Item details</Text>
               <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
-              <TouchableOpacity
-                style={styles.categorySelector}
-                onPress={() => setShowCategorySheet(true)}
-              >
-                <View style={styles.categoryContent}>
-                  <View style={styles.categoryIcon}>
-                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.categoryText, { color: category ? colors.black : colors.gray }]}
-                  >
-                    {selectedCategoryText}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.gray} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Purchase details</Text>
-              <View>
-                <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateBtn}>
-                  <View style={styles.dateContent}>
-                    <Ionicons name={'calendar'} size={20} color={colors.primary} />
-                    <Text style={styles.text}>{formattedDate}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={colors.gray} />
-                </TouchableOpacity>
-              </View>
-
-              <DatePicker
-                modal
-                open={open}
-                date={selectedDate}
-                onConfirm={(date) => {
-                  setOpen(false);
-                  setSelectedDate(date);
-                }}
-                onCancel={() => setOpen(false)}
-                mode={'date'}
-              />
-
               <CustomInput
                 placeholder="Price"
                 value={paidPrice}
@@ -336,16 +307,57 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                   }
                 />
               )}
+
+              <CustomInput
+                placeholder={`Wear goal (default ${DEFAULT_WEAR_GOAL})`}
+                value={wearGoal}
+                onChangeText={setWearGoal}
+                type="numeric"
+              />
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Notes</Text>
-              <CustomInput
-                placeholder="Add notes (optional)"
-                value={note}
-                onChangeText={setNote}
-                multiline
+              <Text style={styles.sectionTitle}>Other details (optional)</Text>
+              <TouchableOpacity
+                style={styles.categorySelector}
+                onPress={() => setShowCategorySheet(true)}
+              >
+                <View style={styles.categoryContent}>
+                  <View style={styles.categoryIcon}>
+                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                  </View>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.categoryText, { color: category ? colors.black : colors.gray }]}
+                  >
+                    {selectedCategoryText}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+              </TouchableOpacity>
+              <View>
+                <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateBtn}>
+                  <View style={styles.dateContent}>
+                    <Ionicons name={'calendar'} size={20} color={colors.primary} />
+                    <Text style={[styles.text, !selectedDate && styles.placeholderText]}>
+                      {formattedDate || 'Date purchased'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+                </TouchableOpacity>
+              </View>
+              <DatePicker
+                modal
+                open={open}
+                date={selectedDate || new Date()}
+                onConfirm={(date) => {
+                  setOpen(false);
+                  setSelectedDate(date);
+                }}
+                onCancel={() => setOpen(false)}
+                mode={'date'}
               />
+              <CustomInput placeholder="Notes" value={note} onChangeText={setNote} multiline />
             </View>
           </View>
         </ScrollView>
@@ -494,6 +506,9 @@ const createStyles = (colors) =>
     text: {
       color: colors.black,
       fontSize: 15,
+    },
+    placeholderText: {
+      color: colors.gray,
     },
   });
 

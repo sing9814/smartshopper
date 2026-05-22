@@ -80,7 +80,7 @@ const PurchaseList = ({
   const getCategoryText = (item) => {
     if (item.category?.category) return item.category.category;
     if (typeof item.category === 'string') return item.category;
-    return 'Other';
+    return '';
   };
 
   const renderPlaceholder = () => (
@@ -94,6 +94,7 @@ const PurchaseList = ({
 
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.key);
+    const categoryText = getCategoryText(item);
     const wearLevel = getWearLevelData(item.wears.length);
     const wearLevelColors = colors.wearLevels?.[wearLevel.code] || {
       bg: colors.primaryLight,
@@ -136,10 +137,14 @@ const PurchaseList = ({
                 >
                   {wearLevel.emoji} {wearLevel.label}
                 </Text>
-                <Text style={styles.metaDot}>{'\u2022'}</Text>
-                <Text style={styles.categoryText} numberOfLines={1}>
-                  {getCategoryText(item)}
-                </Text>
+                {categoryText ? (
+                  <>
+                    <Text style={styles.metaDot}>{'\u2022'}</Text>
+                    <Text style={styles.categoryText} numberOfLines={1}>
+                      {categoryText}
+                    </Text>
+                  </>
+                ) : null}
               </View>
               <Text style={styles.wears}>{item.wears.length} wears</Text>
             </View>
