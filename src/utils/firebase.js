@@ -131,6 +131,33 @@ const convertTimestampArray = (values = []) => values.map(convertToFirestoreTime
 
 const hasLegacyTimestampArray = (values) => Array.isArray(values) && values.some(isLegacyTimestamp);
 
+const getTimestampMilliseconds = (value) => {
+  if (!value) return 0;
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value === 'number') return value > 1000000000000 ? value : value * 1000;
+
+  const seconds = value.seconds ?? value._seconds;
+  const nanoseconds = value.nanoseconds ?? value._nanoseconds ?? 0;
+
+  if (typeof seconds === 'number') return seconds * 1000 + Math.floor(nanoseconds / 1000000);
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+};
+
+const sortTimestampArray = (values = []) => {
+  return [...values].sort((a, b) => getTimestampMilliseconds(a) - getTimestampMilliseconds(b));
+};
+
+const hasUnsortedTimestampArray = (values) => {
+  if (!Array.isArray(values)) return false;
+
+  return values.some((value, index) => {
+    if (index === 0) return false;
+    return getTimestampMilliseconds(value) < getTimestampMilliseconds(values[index - 1]);
+  });
+};
+
 const hasLegacyTimestampData = (userData, purchaseData = [], collectionData = []) => {
   if (isLegacyTimestamp(userData?.upgradedAt) || isLegacyTimestamp(userData?.registrationDate)) {
     return true;
@@ -142,7 +169,8 @@ const hasLegacyTimestampData = (userData, purchaseData = [], collectionData = []
         isLegacyTimestamp(purchase.dateCreated) ||
         isLegacyTimestamp(purchase.edited) ||
         isLegacyDatePurchased(purchase.datePurchased) ||
-        hasLegacyTimestampArray(purchase.wears)
+        hasLegacyTimestampArray(purchase.wears) ||
+        hasUnsortedTimestampArray(purchase.wears)
     ) || collectionData.some((collection) => isLegacyTimestamp(collection.dateCreated))
   );
 };
@@ -185,8 +213,8 @@ export const migrateCurrentUserTimestamps = async () => {
     if (isLegacyDatePurchased(purchase.datePurchased)) {
       updates.datePurchased = convertDatePurchasedToFirestoreTimestamp(purchase.datePurchased);
     }
-    if (hasLegacyTimestampArray(purchase.wears)) {
-      updates.wears = convertTimestampArray(purchase.wears);
+    if (hasLegacyTimestampArray(purchase.wears) || hasUnsortedTimestampArray(purchase.wears)) {
+      updates.wears = sortTimestampArray(convertTimestampArray(purchase.wears));
     }
 
     if (Object.keys(updates).length > 0) {

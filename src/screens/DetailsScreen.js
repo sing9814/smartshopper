@@ -3,24 +3,42 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useTheme } from '../theme/themeContext';
 import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
-import { formatDate, formatTimeStamp, formatTimeStampNoTime } from '../utils/date';
+import {
+  formatDate,
+  formatTimeStamp,
+  formatTimeStampNoTime,
+  generateFirestoreTimestampFromDate,
+  getDateKeyInTimeZone,
+  getDeviceTimeZone,
+  timestampToDate,
+} from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
-import { generateFirestoreTimestamp } from '../utils/date';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import { convertCentsToDollars } from '../utils/price';
 import { getWearLevelData } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DatePicker from 'react-native-date-picker';
+
+const sortWearsByDate = (wears) => {
+  return [...wears].sort((a, b) => {
+    const aTime = timestampToDate(a)?.getTime() || 0;
+    const bTime = timestampToDate(b)?.getTime() || 0;
+
+    return aTime - bTime;
+  });
+};
 
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets);
+  const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
@@ -29,10 +47,19 @@ const DetailsScreen = ({ navigation }) => {
   const currentPurchase = useSelector((state) => state.purchase.currentPurchase);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [banner, setBanner] = useState(null);
   const [isAddingWear, setIsAddingWear] = useState(false);
+  const [isWearDatePickerOpen, setIsWearDatePickerOpen] = useState(false);
+  const [selectedWearDate, setSelectedWearDate] = useState(new Date());
 
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+
+  const showBanner = (message, type = 'error') => {
+    setBanner(null);
+    setTimeout(() => {
+      setBanner({ message, type });
+    }, 10);
+  };
 
   const handleDelete = () => {
     deleteDoc('Purchases', currentPurchase.key);
@@ -42,13 +69,29 @@ const DetailsScreen = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const onPressAddWear = async () => {
+  const onPressAddWear = () => {
+    if (isAddingWear) return;
+    setSelectedWearDate(new Date());
+    setIsWearDatePickerOpen(true);
+  };
+
+  const addWearForDate = async (wearDate) => {
     if (isAddingWear) return;
 
-    setIsAddingWear(true);
-    const date = generateFirestoreTimestamp();
+    const selectedDateKey = getDateKeyInTimeZone(wearDate, timeZone);
+    const wasAlreadyWornOnDate = (currentPurchase.wears || []).some(
+      (wear) => getDateKeyInTimeZone(wear, timeZone) === selectedDateKey
+    );
 
-    const newWears = [...(currentPurchase.wears || []), date];
+    if (wasAlreadyWornOnDate) {
+      showBanner('This item already has a wear logged for that day');
+      return;
+    }
+
+    setIsAddingWear(true);
+    const date = generateFirestoreTimestampFromDate(wearDate);
+
+    const newWears = sortWearsByDate([...(currentPurchase.wears || []), date]);
 
     const updatedPurchases = purchases.map((purchase) =>
       purchase.key === currentPurchase.key ? { ...purchase, wears: newWears } : purchase
@@ -58,7 +101,7 @@ const DetailsScreen = ({ navigation }) => {
 
     try {
       await updatePurchaseWears(currentPurchase.key, newWears);
-      setShowConfirmation(true);
+      showBanner('Wear added successfully!', 'success');
     } finally {
       setIsAddingWear(false);
     }
@@ -102,12 +145,8 @@ const DetailsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {showConfirmation && (
-        <Banner
-          message={`Wear added successfully!`}
-          type={'success'}
-          onFinish={() => setShowConfirmation(false)}
-        />
+      {banner && (
+        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
       )}
 
       <View style={styles.topbar}>
@@ -226,6 +265,22 @@ const DetailsScreen = ({ navigation }) => {
         visible={modalVisible}
         onConfirm={handleDelete}
         onCancel={() => setModalVisible(false)}
+      />
+
+      <DatePicker
+        modal
+        open={isWearDatePickerOpen}
+        date={selectedWearDate}
+        maximumDate={new Date()}
+        mode="date"
+        title="When did you wear it?"
+        confirmText="Add wear"
+        onConfirm={(date) => {
+          setIsWearDatePickerOpen(false);
+          setSelectedWearDate(date);
+          addWearForDate(date);
+        }}
+        onCancel={() => setIsWearDatePickerOpen(false)}
       />
 
       <DetailsSheet
