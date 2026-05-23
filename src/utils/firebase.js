@@ -314,31 +314,28 @@ export const fetchMergedCategories = async (defaultCategories) => {
   }));
 
   for (const { id, category, subCategory } of customData) {
-    const catMatch = merged.find((c) => c.name === category);
+    const name = subCategory || category;
+    const exists = merged.some((c) => c.name === name);
 
-    if (catMatch) {
-      const exists = catMatch.subCategories.some((s) => s.name === subCategory);
-      if (!exists) {
-        catMatch.subCategories.push({ id, name: subCategory, custom: true });
-      }
-    } else {
+    if (!exists) {
       merged.push({
-        name: category,
-        subCategories: [{ id, name: subCategory, custom: true }],
+        id,
+        name,
+        custom: true,
+        subCategories: [],
       });
     }
   }
 
   const flattenedCustom = customData.map(({ id, category, subCategory }) => ({
     id,
-    category,
-    name: subCategory,
+    name: subCategory || category,
   }));
 
   return { merged, customCategories: flattenedCustom };
 };
 
-export const saveCustomCategory = async ({ id, category, subCategory }) => {
+export const saveCustomCategory = async ({ id, category }) => {
   try {
     const userID = auth().currentUser.uid;
 
@@ -347,7 +344,7 @@ export const saveCustomCategory = async ({ id, category, subCategory }) => {
       .doc(userID)
       .collection('customCategories')
       .doc(id)
-      .set({ category, subCategory });
+      .set({ category });
 
     return true;
   } catch (error) {
@@ -356,7 +353,7 @@ export const saveCustomCategory = async ({ id, category, subCategory }) => {
   }
 };
 
-export const updateCustomCategory = async ({ id, category, subCategory }) => {
+export const updateCustomCategory = async ({ id, category }) => {
   const userID = auth().currentUser.uid;
   try {
     await firestore()
@@ -366,7 +363,7 @@ export const updateCustomCategory = async ({ id, category, subCategory }) => {
       .doc(id)
       .update({
         category,
-        subCategory,
+        subCategory: firestore.FieldValue.delete(),
       });
 
     return true;

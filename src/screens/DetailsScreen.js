@@ -109,17 +109,6 @@ const DetailsScreen = ({ navigation }) => {
     }
   };
 
-  const displayCategoryName = (purchase) => {
-    if (purchase.subCategory?.name) {
-      const akaIndex = purchase.subCategory.name.toLowerCase().indexOf('aka');
-      if (akaIndex !== -1) {
-        return `${purchase.category} - ${purchase.subCategory.name.substring(0, akaIndex)}`;
-      }
-      return `${purchase.category} - ${purchase.subCategory.name}`;
-    }
-    return purchase.category;
-  };
-
   const formatCostPerWear = (cents) => {
     if (cents == null) return 'N/A';
     const dollars = cents / 100;
@@ -137,9 +126,7 @@ const DetailsScreen = ({ navigation }) => {
   const categoryName =
     currentPurchase.category?.category ||
     (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'N/A');
-  const categoryLabel = currentPurchase.category?.category
-    ? displayCategoryName(currentPurchase.category)
-    : categoryName;
+  const categoryLabel = categoryName;
   const paidPrice = currentPurchase.paidPrice ?? 0;
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =

@@ -35,7 +35,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
 
   const renderItem = ({ item }) => (
     <View style={styles.categoryRow}>
-      <View style={[styles.pill, { backgroundColor: colors[item.category.split(' ')[0]] }]}>
+      <View style={[styles.pill, { backgroundColor: colors.primary }]}>
         <Text style={styles.pillText}>{item.name}</Text>
       </View>
 
@@ -88,7 +88,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
         items={categories}
         initialSubcategoryName={editingCategory?.name || ''}
         editingCategory={editingCategory}
-        onSave={(wasSaved) => {
+        onSave={(_, wasSaved) => {
           if (wasSaved) {
             showBanner('Category updated!', 'success');
           } else {
@@ -117,7 +117,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
               ...cat,
               subCategories: cat.subCategories.filter((sub) => sub.id !== pendingDelete.id),
             }));
-            dispatch(setCategories(updatedCategories));
+            dispatch(setCategories(updatedCategories.filter((cat) => cat.id !== pendingDelete.id)));
 
             showBanner('Category deleted!', 'success');
           } catch (err) {

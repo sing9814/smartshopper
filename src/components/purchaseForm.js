@@ -67,9 +67,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
 
   const [banner, setBanner] = useState(null);
-  const selectedCategoryText = category
-    ? `${category.category}${category.subCategory ? ` - ${category.subCategory.name}` : ''}`
-    : 'Category';
+  const selectedCategoryText = category?.category || category || 'Category';
 
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
@@ -158,12 +156,13 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const mergeCategory = (categories, newItem) => {
     const updated = [...categories];
     const match = updated.find((c) => c.name === newItem.category);
-    if (match) {
-      if (!match.subCategories.includes(newItem.subCategory)) {
-        match.subCategories.push(newItem.subCategory);
-      }
-    } else {
-      updated.push({ name: newItem.category, subCategories: [newItem.subCategory] });
+    if (!match) {
+      updated.push({
+        id: newItem.id,
+        name: newItem.category,
+        custom: true,
+        subCategories: [],
+      });
     }
     return updated;
   };
@@ -430,7 +429,7 @@ const createStyles = (colors) =>
     sectionTitle: {
       color: colors.gray,
       fontSize: 12,
-      fontWeight: '700',
+      fontWeight: '500',
       marginBottom: 2,
       textTransform: 'uppercase',
     },

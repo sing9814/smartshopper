@@ -269,7 +269,7 @@ const ProfileScreen = ({ navigation }) => {
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
-                <Text style={styles.title}>Manage categories</Text>
+                <Text style={styles.title}>Custom categories</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray} />
             </TouchableOpacity>
@@ -379,7 +379,10 @@ const createStyles = (colors) =>
     },
     sectionTitle: {
       color: colors.gray,
+      fontSize: 12,
+      fontWeight: '500',
       marginBottom: 2,
+      textTransform: 'uppercase',
     },
     sectionGroup: {
       backgroundColor: colors.white,

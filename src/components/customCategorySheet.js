@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
+import { Text, TextInput, StyleSheet, View } from 'react-native';
 import BottomSheet from './bottomSheet';
 import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
@@ -11,7 +11,6 @@ import uuid from 'react-native-uuid';
 const CustomCategorySheet = ({
   visible,
   onClose,
-  items,
   initialSubcategoryName = '',
   onSave,
   editingCategory = null,
@@ -24,28 +23,24 @@ const CustomCategorySheet = ({
   const categories = useSelector((state) => state.user.categories);
 
   const [customName, setCustomName] = useState(initialSubcategoryName);
-  const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
   useEffect(() => {
     if (visible) {
       if (editingCategory) {
         setCustomName(editingCategory.name);
-        setSelectedCategoryName(editingCategory.category);
       } else {
         setCustomName(initialSubcategoryName);
-        setSelectedCategoryName('');
       }
     }
   }, [visible, initialSubcategoryName, editingCategory]);
 
   const handleSave = async () => {
-    if (!customName || !selectedCategoryName) return;
+    if (!customName) return;
 
     const id = editingCategory?.id || uuid.v4();
     const payload = {
       id,
-      category: selectedCategoryName,
-      subCategory: customName,
+      category: customName,
     };
 
     const wasSaved = editingCategory
@@ -55,38 +50,38 @@ const CustomCategorySheet = ({
     if (!wasSaved) return;
 
     const updatedCustoms = editingCategory
-      ? customCategories.map((c) =>
-          c.id === id ? { ...c, name: customName, category: selectedCategoryName } : c
-        )
-      : [...customCategories, { id, name: customName, category: selectedCategoryName }];
+      ? customCategories.map((c) => (c.id === id ? { ...c, name: customName } : c))
+      : [...customCategories, { id, name: customName }];
     dispatch(setCustomCategories(updatedCustoms));
 
-    const updatedCategories = categories.map((cat) => ({
-      ...cat,
-      subCategories: editingCategory
-        ? cat.subCategories.filter((sub) => sub.id !== editingCategory.id)
-        : cat.subCategories,
-    }));
-
-    const targetGroup = updatedCategories.find((cat) => cat.name === selectedCategoryName);
-    if (targetGroup) {
-      targetGroup.subCategories.push({ id, name: customName, custom: true });
-    }
+    const updatedCategories = editingCategory
+      ? categories
+          .map((cat) => ({
+            ...cat,
+            name: cat.id === id ? customName : cat.name,
+            subCategories: (cat.subCategories || []).filter((sub) => sub.id !== id),
+          }))
+          .concat(
+            categories.some((cat) => cat.id === id)
+              ? []
+              : [{ id, name: customName, custom: true, subCategories: [] }]
+          )
+      : [...categories, { id, name: customName, custom: true, subCategories: [] }];
 
     dispatch(setCategories(updatedCategories));
 
     onSave?.(
       {
         id,
-        category: selectedCategoryName,
-        subCategory: { id, name: customName, custom: true },
+        category: customName,
+        subCategory: null,
+        custom: true,
       },
       wasSaved
     );
 
     onClose();
     setCustomName('');
-    setSelectedCategoryName('');
   };
 
   return (
@@ -94,68 +89,41 @@ const CustomCategorySheet = ({
       title={editingCategory ? 'Edit Custom Category' : 'Create Custom Category'}
       visible={visible}
       onClose={onClose}
-      height={editingCategory ? 400 : 450}
+      height={300}
     >
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.sheetInput}
-        placeholder="Enter category name"
-        value={customName}
-        onChangeText={setCustomName}
-      />
+      <View style={styles.content}>
+        <View>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={styles.sheetInput}
+            placeholder="Enter category name"
+            value={customName}
+            onChangeText={setCustomName}
+          />
+        </View>
 
-      <View style={styles.selectedContainer}>
-        <Text style={styles.label}>Group </Text>
-        <Text style={{ color: colors.gray }}>(Selected: {selectedCategoryName || 'None'})</Text>
+        <CustomButton
+          title={editingCategory ? 'Save changes' : 'Add category'}
+          onPress={handleSave}
+        />
       </View>
-
-      <View style={styles.categoryButtonGroup}>
-        {items.map((item) => {
-          const isSelected = selectedCategoryName === item.name;
-          const baseName = item.name.split(' ')[0];
-          const buttonColor = colors[baseName] || colors.lightGrey;
-
-          return (
-            <Pressable
-              key={item.name}
-              onPress={() => setSelectedCategoryName(item.name)}
-              style={[
-                styles.categoryButton,
-                {
-                  backgroundColor: isSelected ? buttonColor : colors.lightestGrey,
-                  borderColor: isSelected ? buttonColor : colors.lightGrey,
-                },
-              ]}
-            >
-              <Text style={{ color: isSelected ? colors.white : colors.black }}>{item.name}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <CustomButton
-        title={editingCategory ? 'Save Changes' : 'Save New Category'}
-        buttonStyle={{ marginTop: 20 }}
-        onPress={handleSave}
-      />
     </BottomSheet>
   );
 };
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    selectedContainer: {
+    content: {
+      flex: 1,
       width: '100%',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      marginBottom: 6,
+      justifyContent: 'space-between',
+      paddingBottom: 120,
     },
     label: {
-      color: colors.black,
-      fontSize: 14,
+      color: colors.gray,
       fontWeight: '500',
       alignSelf: 'flex-start',
+      marginBottom: 2,
     },
     sheetInput: {
       width: '100%',
@@ -166,20 +134,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 12,
       color: colors.black,
       fontSize: 14,
-      marginBottom: 10,
-    },
-    categoryButtonGroup: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 10,
-      marginTop: 6,
-      justifyContent: 'flex-start',
-    },
-    categoryButton: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      borderWidth: 1,
     },
   });
 

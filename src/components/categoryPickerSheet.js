@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/themeContext';
 import CustomButton from './button';
@@ -20,26 +19,30 @@ const CategoryPickerSheet = ({
   const tabBarHeight = useBottomTabBarHeight();
 
   const [search, setSearch] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState(new Set());
 
   const getFilteredItems = () => {
-    return items
-      .filter((category) => {
-        const nameMatches = category.name.toLowerCase().includes(search.toLowerCase());
-        const subMatches = category.subCategories.some((sub) =>
-          sub.name.toLowerCase().includes(search.toLowerCase())
-        );
-        return nameMatches || subMatches;
-      })
-      .flatMap((category) => {
-        const categoryItems = [{ category: category.name, subCategory: null }];
-        if (expandedCategories.has(category.name) || search) {
-          category.subCategories
-            .filter((sub) => sub.name.toLowerCase().includes(search.toLowerCase()))
-            .forEach((subCategory) => categoryItems.push({ category: category.name, subCategory }));
-        }
-        return categoryItems;
-      });
+    const normalizedSearch = search.toLowerCase();
+    const topLevelItems = items
+      .map((category) => ({
+        category: category.name || category.category,
+        subCategory: null,
+        custom: category.custom || false,
+      }))
+      .filter((item) => item.category);
+    const customItems = items.flatMap((category) =>
+      (category.subCategories || [])
+        .filter((subCategory) => subCategory.custom)
+        .map((subCategory) => ({
+          category: subCategory.name,
+          subCategory: null,
+          custom: true,
+        }))
+        .filter((item) => item.category)
+    );
+
+    return [...topLevelItems, ...customItems].filter((item) =>
+      item.category.toLowerCase().includes(normalizedSearch)
+    );
   };
 
   const filteredItems = getFilteredItems();
@@ -51,48 +54,22 @@ const CategoryPickerSheet = ({
     setSearch('');
   };
 
-  const handleToggleCategory = (category) => {
-    setExpandedCategories((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(category) ? newSet.delete(category) : newSet.add(category);
-      return newSet;
-    });
-  };
-
   const renderItem = useCallback(
     ({ item, index }) => {
-      const isCategory = !item.subCategory;
-      const displayText = item.subCategory?.name || item.category;
-      const isExpanded = expandedCategories.has(item.category);
-
       return (
         <TouchableOpacity
-          key={`${item.category}-${item.subCategory?.name || 'header'}-${index}`}
-          style={[
-            styles.item,
-            isCategory && styles.categoryItem,
-            item.subCategory && styles.subCategoryItem,
-            index === filteredItems.length - 1 && styles.lastItem,
-          ]}
-          onPress={() => (isCategory ? handleToggleCategory(item.category) : handleSelect(item))}
+          key={`${item.category}-${index}`}
+          style={[styles.item, index === filteredItems.length - 1 && styles.lastItem]}
+          onPress={() => handleSelect(item)}
         >
           <View style={styles.customLabelContainer}>
-            <Text style={[styles.itemText, isCategory && styles.categoryText]}>{displayText}</Text>
-            {item.subCategory?.custom && <Text style={styles.customTag}>(custom)</Text>}
+            <Text style={styles.itemText}>{item.category}</Text>
+            {item.custom && <Text style={styles.customTag}>(custom)</Text>}
           </View>
-
-          {isCategory && !search && (
-            <Ionicons
-              name="chevron-down"
-              size={16}
-              style={isExpanded ? styles.arrowUp : styles.arrowDown}
-              color={colors.black}
-            />
-          )}
         </TouchableOpacity>
       );
     },
-    [expandedCategories, filteredItems, search]
+    [filteredItems]
   );
 
   return (
@@ -124,7 +101,7 @@ const CategoryPickerSheet = ({
           contentContainerStyle={{ paddingBottom: tabBarHeight + 40 }}
           data={filteredItems}
           renderItem={renderItem}
-          keyExtractor={(item, index) => `${item.category}-${item.subCategory?.name}-${index}`}
+          keyExtractor={(item, index) => `${item.category}-${index}`}
           keyboardShouldPersistTaps="handled"
         />
       )}
@@ -171,12 +148,6 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    categoryItem: {
-      backgroundColor: colors.white,
-    },
-    subCategoryItem: {
-      paddingLeft: 26,
-    },
     lastItem: {
       borderBottomWidth: 0,
     },
@@ -188,15 +159,6 @@ const createStyles = (colors) =>
     itemText: {
       fontSize: 15,
       color: colors.black,
-    },
-    categoryText: {
-      fontWeight: '600',
-    },
-    arrowDown: {
-      transform: [{ rotate: '0deg' }],
-    },
-    arrowUp: {
-      transform: [{ rotate: '180deg' }],
     },
     customTag: {
       color: colors.gray,

@@ -111,7 +111,6 @@ const createStyles = (colors) =>
       lineHeight: 22,
       width: 20,
       marginRight: 10,
-      marginLeft: 5,
       textAlign: 'center',
     },
     disabled: {
