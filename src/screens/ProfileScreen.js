@@ -235,6 +235,16 @@ const ProfileScreen = ({ navigation }) => {
         subtitle={isGuestAccount ? 'Guest account' : user?.email || ' '}
         rounded
         padding
+        rightComponent={
+          <TouchableOpacity
+            style={styles.helpButton}
+            onPress={() => navigation.getParent()?.navigate('Onboarding', { isReplay: true })}
+            accessibilityRole="button"
+            accessibilityLabel="View onboarding"
+          >
+            <Ionicons name="help-circle-outline" size={28} color={colors.white} />
+          </TouchableOpacity>
+        }
       />
 
       <View style={styles.innerContainer}>
@@ -402,6 +412,13 @@ const createStyles = (colors) =>
     rowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
+    },
+    helpButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     logoutConfirmButton: {
       backgroundColor: colors.red,

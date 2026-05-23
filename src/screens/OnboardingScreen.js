@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, StatusBar, Image, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  StatusBar,
+  Image,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native';
 import { lightTheme } from '../theme/colors';
 import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
@@ -24,10 +32,16 @@ import Animated, {
 
 const AnimatedFlatList = Animated.createAnimatedComponent(require('react-native').FlatList);
 
-const OnboardingScreen = ({ route }) => {
+const OnboardingScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const scrollX = useSharedValue(0);
-  const { name = '', email = null, userId = '', isGuest = false } = route.params || {};
+  const {
+    name = '',
+    email = null,
+    userId = '',
+    isGuest = false,
+    isReplay = false,
+  } = route.params || {};
   const { width } = useWindowDimensions();
   const [isSliding, setIsSliding] = useState(false);
   const [sliderValue, setSliderValue] = useState(100);
@@ -92,6 +106,11 @@ const OnboardingScreen = ({ route }) => {
   );
 
   const onPress = async () => {
+    if (isReplay) {
+      navigation.goBack();
+      return;
+    }
+
     try {
       await firestore().collection('users').doc(userId).set({
         email,
@@ -209,6 +228,17 @@ const OnboardingScreen = ({ route }) => {
         <Text style={styles.swipeHintText}>Swipe</Text>
         <Ionicons name="chevron-forward" size={16} color="#fff" />
       </Animated.View>
+
+      {isReplay && (
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Close onboarding"
+        >
+          <Ionicons name="close" size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -276,6 +306,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 42,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
 });
 
