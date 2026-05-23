@@ -4,8 +4,8 @@ import HomeScreen from '../screens/HomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../theme/themeContext';
 import AddPurchaseScreen from '../screens/AddPurchaseScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import ItemStack from './ItemStack';
+import ProfileStack from './ProfileStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -56,7 +56,7 @@ function MainTabNav() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Add" component={AddPurchaseScreen} />
       <Tab.Screen name="Purchases" component={ItemStack} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
   );
 }
