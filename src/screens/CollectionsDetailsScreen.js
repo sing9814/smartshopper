@@ -12,6 +12,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomSheet from '../components/bottomSheet';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -20,6 +21,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
 
   const [banner, setBanner] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
@@ -81,8 +83,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Ionicons name="trash-outline" size={22} color="white" />
+        <TouchableOpacity onPress={() => setActionSheetVisible(true)}>
+          <Ionicons name="ellipsis-horizontal" size={24} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
@@ -109,6 +111,24 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           navigation={navigation}
         />
       </View>
+
+      <BottomSheet
+        visible={actionSheetVisible}
+        onClose={() => setActionSheetVisible(false)}
+        title="Collection options"
+        height={180}
+      >
+        <TouchableOpacity
+          style={styles.sheetRow}
+          onPress={() => {
+            setActionSheetVisible(false);
+            setModalVisible(true);
+          }}
+        >
+          <Ionicons name="trash-outline" size={20} color={colors.red} style={styles.sheetIcon} />
+          <Text style={styles.deleteText}>Delete collection</Text>
+        </TouchableOpacity>
+      </BottomSheet>
     </View>
   );
 };
@@ -189,6 +209,20 @@ const createStyles = (colors) =>
       flex: 1,
       paddingRight: 10,
       lineHeight: 22,
+    },
+    sheetRow: {
+      width: '100%',
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    sheetIcon: {
+      marginRight: 10,
+    },
+    deleteText: {
+      color: colors.red,
+      fontSize: 15,
+      fontWeight: '500',
     },
   });
 

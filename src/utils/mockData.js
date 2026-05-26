@@ -80,7 +80,7 @@ export const createMockCategories = (categories) =>
 export const mockCollections = [
   {
     id: 'mock-work-capsule',
-    name: 'Work capsule',
+    name: 'Work outfit',
     description: 'Easy weekday pieces',
     items: ['mock-black-trousers', 'mock-cream-cardigan', 'mock-loafers'],
     dateCreated: timestampFromIso('2026-03-02T11:00:00.000Z'),
@@ -120,7 +120,7 @@ export const mockPurchases = [
     regularPrice: 9800,
     datePurchased: '2026-01-08',
     dateCreated: '2026-01-08',
-    wearDates: makeWearDates(10, '2026-01-15', 12),
+    wearDates: makeWearDates(10, '2026-02-06', 12),
   }),
   makePurchase({
     key: 'mock-cream-cardigan',
@@ -131,7 +131,7 @@ export const mockPurchases = [
     paidPrice: 4200,
     datePurchased: '2026-02-12',
     dateCreated: '2026-02-12',
-    wearDates: ['2026-02-16', '2026-03-09', '2026-03-24', '2026-04-10', '2026-05-12'],
+    wearDates: ['2026-03-28', '2026-04-12', '2026-04-26', '2026-05-11', '2026-05-25'],
   }),
   makePurchase({
     key: 'mock-white-sneakers',
@@ -143,7 +143,7 @@ export const mockPurchases = [
     regularPrice: 11000,
     datePurchased: '2025-09-01',
     dateCreated: '2025-09-01',
-    wearDates: makeWearDates(82, '2025-09-04', 3),
+    wearDates: makeWearDates(82, '2025-09-25', 3),
   }),
   makePurchase({
     key: 'mock-denim-jacket',
@@ -154,7 +154,7 @@ export const mockPurchases = [
     paidPrice: 5400,
     datePurchased: '2026-03-01',
     dateCreated: '2026-03-01',
-    wearDates: makeWearDates(4, '2026-03-12', 15),
+    wearDates: makeWearDates(4, '2026-04-10', 15),
   }),
   makePurchase({
     key: 'mock-midi-dress',
@@ -166,7 +166,7 @@ export const mockPurchases = [
     regularPrice: 12000,
     datePurchased: '2026-03-18',
     dateCreated: '2026-03-18',
-    wearDates: makeWearDates(2, '2026-04-06', 35),
+    wearDates: makeWearDates(2, '2026-04-20', 35),
   }),
   makePurchase({
     key: 'mock-loafers',
@@ -177,7 +177,7 @@ export const mockPurchases = [
     paidPrice: 6400,
     datePurchased: '2026-02-27',
     dateCreated: '2026-02-27',
-    wearDates: makeWearDates(5, '2026-03-03', 18),
+    wearDates: makeWearDates(5, '2026-03-15', 18),
   }),
   makePurchase({
     key: 'mock-graphic-tee',
@@ -188,7 +188,7 @@ export const mockPurchases = [
     paidPrice: 1800,
     datePurchased: '2026-04-03',
     dateCreated: '2026-04-03',
-    wearDates: makeWearDates(3, '2026-04-05', 15),
+    wearDates: makeWearDates(3, '2026-04-26', 15),
   }),
   makePurchase({
     key: 'mock-rain-jacket',
@@ -200,7 +200,7 @@ export const mockPurchases = [
     regularPrice: 7900,
     datePurchased: '2026-02-02',
     dateCreated: '2026-02-02',
-    wearDates: makeWearDates(1, '2026-03-15'),
+    wearDates: makeWearDates(1, '2026-05-21'),
   }),
   makePurchase({
     key: 'mock-watch',
@@ -211,7 +211,7 @@ export const mockPurchases = [
     paidPrice: 3200,
     datePurchased: '2025-11-05',
     dateCreated: '2025-11-05',
-    wearDates: makeWearDates(60, '2025-11-07', 3),
+    wearDates: makeWearDates(60, '2025-11-30', 3),
   }),
   makePurchase({
     key: 'mock-striped-turtleneck',
@@ -223,7 +223,7 @@ export const mockPurchases = [
     regularPrice: 5200,
     datePurchased: '2025-12-01',
     dateCreated: '2025-12-01',
-    wearDates: makeWearDates(22, '2025-12-06', 7),
+    wearDates: makeWearDates(22, '2025-12-30', 7),
   }),
   makePurchase({
     key: 'mock-classic-blazer',
@@ -235,7 +235,7 @@ export const mockPurchases = [
     regularPrice: 14500,
     datePurchased: '2025-10-10',
     dateCreated: '2025-10-10',
-    wearDates: makeWearDates(40, '2025-10-15', 5),
+    wearDates: makeWearDates(40, '2025-11-12', 5),
   }),
   makePurchase({
     key: 'mock-silk-scarf',
