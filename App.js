@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AuthStackNav from './src/navigation/AuthStackNav';
@@ -12,9 +12,10 @@ import {
 import { lightTheme } from './src/theme/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import store from './src/redux/store';
 import { Provider, useSelector } from 'react-redux';
-import { userExists } from './src/utils/firebase';
+import { getUserOnboardingStatus } from './src/utils/firebase';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from './src/theme/themeContext';
 
@@ -22,12 +23,20 @@ function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const currentUser = auth().currentUser;
+  const userOnboardedRef = useRef(false);
 
-  const user = useSelector((state) => state.user.userOnboarded);
+  const userOnboarded = useSelector((state) => state.user.userOnboarded);
 
   useEffect(() => {
-    setIsOnboarded(user);
-  }, [user]);
+    userOnboardedRef.current = userOnboarded;
+
+    if (userOnboarded && auth().currentUser) {
+      setIsAuthenticated(auth().currentUser);
+    }
+
+    setIsOnboarded(userOnboarded);
+  }, [userOnboarded]);
 
   useEffect(() => {
     if (SplashScreen) {
@@ -39,7 +48,7 @@ function AppWrapper() {
     const unsubscribe = auth().onAuthStateChanged(async (user) => {
       if (user) {
         setIsAuthenticated(user);
-        const onboarded = await userExists(user.uid);
+        const onboarded = await getUserOnboardingStatus(user.uid);
         setIsOnboarded(onboarded);
       } else {
         setIsAuthenticated(false);
@@ -71,7 +80,13 @@ function AppWrapper() {
       <View style={{ flex: 1 }}>
         <NavigationContainer>
           <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
-          {isAuthenticated && isOnboarded ? <MainStackNav /> : <AuthStackNav />}
+          {!isAuthenticated && !currentUser ? (
+            <AuthStackNav />
+          ) : isOnboarded || userOnboarded ? (
+            <MainStackNav />
+          ) : (
+            <OnboardingScreen route={{ params: {} }} />
+          )}
         </NavigationContainer>
       </View>
     </TouchableWithoutFeedback>

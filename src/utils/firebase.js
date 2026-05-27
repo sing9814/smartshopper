@@ -282,9 +282,25 @@ export const deleteDoc = async (subcollection, id) => {
 export const userExists = async (id) => {
   try {
     const userDoc = await firestore().collection('users').doc(id).get();
-    return userDoc.exists;
+    if (!userDoc.exists) return false;
+
+    const userData = userDoc.data();
+    return userData?.onboarded !== false;
   } catch (error) {
     console.error('Error checking user existence: ', error);
+    return false;
+  }
+};
+
+export const getUserOnboardingStatus = async (id) => {
+  try {
+    const userDoc = await firestore().collection('users').doc(id).get();
+    if (!userDoc.exists) return null;
+
+    const userData = userDoc.data();
+    return userData?.onboarded !== false;
+  } catch (error) {
+    console.error('Error checking onboarding status: ', error);
     return false;
   }
 };

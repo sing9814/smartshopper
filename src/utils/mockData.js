@@ -59,7 +59,6 @@ export const USE_FAKE_DATA = false;
 
 export const mockUserData = {
   name: 'Demo Shopper',
-  budget: 600,
   upgradedAt: null,
 };
 

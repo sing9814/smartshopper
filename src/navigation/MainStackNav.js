@@ -17,7 +17,7 @@ function MainStackNav() {
       <Stack.Screen
         name="Onboarding"
         component={OnboardingScreen}
-        options={{ headerShown: false, animation: 'slide_from_right' }}
+        options={{ headerShown: false, animation: 'fade' }}
       />
     </Stack.Navigator>
   );

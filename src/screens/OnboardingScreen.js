@@ -1,20 +1,18 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   StatusBar,
-  Image,
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import { lightTheme } from '../theme/colors';
 import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
-import Slider from '@react-native-community/slider';
-import CustomInput from '../components/customInput';
 import Logo from '../../assets/logo';
 import Form from '../../assets/onboarding/form';
 import WomanSVG from '../../assets/womanSVG';
@@ -35,16 +33,9 @@ const AnimatedFlatList = Animated.createAnimatedComponent(require('react-native'
 const OnboardingScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const scrollX = useSharedValue(0);
-  const {
-    name = '',
-    email = null,
-    userId = '',
-    isGuest = false,
-    isReplay = false,
-  } = route.params || {};
+  const isCompletingRef = useRef(false);
+  const { isReplay = false } = route.params || {};
   const { width } = useWindowDimensions();
-  const [isSliding, setIsSliding] = useState(false);
-  const [sliderValue, setSliderValue] = useState(100);
   const [gradientColors, setGradientColors] = useState([
     lightTheme.primaryDark,
     lightTheme.primary,
@@ -56,7 +47,7 @@ const OnboardingScreen = ({ route, navigation }) => {
       svg: Logo,
       svgProps: { height: 110, width: 110 },
       title: 'Smart Shopper',
-      description: 'Start organizing your wardrobe in just a few taps',
+      description: 'Track your wardrobe spending and see what your clothes are really worth',
     },
     {
       colors: [lightTheme.primary, lightTheme.primaryDark],
@@ -66,18 +57,24 @@ const OnboardingScreen = ({ route, navigation }) => {
       description: 'Quickly add and edit your clothing items using our simple form',
     },
     {
-      colors: [lightTheme.primaryDark, lightTheme.primary],
+      colors: [lightTheme.primaryDark, lightTheme.secondary],
       svg: WomanSVG,
       svgProps: { color: lightTheme.white, height: 150, opacity: 1 },
       title: 'Track your wears',
-      description: "Know what you love most. See what gets worn and what doesn't",
+      description: "Log each wear to see what gets worn and what doesn't",
     },
     {
-      colors: [lightTheme.primaryDark, lightTheme.accent],
+      colors: [lightTheme.secondary, lightTheme.primary],
+      icon: 'calendar-outline',
+      title: 'Look back anytime',
+      description: 'Use your calendar and item history to see what you actually wear most',
+    },
+    {
+      colors: [lightTheme.primary, lightTheme.primaryDark],
       diagonal: true,
-      image: require('../../assets/onboarding/progress.png'),
+      icon: 'bag-add-outline',
       title: 'Get started',
-      description: 'Set a monthly budget to keep your spending on track',
+      description: 'Add your first item and start seeing what you actually wear',
       button: true,
     },
   ];
@@ -106,71 +103,58 @@ const OnboardingScreen = ({ route, navigation }) => {
   );
 
   const onPress = async () => {
+    if (isCompletingRef.current) {
+      return;
+    }
+
     if (isReplay) {
       navigation.goBack();
       return;
     }
 
     try {
-      await firestore().collection('users').doc(userId).set({
-        email,
-        name,
-        isGuest,
-        budget: sliderValue,
-        registrationDate: firestore.FieldValue.serverTimestamp(),
-      });
+      isCompletingRef.current = true;
+      const currentUser = auth().currentUser;
+
+      if (!currentUser) {
+        console.log('Unable to complete onboarding: missing user id');
+        isCompletingRef.current = false;
+        return;
+      }
+
+      await firestore()
+        .collection('users')
+        .doc(currentUser.uid)
+        .set({ onboarded: true }, { merge: true });
       dispatch(setUserOnboarded(true));
     } catch (e) {
       console.log(e);
+      isCompletingRef.current = false;
     }
   };
 
   const renderItem = ({ item, index }) => (
     <View style={[styles.slide, { width }]}>
-      {item.image && <Image source={item.image} style={styles.image} resizeMode="contain" />}
       {item.svg && <item.svg {...item.svgProps} />}
+      {item.icon && <Ionicons name={item.icon} size={120} color="#fff" style={styles.slideIcon} />}
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
 
       {item.button && (
-        <>
-          <View style={{ alignItems: 'center', position: 'relative', width: '100%' }}>
-            <Slider
-              style={{ width: '100%', height: 40 }}
-              minimumValue={0}
-              maximumValue={1000}
-              step={10}
-              value={sliderValue}
-              onValueChange={setSliderValue}
-              onTouchStart={() => setIsSliding(true)}
-              onTouchEnd={() => setIsSliding(false)}
-              minimumTrackTintColor="#FFFFFF"
-              maximumTrackTintColor="#000000"
-              thumbTintColor="white"
-            />
-            <CustomInput
-              label=""
-              value={sliderValue.toString()}
-              onChangeText={(value) => setSliderValue(Number(value))}
-              type="numeric"
-              budget
-            />
-          </View>
-
-          <CustomButton
-            buttonStyle={{
-              backgroundColor: '#fff',
-              position: 'absolute',
-              bottom: 70,
-            }}
-            textStyle={{ color: lightTheme.primary, fontWeight: '600' }}
-            underlayColor="#dadada"
-            onPress={onPress}
-            title="Done"
-          />
-        </>
+        <CustomButton
+          buttonStyle={{
+            backgroundColor: '#fff',
+            position: 'absolute',
+            bottom: 70,
+          }}
+          textStyle={{ color: lightTheme.primary, fontWeight: '600' }}
+          underlayColor="#dadada"
+          onPress={onPress}
+          title="Start tracking"
+          title={isReplay ? 'Back to profile' : 'Start tracking'}
+        />
       )}
     </View>
   );
@@ -196,7 +180,6 @@ const OnboardingScreen = ({ route, navigation }) => {
         keyExtractor={(item) => item.title}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        scrollEnabled={!isSliding}
         initialNumToRender={1}
         windowSize={2}
         maxToRenderPerBatch={2}
@@ -247,11 +230,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  image: {
-    width: 130,
-    height: 130,
-    alignSelf: 'center',
-    marginBottom: -10,
+  slideIcon: {
+    marginBottom: 10,
   },
   slide: {
     flex: 1,

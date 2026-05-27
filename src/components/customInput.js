@@ -14,15 +14,11 @@ const CustomInput = ({
   component,
   prefix,
   editable = true,
-  budget,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
   const length = () => {
-    if (budget) {
-      return 4;
-    }
     if (type === 'numeric') {
       return 8;
     } else if (multiline) {

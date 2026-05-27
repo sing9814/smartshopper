@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCollections } from '../redux/actions/purchaseActions';
 import { setUser } from '../redux/actions/userActions';
 import { setCategories, setCustomCategories } from '../redux/actions/userActions';
-import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import BottomSheet from '../components/bottomSheet';
 import {
   formatDate,
@@ -18,7 +17,6 @@ import {
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
-import { convertCentsToDollars } from '../utils/price';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getWearLevelData } from '../utils/wears';
@@ -117,7 +115,6 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const purchases = useSelector((state) => state.purchase.purchases);
-  const user = useSelector((state) => state.user.user);
 
   const fetchData = async () => {
     if (USE_FAKE_DATA) {
@@ -175,41 +172,6 @@ const HomeScreen = ({ navigation }) => {
 
     return dates;
   }, [colors.primary, colors.secondary, loading, purchases, timeZone]);
-
-  const formatDollar = (amount) => {
-    return `$${amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
-  const formatPercent = () => {
-    let amount = (parseFloat(convertCentsToDollars(totalRegularPrice)) / user?.budget) * 100;
-    if (amount > 100) {
-      return '>100';
-    }
-    return amount.toFixed(0);
-  };
-
-  const currentDate = new Date();
-  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth() + 1);
-
-  const totalRegularPrice = useMemo(() => {
-    return purchases.reduce((total, purchase) => {
-      const purchaseDate = timestampToDate(purchase.datePurchased);
-      if (!purchaseDate) return total;
-
-      const purchaseYear = purchaseDate.getFullYear();
-      const purchaseMonth = purchaseDate.getMonth() + 1;
-
-      if (purchaseYear === currentYear && purchaseMonth === currentMonth) {
-        return total + parseFloat(purchase.paidPrice || purchase.regularPrice);
-      }
-
-      return total;
-    }, 0);
-  }, [purchases, currentMonth, currentYear]);
 
   const wearStats = useMemo(() => {
     const totalItems = purchases.length;
@@ -313,10 +275,6 @@ const HomeScreen = ({ navigation }) => {
               onDayPress={(day) => {
                 setSelectedDate(day.dateString);
                 setOpen(true);
-              }}
-              onMonthChange={(month) => {
-                setCurrentMonth(month.month);
-                setCurrentYear(month.year);
               }}
               markedDates={markedDates}
             />

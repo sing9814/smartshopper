@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import CustomButton from '../components/button';
 import CustomInput from '../components/customInput';
 import Logo from '../../assets/logo';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
+import { userExists } from '../utils/firebase';
 import Banner from '../components/banner';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -37,12 +39,18 @@ const LoginScreen = ({ navigation }) => {
         if (!email || !name || !password) {
           setBannerMessage('Please fill in all fields');
         } else {
-          const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-          navigation.navigate('Onboarding', {
-            name: name,
-            email: email,
-            userId: userCredential.user.uid,
+          const trimmedEmail = email.trim().toLowerCase();
+          const trimmedName = name.trim();
+          const userCredential = await auth().createUserWithEmailAndPassword(trimmedEmail, password);
+
+          await firestore().collection('users').doc(userCredential.user.uid).set({
+            email: trimmedEmail,
+            name: trimmedName,
+            isGuest: false,
+            onboarded: false,
+            registrationDate: firestore.FieldValue.serverTimestamp(),
           });
+
           dispatch(setUserOnboarded(false));
         }
       } catch (error) {
@@ -53,8 +61,12 @@ const LoginScreen = ({ navigation }) => {
         if (!email || !password) {
           setBannerMessage('Email or password is empty');
         } else {
-          await auth().signInWithEmailAndPassword(email, password);
-          dispatch(setUserOnboarded(true));
+          const userCredential = await auth().signInWithEmailAndPassword(
+            email.trim().toLowerCase(),
+            password
+          );
+          const onboarded = await userExists(userCredential.user.uid);
+          dispatch(setUserOnboarded(onboarded));
         }
       } catch (error) {
         setBannerMessage(error.message);
@@ -69,12 +81,14 @@ const LoginScreen = ({ navigation }) => {
     try {
       const userCredential = await auth().signInAnonymously();
 
-      navigation.navigate('Onboarding', {
-        name: 'Guest',
+      await firestore().collection('users').doc(userCredential.user.uid).set({
         email: null,
-        userId: userCredential.user.uid,
+        name: 'Guest',
         isGuest: true,
+        onboarded: false,
+        registrationDate: firestore.FieldValue.serverTimestamp(),
       });
+
       dispatch(setUserOnboarded(false));
     } catch (error) {
       setBannerMessage(error.message);

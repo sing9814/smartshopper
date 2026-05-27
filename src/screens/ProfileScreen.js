@@ -419,6 +419,7 @@ const createStyles = (colors) =>
       borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
     },
     logoutConfirmButton: {
       backgroundColor: colors.red,
