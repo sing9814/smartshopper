@@ -58,7 +58,9 @@ const makePurchase = ({
 export const USE_FAKE_DATA = false;
 
 export const mockUserData = {
-  name: 'Demo Shopper',
+  email: 'demo@smartshopper.app',
+  isGuest: false,
+  onboarded: true,
   upgradedAt: null,
 };
 

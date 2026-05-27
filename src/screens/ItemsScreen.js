@@ -217,9 +217,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         >
           <Ionicons name="search-outline" size={28} color={colors.gray} />
           <Text style={styles.emptyText}>
-            {searchQuery ? `No items match "${searchQuery}".` : 'No items found.'}
+            {searchQuery ? `No items match "${searchQuery}"` : 'No items found'}
           </Text>
-          <Text style={styles.emptyHint}>Pull down to refresh.</Text>
+          <Text style={styles.emptyHint}>Pull down to refresh</Text>
         </ScrollView>
       ) : (
         <PurchaseList
@@ -407,11 +407,12 @@ const createStyles = (colors) =>
       fontWeight: '500',
     },
     scrollView: {
-      flex: 1,
+      flexGrow: 1,
       justifyContent: 'center',
       alignItems: 'center',
       gap: 8,
       paddingHorizontal: 24,
+      paddingBottom: 100,
     },
     emptyText: {
       fontSize: 15,

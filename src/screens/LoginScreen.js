@@ -20,7 +20,6 @@ const LoginScreen = ({ navigation }) => {
 
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [bannerMessage, setBannerMessage] = useState(null);
@@ -28,7 +27,6 @@ const LoginScreen = ({ navigation }) => {
 
   const resetStates = () => {
     setEmail('');
-    setName('');
     setPassword('');
     setBannerMessage(null);
   };
@@ -36,16 +34,17 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = async () => {
     if (isSignUp) {
       try {
-        if (!email || !name || !password) {
+        if (!email || !password) {
           setBannerMessage('Please fill in all fields');
         } else {
           const trimmedEmail = email.trim().toLowerCase();
-          const trimmedName = name.trim();
-          const userCredential = await auth().createUserWithEmailAndPassword(trimmedEmail, password);
+          const userCredential = await auth().createUserWithEmailAndPassword(
+            trimmedEmail,
+            password
+          );
 
           await firestore().collection('users').doc(userCredential.user.uid).set({
             email: trimmedEmail,
-            name: trimmedName,
             isGuest: false,
             onboarded: false,
             registrationDate: firestore.FieldValue.serverTimestamp(),
@@ -83,7 +82,6 @@ const LoginScreen = ({ navigation }) => {
 
       await firestore().collection('users').doc(userCredential.user.uid).set({
         email: null,
-        name: 'Guest',
         isGuest: true,
         onboarded: false,
         registrationDate: firestore.FieldValue.serverTimestamp(),
@@ -110,12 +108,11 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.textContainer}>
           <Text style={styles.title}>{isSignUp ? 'Create an account' : 'Welcome back'}</Text>
           <Text style={styles.subtitle}>
-            {isSignUp ? 'To start tracking your spending!' : 'Enter your details below'}
+            {isSignUp ? 'To start tracking what you wear!' : 'Enter your details below'}
           </Text>
         </View>
 
         <CustomInput label="Email" value={email} onChangeText={setEmail} />
-        {isSignUp && <CustomInput label="Name" value={name} onChangeText={setName} />}
 
         <CustomInput
           label="Password"

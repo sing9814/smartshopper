@@ -35,7 +35,6 @@ const ProfileScreen = ({ navigation }) => {
   const [totalSaved, setTotalSaved] = useState(0);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeName, setUpgradeName] = useState(user?.name === 'Guest' ? '' : user?.name || '');
   const [upgradeEmail, setUpgradeEmail] = useState('');
   const [upgradePassword, setUpgradePassword] = useState('');
   const [upgradeError, setUpgradeError] = useState(null);
@@ -83,7 +82,6 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const resetUpgradeForm = () => {
-    setUpgradeName(user?.name === 'Guest' ? '' : user?.name || '');
     setUpgradeEmail('');
     setUpgradePassword('');
     setUpgradeError(null);
@@ -125,10 +123,9 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleCreateAccount = async () => {
-    const trimmedName = upgradeName.trim();
-    const trimmedEmail = upgradeEmail.trim();
+    const trimmedEmail = upgradeEmail.trim().toLowerCase();
 
-    if (!trimmedName || !trimmedEmail || !upgradePassword) {
+    if (!trimmedEmail || !upgradePassword) {
       setUpgradeError('Please fill in all fields.');
       return;
     }
@@ -145,15 +142,23 @@ const ProfileScreen = ({ navigation }) => {
 
       const credential = auth.EmailAuthProvider.credential(trimmedEmail, upgradePassword);
       const userCredential = await currentUser.linkWithCredential(credential);
+      const userWithoutName = { ...user };
+      delete userWithoutName.name;
+
       const updatedUser = {
-        ...user,
-        name: trimmedName,
+        ...userWithoutName,
         email: trimmedEmail,
         isGuest: false,
         upgradedAt: firestore.FieldValue.serverTimestamp(),
       };
 
-      await firestore().collection('users').doc(userCredential.user.uid).update(updatedUser);
+      await firestore()
+        .collection('users')
+        .doc(userCredential.user.uid)
+        .update({
+          ...updatedUser,
+          name: firestore.FieldValue.delete(),
+        });
       dispatch(setUser({ ...updatedUser, upgradedAt: new Date().toISOString() }));
       setShowUpgradeModal(false);
       resetUpgradeForm();
@@ -184,7 +189,6 @@ const ProfileScreen = ({ navigation }) => {
             {upgradeError && <Text style={styles.errorText}>{upgradeError}</Text>}
 
             <View style={styles.form}>
-              <CustomInput label="Name" value={upgradeName} onChangeText={setUpgradeName} />
               <CustomInput
                 label="Email"
                 value={upgradeEmail}
@@ -231,7 +235,7 @@ const ProfileScreen = ({ navigation }) => {
       />
 
       <Header
-        title={user?.name || ' '}
+        title="Profile"
         subtitle={isGuestAccount ? 'Guest account' : user?.email || ' '}
         rounded
         padding
