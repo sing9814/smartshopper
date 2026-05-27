@@ -3,6 +3,7 @@ import { useTheme } from '../theme/themeContext';
 import { useStatusBar } from '../hooks/useStatusBar';
 import AddButton from '../components/addButton';
 import { useSelector } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -18,13 +19,28 @@ const CollectionsScreen = ({ navigation }) => {
         navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
       }
     >
-      <View style={styles.row}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.description}>
-          {item.items.length} {item.items.length !== 1 ? 'items' : 'item'}
+      <View style={styles.collectionIcon}>
+        <Ionicons name="albums-outline" size={20} color={colors.primary} />
+      </View>
+
+      <View style={styles.cardBody}>
+        <View style={styles.row}>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <View style={styles.countPill}>
+            <Text style={styles.countText}>
+              {item.items.length} {item.items.length !== 1 ? 'items' : 'item'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description || 'No description'}
         </Text>
       </View>
-      {item.description ? <Text style={styles.description}>{item.description}</Text> : null}
+
+      <Ionicons name="chevron-forward" size={20} color={colors.gray} />
     </TouchableOpacity>
   );
 
@@ -34,7 +50,16 @@ const CollectionsScreen = ({ navigation }) => {
         data={collections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={styles.flatlist}
+        contentContainerStyle={[styles.flatlist, collections.length === 0 && styles.emptyList]}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="albums-outline" size={28} color={colors.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>No collections yet</Text>
+            <Text style={styles.emptyText}>Create collections to organize your items</Text>
+          </View>
+        }
       />
 
       <AddButton
@@ -49,30 +74,56 @@ const CollectionsScreen = ({ navigation }) => {
 const createStyles = (colors) =>
   StyleSheet.create({
     card: {
+      minHeight: 82,
       backgroundColor: colors.white,
-      marginHorizontal: 12,
-      marginBottom: 12,
-      padding: 16,
-      borderRadius: 12,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
+      marginBottom: 2,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    collectionIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryLight,
+    },
+    cardBody: {
+      flex: 1,
+      gap: 5,
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 10,
     },
     title: {
+      flex: 1,
       fontSize: 16,
       fontWeight: '600',
       color: colors.black,
     },
+    countPill: {
+      minHeight: 24,
+      paddingHorizontal: 9,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.bg,
+    },
+    countText: {
+      color: colors.gray,
+      fontSize: 12,
+      fontWeight: '600',
+    },
     description: {
       fontSize: 14,
       color: colors.gray,
-      marginTop: 6,
+      lineHeight: 19,
     },
     container: {
       flex: 1,
@@ -81,7 +132,36 @@ const createStyles = (colors) =>
     },
     flatlist: {
       paddingBottom: 140,
-      paddingTop: 12,
+    },
+    emptyList: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingHorizontal: 30,
+    },
+    emptyIcon: {
+      width: 58,
+      height: 58,
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryLight,
+      marginBottom: 14,
+      elevation: 1,
+    },
+    emptyTitle: {
+      color: colors.black,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    emptyText: {
+      color: colors.gray,
+      textAlign: 'center',
+      lineHeight: 21,
     },
     button: {
       position: 'absolute',
