@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PurchaseList from '../components/purchaseList';
 import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { setCollections } from '../redux/actions/purchaseActions';
 import { deleteDoc } from '../utils/firebase';
-import { useDispatch } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '../components/bottomSheet';
+import { formatTimeStampNoTime } from '../utils/date';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -51,6 +51,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const purchases = useSelector((state) => state.purchase.purchases);
 
   const itemsInCollection = purchases.filter((item) => collection.items.includes(item.key));
+  const itemCount = itemsInCollection.length;
+  const createdDate = formatTimeStampNoTime(collection.dateCreated);
 
   const confirmDeleteCollection = async () => {
     try {
@@ -80,20 +82,44 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         data={`"${collection.name}"`}
       />
       <View style={styles.topbar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+          style={styles.topbarButton}
+        >
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setActionSheetVisible(true)}>
+        <Text style={styles.topbarTitle}>Collection</Text>
+        <TouchableOpacity
+          onPress={() => setActionSheetVisible(true)}
+          hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+          style={styles.topbarButton}
+        >
           <Ionicons name="ellipsis-horizontal" size={24} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        <Text style={styles.name}>{collection.name}</Text>
-        {collection.description ? (
-          <Text style={styles.description}>{collection.description}</Text>
-        ) : null}
-        <View style={styles.line}></View>
-        {showMessage && itemsInCollection.length === 0 && (
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <Ionicons name="albums-outline" size={24} color={colors.primary} />
+          </View>
+          <View style={styles.heroText}>
+            <Text style={styles.name} numberOfLines={2}>
+              {collection.name}
+            </Text>
+            <Text style={styles.description} numberOfLines={3}>
+              {collection.description || 'No description yet'}
+            </Text>
+          </View>
+        </View>
+
+        {createdDate && (
+          <View style={styles.metaPanel}>
+            <Text style={styles.createdText}>Created {createdDate}</Text>
+          </View>
+        )}
+
+        {showMessage && itemCount === 0 && (
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>
               Long press items on the "Items" tab to add them to this collection.
@@ -104,20 +130,56 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        <PurchaseList
-          purchases={itemsInCollection}
-          loading={false}
-          refreshing={false}
-          navigation={navigation}
-        />
+        <Text style={styles.sectionTitle}>Items in this collection</Text>
+
+        {itemCount > 0 ? (
+          <PurchaseList
+            purchases={itemsInCollection}
+            loading={false}
+            refreshing={false}
+            navigation={navigation}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="shirt-outline" size={28} color={colors.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>No items here yet</Text>
+            <Text style={styles.emptyText}>
+              Add items from the Items tab to start building this collection.
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyButton}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('ItemTabs', { screen: 'Items' })}
+            >
+              <Text style={styles.emptyButtonText}>Browse items</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <BottomSheet
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
         title="Collection options"
-        height={180}
+        height={230}
       >
+        <TouchableOpacity
+          style={styles.sheetRow}
+          onPress={() => {
+            setActionSheetVisible(false);
+            navigation.navigate('ItemTabs', { screen: 'Items' });
+          }}
+        >
+          <Ionicons
+            name="shirt-outline"
+            size={20}
+            color={colors.primary}
+            style={styles.sheetIcon}
+          />
+          <Text style={styles.sheetText}>Browse items to add</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.sheetRow}
           onPress={() => {
@@ -137,12 +199,11 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.white,
+      backgroundColor: colors.bg,
     },
     innerContainer: {
       flex: 1,
-      paddingHorizontal: 12,
-      paddingTop: 8,
+      paddingTop: 2,
     },
     topbar: {
       width: '100%',
@@ -151,64 +212,126 @@ const createStyles = (colors) =>
       paddingTop: 10,
       paddingBottom: 13,
       paddingHorizontal: 20,
-      marginBottom: 6,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    header: {
-      padding: 16,
-      margin: 12,
-      borderRadius: 12,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
+    topbarButton: {
+      width: 30,
+      height: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    topbarTitle: {
+      color: 'white',
+      fontSize: 18,
+    },
+    hero: {
+      backgroundColor: colors.white,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 18,
+      marginBottom: 2,
+    },
+    heroIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    heroText: {
+      flex: 1,
+      gap: 5,
     },
     name: {
-      fontSize: 18,
-      fontWeight: '600',
+      fontSize: 22,
+      fontWeight: '700',
       color: colors.black,
     },
     description: {
       fontSize: 14,
       color: colors.gray,
-      marginTop: 6,
+      lineHeight: 20,
     },
-    addButton: {
-      marginHorizontal: 16,
-      marginBottom: 8,
-      backgroundColor: colors.primary,
+    metaPanel: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
       paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
+      marginBottom: 2,
     },
-    addButtonText: {
-      color: colors.white,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    line: {
-      backgroundColor: colors.bg,
-      height: 1,
-      width: '100%',
-      marginVertical: 10,
+    createdText: {
+      color: colors.gray,
+      fontSize: 13,
     },
     messageContainer: {
-      backgroundColor: colors.bg,
+      backgroundColor: colors.white,
       paddingVertical: 14,
       paddingHorizontal: 16,
-      borderRadius: 10,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 10,
+      marginBottom: 2,
     },
     messageText: {
       color: colors.gray,
       flex: 1,
       paddingRight: 10,
       lineHeight: 22,
+    },
+    sectionTitle: {
+      color: colors.gray,
+      fontSize: 12,
+      fontWeight: '500',
+      textTransform: 'uppercase',
+      paddingHorizontal: 16,
+      paddingTop: 6,
+      paddingBottom: 8,
+      marginBottom: 2,
+    },
+    emptyState: {
+      flex: 1,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 32,
+      paddingBottom: 80,
+    },
+    emptyIcon: {
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryLight,
+      marginBottom: 14,
+    },
+    emptyTitle: {
+      color: colors.black,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    emptyText: {
+      color: colors.gray,
+      textAlign: 'center',
+      lineHeight: 21,
+      marginBottom: 18,
+    },
+    emptyButton: {
+      minHeight: 42,
+      borderRadius: 21,
+      paddingHorizontal: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryDark,
+    },
+    emptyButtonText: {
+      color: 'white',
     },
     sheetRow: {
       width: '100%',
@@ -218,6 +341,11 @@ const createStyles = (colors) =>
     },
     sheetIcon: {
       marginRight: 10,
+    },
+    sheetText: {
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
     },
     deleteText: {
       color: colors.red,
