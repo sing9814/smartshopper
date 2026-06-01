@@ -64,10 +64,23 @@ export const mockUserData = {
   upgradedAt: null,
 };
 
-export const mockCustomCategories = [];
+export const mockCustomCategories = [
+  {
+    id: 'mock-custom-activewear',
+    name: 'Activewear',
+  },
+  {
+    id: 'mock-custom-loungewear',
+    name: 'Loungewear',
+  },
+  {
+    id: 'mock-custom-occasionwear',
+    name: 'Occasionwear',
+  },
+];
 
-export const createMockCategories = (categories) =>
-  categories.map((category) => ({
+export const createMockCategories = (categories) => [
+  ...categories.map((category) => ({
     name: category.name,
     subCategories: category.subCategories.map((subCategory) => ({
       id: `${category.name.toLowerCase().replace(/\s+/g, '_')}_${subCategory
@@ -76,7 +89,14 @@ export const createMockCategories = (categories) =>
       name: subCategory,
       custom: false,
     })),
-  }));
+  })),
+  ...mockCustomCategories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    custom: true,
+    subCategories: [],
+  })),
+];
 
 export const mockCollections = [
   {
@@ -248,5 +268,28 @@ export const mockPurchases = [
     datePurchased: '2026-04-25',
     dateCreated: '2026-04-25',
     wearDates: [],
+  }),
+  makePurchase({
+    key: 'mock-yoga-set',
+    name: 'Sage yoga set',
+    category: 'Activewear',
+    subCategory: 'Activewear',
+    note: 'Custom category example.',
+    paidPrice: 5800,
+    regularPrice: 7600,
+    datePurchased: '2026-05-04',
+    dateCreated: '2026-05-04',
+    wearDates: makeWearDates(6, '2026-05-08', 4),
+  }),
+  makePurchase({
+    key: 'mock-lounge-set',
+    name: 'Ribbed lounge set',
+    category: 'Loungewear',
+    subCategory: 'Loungewear',
+    note: 'For quiet days at home.',
+    paidPrice: 4700,
+    datePurchased: '2026-04-18',
+    dateCreated: '2026-04-18',
+    wearDates: makeWearDates(9, '2026-04-20', 5),
   }),
 ];

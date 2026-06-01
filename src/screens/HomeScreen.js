@@ -1,5 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  useWindowDimensions,
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { fetchAllUserData, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
@@ -74,6 +81,7 @@ const getWearNumberText = (item, dateKey, timeZone) => {
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const { height } = useWindowDimensions();
   const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
 
@@ -82,8 +90,8 @@ const HomeScreen = ({ navigation }) => {
       backgroundColor: colors.black,
       calendarBackground: colors.white,
       textSectionTitleColor: colors.textSectionTitleColor,
-      selectedDayBackgroundColor: colors.lightGrey,
-      selectedDayTextColor: colors.white,
+      selectedDayBackgroundColor: colors.primaryLight,
+      selectedDayTextColor: colors.primaryDark,
       todayTextColor: colors.dayTextColor,
       dayTextColor: colors.dayTextColor,
       textDisabledColor: colors.textDisabledColor,
@@ -170,8 +178,27 @@ const HomeScreen = ({ navigation }) => {
       });
     });
 
+    if (selectedDate) {
+      dates[selectedDate] = {
+        ...dates[selectedDate],
+        selected: true,
+        selectedColor: colors.primaryLight,
+        selectedTextColor: colors.primaryDark,
+        selectedDotColor: dates[selectedDate]?.dotColor || colors.primary,
+      };
+    }
+
     return dates;
-  }, [colors.primary, colors.secondary, loading, purchases, timeZone]);
+  }, [
+    colors.primary,
+    colors.primaryDark,
+    colors.primaryLight,
+    colors.secondary,
+    loading,
+    purchases,
+    selectedDate,
+    timeZone,
+  ]);
 
   const wearStats = useMemo(() => {
     const totalItems = purchases.length;
@@ -214,7 +241,10 @@ const HomeScreen = ({ navigation }) => {
       <Header title={loading ? ' ' : `Overview`} />
 
       <ScrollView
-        contentContainerStyle={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollView,
+          open && { paddingBottom: height * 0.5 + styles.scrollView.paddingBottom },
+        ]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {loading ? (
@@ -410,6 +440,7 @@ const createStyles = (colors) =>
       borderRadius: 10,
       elevation: 1,
       paddingBottom: 8,
+      marginBottom: 300,
     },
     title: {
       color: 'black',

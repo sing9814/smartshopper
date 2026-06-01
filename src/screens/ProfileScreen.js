@@ -246,7 +246,7 @@ const ProfileScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="View onboarding"
           >
-            <Ionicons name="help-circle-outline" size={28} color={colors.white} />
+            <Ionicons name="help-circle-outline" size={28} color={'white'} />
           </TouchableOpacity>
         }
       />

@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { lightTheme } from '../theme/colors';
-import CustomButton from '../components/button';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useDispatch } from 'react-redux';
@@ -30,12 +29,44 @@ import Animated, {
 
 const AnimatedFlatList = Animated.createAnimatedComponent(require('react-native').FlatList);
 
+const PaginationDot = ({ index, scrollX, width, onPress }) => {
+  const animatedDotStyle = useAnimatedStyle(() => {
+    const dotWidth = interpolate(
+      scrollX.value,
+      [(index - 1) * width, index * width, (index + 1) * width],
+      [10, 20, 10],
+      'clamp'
+    );
+    const opacity = interpolate(
+      scrollX.value,
+      [(index - 1) * width, index * width, (index + 1) * width],
+      [0.6, 1, 0.6],
+      'clamp'
+    );
+    return { width: dotWidth, opacity };
+  });
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={1}
+      accessibilityRole="button"
+      accessibilityLabel={`Go to onboarding step ${index + 1}`}
+      style={styles.dotButton}
+    >
+      <Animated.View style={[styles.dot, animatedDotStyle]} />
+    </TouchableOpacity>
+  );
+};
+
 const OnboardingScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
+  const listRef = useRef(null);
   const scrollX = useSharedValue(0);
   const isCompletingRef = useRef(false);
   const { isReplay = false } = route.params || {};
   const { width } = useWindowDimensions();
+  const [activeIndex, setActiveIndex] = useState(0);
   const [gradientColors, setGradientColors] = useState([
     lightTheme.primaryDark,
     lightTheme.primary,
@@ -75,7 +106,6 @@ const OnboardingScreen = ({ route, navigation }) => {
       icon: 'bag-add-outline',
       title: 'Get started',
       description: 'Add your first item and start seeing what you actually wear',
-      button: true,
     },
   ];
 
@@ -85,11 +115,6 @@ const OnboardingScreen = ({ route, navigation }) => {
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollX.value = event.contentOffset.x;
-  });
-
-  const swipeHintAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollX.value, [0, width * 0.45, width], [0.88, 0.35, 0], 'clamp');
-    return { opacity };
   });
 
   useAnimatedReaction(
@@ -133,7 +158,27 @@ const OnboardingScreen = ({ route, navigation }) => {
     }
   };
 
-  const renderItem = ({ item, index }) => (
+  const scrollToSlide = (index) => {
+    const nextIndex = Math.max(0, Math.min(index, slides.length - 1));
+    listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    setActiveIndex(nextIndex);
+  };
+
+  const handleNext = () => {
+    if (activeIndex === slides.length - 1) {
+      onPress();
+      return;
+    }
+
+    scrollToSlide(activeIndex + 1);
+  };
+
+  const handleMomentumScrollEnd = (event) => {
+    const nextIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+    setActiveIndex(Math.max(0, Math.min(nextIndex, slides.length - 1)));
+  };
+
+  const renderItem = ({ item }) => (
     <View style={[styles.slide, { width }]}>
       {item.svg && <item.svg {...item.svgProps} />}
       {item.icon && <Ionicons name={item.icon} size={120} color="#fff" style={styles.slideIcon} />}
@@ -141,21 +186,6 @@ const OnboardingScreen = ({ route, navigation }) => {
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
-
-      {item.button && (
-        <CustomButton
-          buttonStyle={{
-            backgroundColor: '#fff',
-            position: 'absolute',
-            bottom: 70,
-          }}
-          textStyle={{ color: lightTheme.primary, fontWeight: '600' }}
-          underlayColor="#dadada"
-          onPress={onPress}
-          title="Start tracking"
-          title={isReplay ? 'Back to profile' : 'Start tracking'}
-        />
-      )}
     </View>
   );
 
@@ -171,51 +201,90 @@ const OnboardingScreen = ({ route, navigation }) => {
       />
 
       <AnimatedFlatList
+        ref={listRef}
         data={slides}
         renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
         pagingEnabled
         bounces={false}
+        decelerationRate="fast"
         keyExtractor={(item) => item.title}
         onScroll={scrollHandler}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
         initialNumToRender={1}
         windowSize={2}
         maxToRenderPerBatch={2}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
 
       <View style={styles.paginator}>
-        {slides.map((_, i) => {
-          const animatedDotStyle = useAnimatedStyle(() => {
-            const dotWidth = interpolate(
-              scrollX.value,
-              [(i - 1) * width, i * width, (i + 1) * width],
-              [10, 20, 10],
-              'clamp'
-            );
-            const opacity = interpolate(
-              scrollX.value,
-              [(i - 1) * width, i * width, (i + 1) * width],
-              [0.6, 1, 0.6],
-              'clamp'
-            );
-            return { width: dotWidth, opacity };
-          });
-
-          return <Animated.View key={i} style={[styles.dot, animatedDotStyle]} />;
-        })}
+        {slides.map((_, i) => (
+          <PaginationDot
+            key={i}
+            index={i}
+            scrollX={scrollX}
+            width={width}
+            onPress={() => scrollToSlide(i)}
+          />
+        ))}
       </View>
 
-      <Animated.View style={[styles.swipeHint, swipeHintAnimatedStyle]} pointerEvents="none">
-        <Text style={styles.swipeHintText}>Swipe</Text>
-        <Ionicons name="chevron-forward" size={16} color="#fff" />
-      </Animated.View>
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={[styles.arrowButton, activeIndex === 0 && styles.hiddenControl]}
+          onPress={() => scrollToSlide(activeIndex - 1)}
+          activeOpacity={1}
+          accessibilityRole="button"
+          accessibilityLabel="Previous onboarding step"
+          disabled={activeIndex === 0}
+        >
+          <Ionicons name="chevron-back" size={26} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={activeIndex === slides.length - 1 ? styles.startButton : styles.arrowButtonPrimary}
+          onPress={handleNext}
+          activeOpacity={1}
+          accessibilityRole="button"
+          accessibilityLabel={
+            activeIndex === slides.length - 1
+              ? isReplay
+                ? 'Back to profile'
+                : 'Start tracking'
+              : 'Next onboarding step'
+          }
+        >
+          {activeIndex === slides.length - 1 ? (
+            <Text style={styles.startButtonText}>{isReplay ? 'Done' : 'Start'}</Text>
+          ) : (
+            <Ionicons name="chevron-forward" size={26} color={lightTheme.primary} />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {!isReplay && activeIndex < slides.length - 1 && (
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={onPress}
+          activeOpacity={1}
+          accessibilityRole="button"
+          accessibilityLabel="Skip onboarding"
+        >
+          <Text style={styles.skipButtonText}>Skip</Text>
+        </TouchableOpacity>
+      )}
 
       {isReplay && (
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation.goBack()}
+          activeOpacity={1}
           accessibilityRole="button"
           accessibilityLabel="Close onboarding"
         >
@@ -236,6 +305,7 @@ const styles = StyleSheet.create({
   slide: {
     flex: 1,
     paddingHorizontal: 26,
+    paddingBottom: 92,
     alignItems: 'center',
     gap: 20,
     justifyContent: 'center',
@@ -261,9 +331,15 @@ const styles = StyleSheet.create({
   paginator: {
     width: '100%',
     position: 'absolute',
-    bottom: 0,
+    bottom: 82,
     flexDirection: 'row',
-    height: 64,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotButton: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -271,21 +347,67 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#fff',
-    marginHorizontal: 8,
   },
-  swipeHint: {
+  controls: {
     position: 'absolute',
+    left: 24,
     right: 24,
-    bottom: 22,
+    bottom: 24,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    opacity: 0.88,
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  swipeHintText: {
+  arrowButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  arrowButtonPrimary: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  hiddenControl: {
+    opacity: 0,
+  },
+  startButton: {
+    height: 48,
+    minWidth: 92,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  startButtonText: {
+    color: lightTheme.primary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  skipButton: {
+    position: 'absolute',
+    top: 42,
+    right: 20,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  skipButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   closeButton: {
     position: 'absolute',
