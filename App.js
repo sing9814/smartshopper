@@ -18,6 +18,7 @@ import { Provider, useSelector } from 'react-redux';
 import { getUserOnboardingStatus } from './src/utils/firebase';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from './src/theme/themeContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -97,9 +98,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <Provider store={store}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <AppWrapper />
-        </GestureHandlerRootView>
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AppWrapper />
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
       </Provider>
     </ThemeProvider>
   );

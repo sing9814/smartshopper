@@ -6,11 +6,13 @@ import { useTheme } from '../theme/themeContext';
 import AddPurchaseScreen from '../screens/AddPurchaseScreen';
 import ItemStack from './ItemStack';
 import ProfileStack from './ProfileStack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
 function MainTabNav() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
 
   return (
@@ -21,9 +23,9 @@ function MainTabNav() {
           backgroundColor: theme.white,
           borderTopLeftRadius: 18,
           borderTopRightRadius: 18,
-          height: 65,
+          height: 65 + insets.bottom,
           paddingTop: 8,
-          paddingBottom: 8,
+          paddingBottom: 8 + insets.bottom,
           borderTopWidth: 0,
         },
         headerShown: false,
