@@ -12,7 +12,7 @@ import { formatDateShort, formatTimeStampNoTime } from '../utils/date';
 import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
-import { getWearLevelData } from '../utils/wears';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 
 const PurchaseList = ({
   purchases,
@@ -95,8 +95,10 @@ const PurchaseList = ({
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.key);
     const categoryText = getCategoryText(item);
-    const wearLevel = getWearLevelData(item.wears.length);
-    const wearLevelColors = colors.wearLevels?.[wearLevel.code] || {
+    const wearCount = item.wears?.length || 0;
+    const wearGoal = item.wearGoal ?? DEFAULT_WEAR_GOAL;
+    const wearProgress = getWearGoalProgress(wearCount, wearGoal);
+    const wearProgressColors = colors.wearGoalProgress?.[wearProgress.code] || {
       bg: colors.primaryLight,
       text: colors.primary,
     };
@@ -119,23 +121,21 @@ const PurchaseList = ({
             <Text style={styles.title} numberOfLines={1}>
               {item.name}
             </Text>
-            <Text style={styles.date}>
-              {overlay ? `${item.wears.length} wears` : getPriceText(item)}
-            </Text>
+            <Text style={styles.date}>{overlay ? `${wearCount} wears` : getPriceText(item)}</Text>
           </View>
           {!overlay && (
             <View style={styles.row}>
               <View style={styles.wearRow}>
                 <Text
                   style={[
-                    styles.wearLevel,
+                    styles.wearProgress,
                     {
-                      backgroundColor: wearLevelColors.bg,
-                      color: wearLevelColors.text,
+                      backgroundColor: wearProgressColors.bg,
+                      color: wearProgressColors.text,
                     },
                   ]}
                 >
-                  {wearLevel.emoji} {wearLevel.label}
+                  {wearProgress.label} goal
                 </Text>
                 {categoryText ? (
                   <>
@@ -146,7 +146,7 @@ const PurchaseList = ({
                   </>
                 ) : null}
               </View>
-              <Text style={styles.wears}>{item.wears.length} wears</Text>
+              <Text style={styles.wears}>{wearCount} wears</Text>
             </View>
           )}
           <View style={styles.row}>
@@ -253,7 +253,7 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    wearLevel: {
+    wearProgress: {
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,

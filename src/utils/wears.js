@@ -50,6 +50,8 @@ export const WEAR_LEVELS = [
   },
 ];
 
+export const DEFAULT_WEAR_GOAL = 10;
+
 export const getWearLevelData = (wearCount = 0) => {
   const normalizedWearCount = Math.max(wearCount || 0, 0);
 
@@ -61,4 +63,33 @@ export const getWearLevelData = (wearCount = 0) => {
 export const getWearLevel = (wearCount) => {
   const { emoji, label } = getWearLevelData(wearCount);
   return `${emoji} ${label}`;
+};
+
+export const getWearGoalProgress = (wearCount = 0, wearGoal = DEFAULT_WEAR_GOAL) => {
+  const normalizedWearCount = Math.max(wearCount || 0, 0);
+  const normalizedWearGoal = Math.max(wearGoal || DEFAULT_WEAR_GOAL, 1);
+  const percentage = Math.round((normalizedWearCount / normalizedWearGoal) * 100);
+  const cappedPercentage = Math.min(percentage, 100);
+
+  let code = 'unworn';
+
+  if (percentage >= 100) {
+    code = 'complete';
+  } else if (percentage >= 75) {
+    code = 'near_goal';
+  } else if (percentage >= 50) {
+    code = 'halfway';
+  } else if (percentage >= 25) {
+    code = 'started';
+  } else if (percentage > 0) {
+    code = 'early';
+  }
+
+  return {
+    code,
+    percentage,
+    cappedPercentage,
+    label: `${percentage}%`,
+    detailLabel: `${percentage}% to goal`,
+  };
 };

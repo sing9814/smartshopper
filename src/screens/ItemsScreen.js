@@ -15,6 +15,7 @@ import { addItemsToCollections } from '../utils/firebase';
 import { setCollections } from '../redux/actions/purchaseActions';
 import SearchBar from '../components/searchBar';
 import { timestampToDate } from '../utils/date';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
@@ -37,7 +38,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
 
-  const [sortField, setSortField] = useState('lastWorn');
+  const [sortField, setSortField] = useState('dateAdded');
   const [sortDirection, setSortDirection] = useState('desc');
 
   const getLastWearTime = (purchase) => {
@@ -47,6 +48,12 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const getDateCreatedTime = (purchase) => {
     return timestampToDate(purchase.dateCreated)?.getTime() || 0;
+  };
+
+  const getWearProgressPercentage = (purchase) => {
+    const wearCount = purchase.wears?.length || 0;
+    const wearGoal = purchase.wearGoal ?? DEFAULT_WEAR_GOAL;
+    return getWearGoalProgress(wearCount, wearGoal).percentage;
   };
 
   const showBanner = (message, type = 'error') => {
@@ -67,6 +74,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       } else if (sortField === 'wears') {
         aValue = a.wears?.length || 0;
         bValue = b.wears?.length || 0;
+      } else if (sortField === 'progress') {
+        aValue = getWearProgressPercentage(a);
+        bValue = getWearProgressPercentage(b);
       } else if (sortField === 'price') {
         aValue = a.paidPrice ?? a.regularPrice ?? 0;
         bValue = b.paidPrice ?? b.regularPrice ?? 0;
@@ -81,6 +91,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const sortOptions = [
     { label: 'Last worn', value: 'lastWorn' },
     { label: 'Date added', value: 'dateAdded' },
+    { label: 'Progress', value: 'progress' },
     { label: 'Wear count', value: 'wears' },
     { label: 'Price', value: 'price' },
   ];
@@ -284,7 +295,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         visible={sortSheetVisible}
         onClose={() => setSortSheetVisible(false)}
         title="Sort by"
-        height={300}
+        height={360}
       >
         {sortOptions.map((option, index) => {
           const isActive = sortField === option.value;

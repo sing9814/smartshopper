@@ -20,12 +20,10 @@ import Banner from '../components/banner';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import { convertCentsToDollars } from '../utils/price';
-import { getWearLevelData } from '../utils/wears';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
-
-const DEFAULT_WEAR_GOAL = 10;
 
 const sortWearsByDate = (wears) => {
   return [...wears].sort((a, b) => {
@@ -117,8 +115,9 @@ const DetailsScreen = ({ navigation }) => {
   };
 
   const wearCount = currentPurchase.wears?.length || 0;
-  const wearLevel = getWearLevelData(wearCount);
-  const wearLevelColors = colors.wearLevels?.[wearLevel.code] || {
+  const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
+  const wearProgress = getWearGoalProgress(wearCount, wearGoal);
+  const wearProgressColors = colors.wearGoalProgress?.[wearProgress.code] || {
     bg: colors.primaryLight,
     text: colors.primary,
   };
@@ -131,7 +130,6 @@ const DetailsScreen = ({ navigation }) => {
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
     wearCount > 0 ? formatCostPerWear(currentPurchase.paidPrice / wearCount) : 'N/A';
-  const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
 
   return (
     <View style={styles.container}>
@@ -191,17 +189,17 @@ const DetailsScreen = ({ navigation }) => {
 
           <View style={styles.listRow}>
             <View style={styles.rowText}>
-              <Text style={styles.titleLabel}>Wear level</Text>
+              <Text style={styles.titleLabel}>Wear progress</Text>
               <Text
                 style={[
-                  styles.wearLevel,
+                  styles.wearProgress,
                   {
-                    backgroundColor: wearLevelColors.bg,
-                    color: wearLevelColors.text,
+                    backgroundColor: wearProgressColors.bg,
+                    color: wearProgressColors.text,
                   },
                 ]}
               >
-                {wearLevel.emoji} {wearLevel.label}
+                {wearProgress.detailLabel}
               </Text>
             </View>
 
@@ -377,7 +375,7 @@ const createStyles = (colors, insets) =>
       fontSize: 13,
       color: colors.gray,
     },
-    wearLevel: {
+    wearProgress: {
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,

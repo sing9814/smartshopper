@@ -26,7 +26,7 @@ import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getWearLevelData } from '../utils/wears';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 import {
   USE_FAKE_DATA,
   createMockCategories,
@@ -384,6 +384,9 @@ const HomeLoadingPlaceholders = ({ styles }) => {
 };
 
 const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
+  const wearGoal = item?.wearGoal ?? DEFAULT_WEAR_GOAL;
+  const wearProgress = getWearGoalProgress(wearCount, wearGoal);
+
   if (!item) {
     return (
       <View>
@@ -403,7 +406,7 @@ const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
         <Text style={styles.highlightTitle} numberOfLines={1}>
           {item.name}
         </Text>
-        <Text style={styles.mutedText}>{getWearLevelData(wearCount).label}</Text>
+        <Text style={styles.mutedText}>{wearProgress.detailLabel}</Text>
       </View>
       <Text style={styles.highlightValue}>{wearCount} wears</Text>
     </View>

@@ -115,7 +115,7 @@ export const mockCollections = [
   },
   {
     id: 'mock-wear-levels',
-    name: 'Wear level samples',
+    name: 'Wear progress samples',
     description: 'Items covering every wear bucket',
     items: [
       'mock-silk-scarf',

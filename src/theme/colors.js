@@ -55,6 +55,32 @@ export const lightTheme = {
       text: '#455A64',
     },
   },
+  wearGoalProgress: {
+    unworn: {
+      bg: '#ECEFF1',
+      text: '#607D8B',
+    },
+    early: {
+      bg: '#FFEBEE',
+      text: '#C62828',
+    },
+    started: {
+      bg: '#FFF3E0',
+      text: '#C45A00',
+    },
+    halfway: {
+      bg: '#E3F2FD',
+      text: '#1565C0',
+    },
+    near_goal: {
+      bg: '#E8F5E9',
+      text: '#2E7D32',
+    },
+    complete: {
+      bg: '#DFF5E1',
+      text: '#1B7F2A',
+    },
+  },
 
   textSectionTitleColor: '#b6c1cd',
   dayTextColor: '#2d4150',
@@ -120,6 +146,32 @@ export const darkTheme = {
     legacy_item: {
       bg: '#263238',
       text: '#CFD8DC',
+    },
+  },
+  wearGoalProgress: {
+    unworn: {
+      bg: '#263238',
+      text: '#CFD8DC',
+    },
+    early: {
+      bg: '#3D1717',
+      text: '#FF9A9A',
+    },
+    started: {
+      bg: '#3D2A12',
+      text: '#FFC06A',
+    },
+    halfway: {
+      bg: '#12304A',
+      text: '#8DCBFF',
+    },
+    near_goal: {
+      bg: '#17351F',
+      text: '#8BE29A',
+    },
+    complete: {
+      bg: '#123A1B',
+      text: '#A7F3B4',
     },
   },
 
