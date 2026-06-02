@@ -69,7 +69,9 @@ const PurchaseList = ({
   };
 
   const getPriceText = (item) => {
-    const price = item.paidPrice ?? 0;
+    const price = item.paidPrice;
+    if (price == null) return 'No price';
+
     return `$${convertCentsToDollars(price)}`;
   };
 
@@ -276,6 +278,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     wearProgress: {
+      marginTop: 6,
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,
@@ -283,12 +286,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       fontWeight: '500',
       overflow: 'hidden',
-    },
-    paidPrice: {
-      fontSize: 17,
-      fontWeight: '600',
-      color: colors.black,
-      marginRight: 2,
     },
     addWearButton: {
       minWidth: 70,

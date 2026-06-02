@@ -126,10 +126,10 @@ const DetailsScreen = ({ navigation }) => {
     currentPurchase.category?.category ||
     (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'N/A');
   const categoryLabel = categoryName;
-  const paidPrice = currentPurchase.paidPrice ?? 0;
+  const paidPrice = currentPurchase.paidPrice;
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
-    wearCount > 0 ? formatCostPerWear(currentPurchase.paidPrice / wearCount) : 'N/A';
+    wearCount > 0 && paidPrice != null ? formatCostPerWear(paidPrice / wearCount) : 'N/A';
 
   return (
     <View style={styles.container}>
@@ -164,7 +164,9 @@ const DetailsScreen = ({ navigation }) => {
           <View style={styles.priceBlock}>
             <Text style={styles.label}>Price</Text>
             <View style={styles.priceContainer}>
-              <Text style={styles.paidPrice}>${convertCentsToDollars(paidPrice)}</Text>
+              <Text style={styles.paidPrice}>
+                {paidPrice != null ? `$${convertCentsToDollars(paidPrice)}` : 'No price'}
+              </Text>
               {regularPrice && (
                 <Text style={styles.regularPrice}>${convertCentsToDollars(regularPrice)}</Text>
               )}

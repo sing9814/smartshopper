@@ -48,7 +48,9 @@ const ProfileScreen = ({ navigation }) => {
 
     purchaseData.forEach((purchase) => {
       const regularPrice = parseInt(purchase.regularPrice, 10) || 0;
-      const paidPrice = parseInt(purchase.paidPrice, 10);
+      const paidPrice = purchase.paidPrice != null ? parseInt(purchase.paidPrice, 10) : null;
+
+      if (paidPrice == null) return;
 
       spent += paidPrice;
 

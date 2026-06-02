@@ -96,8 +96,12 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         aValue = getWearProgressPercentage(a);
         bValue = getWearProgressPercentage(b);
       } else if (sortField === 'price') {
-        aValue = a.paidPrice ?? a.regularPrice ?? 0;
-        bValue = b.paidPrice ?? b.regularPrice ?? 0;
+        aValue = a.paidPrice ?? a.regularPrice;
+        bValue = b.paidPrice ?? b.regularPrice;
+
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return 1;
+        if (bValue == null) return -1;
       } else if (sortField === 'dateAdded') {
         aValue = getDateCreatedTime(a);
         bValue = getDateCreatedTime(b);

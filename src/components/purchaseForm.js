@@ -84,10 +84,10 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       setRegularPrice(
         purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
       );
-      setPaidPrice(convertCentsToDollars(purchase.paidPrice));
+      setPaidPrice(purchase.paidPrice != null ? convertCentsToDollars(purchase.paidPrice) : null);
       setWearGoal(purchase.wearGoal != null ? String(purchase.wearGoal) : '');
       setNote(purchase.note);
-      setDisabled(purchase.paidPrice ? true : false);
+      setDisabled(purchase.regularPrice != null);
     }
     if (name) {
       setItemName(name);
@@ -134,11 +134,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const savedWearGoal = wearGoal ? parseInt(wearGoal, 10) : DEFAULT_WEAR_GOAL;
 
   const validateFields = () => {
-    if (!validateName(itemName) || paidPrice === '') {
-      showBanner('Please fill in all missing fields');
+    if (!validateName(itemName)) {
+      showBanner('Please enter an item name');
       return false;
     }
-    if (!validatePrice(paidPrice) || (regularPrice && !validatePrice(regularPrice))) {
+    if (
+      (paidPrice && !validatePrice(paidPrice)) ||
+      (regularPrice && !validatePrice(regularPrice))
+    ) {
       showBanner('Prices must be a valid number with up to 2 decimal places');
       return false;
     }
@@ -183,7 +186,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         note: note,
         edited: generateFirestoreTimestamp(),
         regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
-        paidPrice: Math.round(parseFloat(paidPrice) * 100),
+        paidPrice: paidPrice ? Math.round(parseFloat(paidPrice) * 100) : null,
         wearGoal: savedWearGoal,
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: purchase.dateCreated,
@@ -212,7 +215,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         note: note,
         wears: [],
         regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
-        paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : 0,
+        paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : null,
         wearGoal: savedWearGoal,
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: generateFirestoreTimestamp(),
@@ -278,6 +281,17 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Item details</Text>
               <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
+
+              <CustomInput
+                placeholder={`Wear goal (default ${DEFAULT_WEAR_GOAL})`}
+                value={wearGoal}
+                onChangeText={setWearGoal}
+                type="numeric"
+              />
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Other details (optional)</Text>
               <CustomInput
                 placeholder="Price"
                 value={paidPrice}
@@ -289,7 +303,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
               {disabled && (
                 <CustomInput
-                  placeholder="Enter regular price (optional)"
+                  placeholder="Regular price"
                   value={regularPrice}
                   onChangeText={setRegularPrice}
                   type="numeric"
@@ -306,17 +320,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                   }
                 />
               )}
-
-              <CustomInput
-                placeholder={`Wear goal (default ${DEFAULT_WEAR_GOAL})`}
-                value={wearGoal}
-                onChangeText={setWearGoal}
-                type="numeric"
-              />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Other details (optional)</Text>
               <TouchableOpacity
                 style={styles.categorySelector}
                 onPress={() => setShowCategorySheet(true)}
