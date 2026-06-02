@@ -13,6 +13,7 @@ import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const PurchaseList = ({
   purchases,
@@ -26,6 +27,9 @@ const PurchaseList = ({
   emptyText = 'No items yet',
   navigation,
   selectedItems = [],
+  onAddWear,
+  addingWearItemId,
+  isWearLoggedToday,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -64,14 +68,6 @@ const PurchaseList = ({
     return overlay && getLastWornText(item).toLowerCase().includes('most recent');
   };
 
-  const getCostPerWearText = (item) => {
-    const wearCount = item.wears?.length || 0;
-    if (wearCount === 0) return 'No CPW yet';
-
-    const price = item.paidPrice ?? 0;
-    return `$${convertCentsToDollars(price / wearCount)} CPW`;
-  };
-
   const getPriceText = (item) => {
     const price = item.paidPrice ?? 0;
     return `$${convertCentsToDollars(price)}`;
@@ -102,6 +98,16 @@ const PurchaseList = ({
       bg: colors.primaryLight,
       text: colors.primary,
     };
+    const showWearAction = !overlay && selectedItems.length === 0 && onAddWear;
+    const isAddingWear = addingWearItemId === item.key;
+    const hasWearLoggedToday = isWearLoggedToday?.(item);
+    const isWearButtonDisabled = isAddingWear || hasWearLoggedToday;
+    let addWearButtonLabel = 'Wear';
+    if (hasWearLoggedToday) {
+      addWearButtonLabel = 'Worn today';
+    } else if (isAddingWear) {
+      addWearButtonLabel = 'Adding';
+    }
 
     return (
       <TouchableOpacity
@@ -156,9 +162,30 @@ const PurchaseList = ({
             >
               {getLastWornText(item)}
             </Text>
-            <View style={styles.group}>
-              <Text style={styles.costPerWear}>{getCostPerWearText(item)}</Text>
-            </View>
+            {showWearAction && (
+              <TouchableOpacity
+                onPress={() => onAddWear(item)}
+                disabled={isWearButtonDisabled}
+                style={[
+                  styles.addWearButton,
+                  hasWearLoggedToday && styles.addWearButtonLogged,
+                  isWearButtonDisabled && styles.addWearButtonDisabled,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  hasWearLoggedToday ? `${item.name} worn today` : `Add wear for ${item.name}`
+                }
+              >
+                <Ionicons
+                  name={hasWearLoggedToday ? 'checkmark-circle-outline' : 'add-circle-outline'}
+                  size={17}
+                  color={hasWearLoggedToday ? colors.gray : colors.primary}
+                />
+                <Text style={[styles.addWearText, hasWearLoggedToday && styles.addWearTextLogged]}>
+                  {addWearButtonLabel}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -226,11 +253,6 @@ const createStyles = (colors) =>
       color: colors.secondary,
       fontWeight: '500',
     },
-    group: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4,
-    },
     wearRow: {
       flex: 1,
       alignItems: 'center',
@@ -268,11 +290,31 @@ const createStyles = (colors) =>
       color: colors.black,
       marginRight: 2,
     },
-    costPerWear: {
+    addWearButton: {
+      minWidth: 70,
+      height: 32,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 4,
+      backgroundColor: colors.primaryLight,
+    },
+    addWearButtonLogged: {
+      minWidth: 104,
+      backgroundColor: colors.bg,
+    },
+    addWearButtonDisabled: {
+      opacity: 0.6,
+    },
+    addWearText: {
       fontSize: 14,
       fontWeight: '500',
+      color: colors.primary,
+    },
+    addWearTextLogged: {
       color: colors.gray,
-      marginRight: 2,
     },
     date: {
       fontSize: 14,

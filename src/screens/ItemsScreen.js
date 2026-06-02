@@ -5,21 +5,38 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ConfirmationModal from '../components/confirmationModal';
-import { deleteDoc } from '../utils/firebase';
-import { setPurchases } from '../redux/actions/purchaseActions';
+import { addItemsToCollections, deleteDoc, updatePurchaseWears } from '../utils/firebase';
+import { setCollections, setCurrentPurchase, setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
-import { addItemsToCollections } from '../utils/firebase';
-import { setCollections } from '../redux/actions/purchaseActions';
 import SearchBar from '../components/searchBar';
-import { timestampToDate } from '../utils/date';
+import {
+  generateFirestoreTimestampFromDate,
+  getDateKeyInTimeZone,
+  getDeviceTimeZone,
+  timestampToDate,
+} from '../utils/date';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
+
+const sortWearsByDate = (wears) => {
+  return [...wears].sort((a, b) => {
+    const aTime = timestampToDate(a)?.getTime() || 0;
+    const bTime = timestampToDate(b)?.getTime() || 0;
+
+    return aTime - bTime;
+  });
+};
+
+const hasWearLoggedOnDate = (item, dateKey, timeZone) => {
+  return (item.wears || []).some((wear) => getDateKeyInTimeZone(wear, timeZone) === dateKey);
+};
 
 const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
 
   const dispatch = useDispatch();
@@ -37,6 +54,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
+  const [addingWearItemId, setAddingWearItemId] = useState(null);
 
   const [sortField, setSortField] = useState('dateAdded');
   const [sortDirection, setSortDirection] = useState('desc');
@@ -123,6 +141,28 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const clearSelection = () => setSelectedItems([]);
 
+  const getWearUpdateForItem = (item, wearDate, wearDateKey) => {
+    const latestItem = purchases.find((purchase) => purchase.key === item.key) || item;
+
+    if (hasWearLoggedOnDate(latestItem, wearDateKey, timeZone)) {
+      return null;
+    }
+
+    const newWear = generateFirestoreTimestampFromDate(wearDate);
+    const newWears = sortWearsByDate([...(latestItem.wears || []), newWear]);
+
+    return {
+      item: latestItem,
+      updatedItem: { ...latestItem, wears: newWears },
+      wears: newWears,
+    };
+  };
+
+  const isWearLoggedToday = (item) => {
+    const todayKey = getDateKeyInTimeZone(new Date(), timeZone);
+    return hasWearLoggedOnDate(item, todayKey, timeZone);
+  };
+
   const handleAddToCollections = async () => {
     try {
       await addItemsToCollections(selectedItems, selectedCollections);
@@ -144,6 +184,34 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     } catch (err) {
       console.error(err);
       showBanner('Failed to add items to collections');
+    }
+  };
+
+  const handleAddWear = async (item) => {
+    if (addingWearItemId) return;
+
+    const wearDate = new Date();
+    const wearDateKey = getDateKeyInTimeZone(wearDate, timeZone);
+    const wearUpdate = getWearUpdateForItem(item, wearDate, wearDateKey);
+
+    if (!wearUpdate) {
+      return;
+    }
+
+    setAddingWearItemId(item.key);
+
+    const updatedPurchases = purchases.map((purchase) =>
+      purchase.key === item.key ? wearUpdate.updatedItem : purchase
+    );
+
+    dispatch(setPurchases(updatedPurchases));
+    dispatch(setCurrentPurchase(wearUpdate.updatedItem));
+
+    try {
+      await updatePurchaseWears(item.key, wearUpdate.wears);
+      showBanner('Wear added for today', 'success');
+    } finally {
+      setAddingWearItemId(null);
     }
   };
 
@@ -241,6 +309,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           navigation={navigation}
           onItemLongPress={handleItemLongPress}
           selectedItems={selectedItems}
+          onAddWear={handleAddWear}
+          addingWearItemId={addingWearItemId}
+          isWearLoggedToday={isWearLoggedToday}
         />
       )}
       <BottomSheet
