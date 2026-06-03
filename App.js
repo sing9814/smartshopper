@@ -24,7 +24,6 @@ function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const currentUser = auth().currentUser;
   const userOnboardedRef = useRef(false);
 
   const userOnboarded = useSelector((state) => state.user.userOnboarded);
@@ -47,9 +46,11 @@ function AppWrapper() {
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(async (user) => {
+      setLoading(true);
+
       if (user) {
-        setIsAuthenticated(user);
         const onboarded = await getUserOnboardingStatus(user.uid);
+        setIsAuthenticated(user);
         setIsOnboarded(onboarded);
       } else {
         setIsAuthenticated(false);
@@ -81,7 +82,7 @@ function AppWrapper() {
       <View style={{ flex: 1 }}>
         <NavigationContainer>
           <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
-          {!isAuthenticated && !currentUser ? (
+          {!isAuthenticated ? (
             <AuthStackNav />
           ) : isOnboarded || userOnboarded ? (
             <MainStackNav />
