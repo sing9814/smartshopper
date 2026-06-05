@@ -609,7 +609,7 @@ const createStyles = (colors) =>
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
+      // backgroundColor: colors.primaryLight,
     },
     analyticsValue: {
       color: colors.black,
@@ -648,7 +648,7 @@ const createStyles = (colors) =>
       borderRadius: 15,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
+      // backgroundColor: colors.primaryLight,
     },
     coverageText: {
       flex: 1,
@@ -668,7 +668,7 @@ const createStyles = (colors) =>
       borderRadius: 17,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
+      // backgroundColor: colors.primaryLight,
     },
     highlightText: {
       flex: 1,

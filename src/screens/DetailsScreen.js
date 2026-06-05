@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTheme } from '../theme/themeContext';
 import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
@@ -19,6 +20,7 @@ import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActio
 import Banner from '../components/banner';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
+import WearHistoryChart from '../components/WearHistoryChart';
 import { convertCentsToDollars } from '../utils/price';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
@@ -152,7 +154,11 @@ const DetailsScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.heroRow}>
           <View style={styles.heroText}>
             <Text style={styles.label}>Name</Text>
@@ -239,18 +245,24 @@ const DetailsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
+
         <View style={styles.noteBlock}>
           <Text style={styles.titleLabel}>Notes</Text>
           <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
         </View>
-      </ScrollView>
 
-      <View style={styles.bottomContainer}>
-        <Text style={styles.label}>Created: {formatTimeStamp(currentPurchase.dateCreated)}</Text>
-        {currentPurchase.edited && (
-          <Text style={styles.label}>Last edited: {formatTimeStamp(currentPurchase.edited)}</Text>
-        )}
-      </View>
+        <View style={styles.metaBlock}>
+          <Text style={styles.metaText}>
+            Created: {formatTimeStamp(currentPurchase.dateCreated)}
+          </Text>
+          {currentPurchase.edited && (
+            <Text style={styles.metaText}>
+              Last edited: {formatTimeStamp(currentPurchase.edited)}
+            </Text>
+          )}
+        </View>
+      </ScrollView>
 
       <ConfirmationModal
         data={currentPurchase.name}
@@ -322,6 +334,7 @@ const createStyles = (colors, insets) =>
       justifyContent: 'center',
     },
     content: {
+      flexGrow: 1,
       paddingBottom: 160 + insets.bottom,
     },
     heroRow: {
@@ -438,12 +451,16 @@ const createStyles = (colors, insets) =>
       fontSize: 15,
       lineHeight: 22,
     },
-    bottomContainer: {
-      position: 'absolute',
-      left: 16,
-      bottom: 80 + insets.bottom,
+    metaBlock: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 2,
       gap: 4,
-      paddingRight: 16,
+    },
+    metaText: {
+      color: colors.gray,
+      fontSize: 13,
     },
   });
 
