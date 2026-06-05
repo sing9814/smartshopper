@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Dimensions, Pressable, Text, View, Keyboard } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -18,6 +18,7 @@ const SHEET_OFFSET = 40;
 const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const [shouldRender, setShouldRender] = useState(visible);
 
   const resolvedHeight = useMemo(() => {
     if (typeof height === 'string' && height.endsWith('%')) {
@@ -49,6 +50,14 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
 
   useEffect(() => {
     if (visible) {
+      setShouldRender(true);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
+    if (visible) {
       backdropOpacity.value = withTiming(0.3, { duration: 200, reduceMotion: 'never' });
       translateY.value = withSpring(SHEET_OFFSET, {
         damping: 15,
@@ -56,10 +65,16 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
         reduceMotion: 'never',
       });
     } else {
-      translateY.value = resolvedHeight + SHEET_OFFSET;
+      translateY.value = withTiming(
+        resolvedHeight + SHEET_OFFSET,
+        { duration: 200, reduceMotion: 'never' },
+        () => {
+          runOnJS(setShouldRender)(false);
+        }
+      );
       backdropOpacity.value = withTiming(0, { duration: 200, reduceMotion: 'never' });
     }
-  }, [visible, resolvedHeight]);
+  }, [visible, resolvedHeight, shouldRender]);
 
   const closeSheet = () => {
     'worklet';
@@ -97,7 +112,7 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
     height: resolvedHeight + SHEET_OFFSET + keyboardHeight.value,
   }));
 
-  if (!visible) return null;
+  if (!shouldRender) return null;
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.container, backdropStyle]}>

@@ -1,13 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  useWindowDimensions,
-} from 'react-native';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { View, Text, StyleSheet, RefreshControl, useWindowDimensions } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { ScrollView } from 'react-native-gesture-handler';
 import { fetchAllUserData, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
@@ -121,8 +115,32 @@ const HomeScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const tabCloseTimeoutRef = useRef(null);
 
   const purchases = useSelector((state) => state.purchase.purchases);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', () => {
+      if (!navigation.isFocused()) return;
+
+      if (tabCloseTimeoutRef.current) {
+        clearTimeout(tabCloseTimeoutRef.current);
+      }
+
+      setOpen(false);
+      tabCloseTimeoutRef.current = setTimeout(() => {
+        setSelectedDate(null);
+        tabCloseTimeoutRef.current = null;
+      }, 220);
+    });
+
+    return () => {
+      unsubscribe();
+      if (tabCloseTimeoutRef.current) {
+        clearTimeout(tabCloseTimeoutRef.current);
+      }
+    };
+  }, [navigation]);
 
   const fetchData = async () => {
     if (USE_FAKE_DATA) {
