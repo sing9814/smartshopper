@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useTheme } from '../theme/themeContext';
 import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
@@ -26,6 +27,9 @@ import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
+import CustomTabBar from '../navigation/CustomTabBar';
+
+const Tab = createMaterialTopTabNavigator();
 
 const sortWearsByDate = (wears) => {
   return [...wears].sort((a, b) => {
@@ -39,7 +43,7 @@ const sortWearsByDate = (wears) => {
 const DetailsScreen = ({ navigation }) => {
   const colors = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+  const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
   const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
 
@@ -116,6 +120,27 @@ const DetailsScreen = ({ navigation }) => {
     return `$${dollars.toFixed(2)}`;
   };
 
+  const formatWearHistoryDate = (wear) => {
+    const date = timestampToDate(wear);
+    if (!date) return 'N/A';
+
+    const currentYear = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+    }).format(new Date());
+    const wearYear = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+    }).format(date);
+
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      timeZone,
+      ...(wearYear !== currentYear ? { year: 'numeric' } : {}),
+    });
+  };
+
   const wearCount = currentPurchase.wears?.length || 0;
   const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
   const wearProgress = getWearGoalProgress(wearCount, wearGoal);
@@ -132,7 +157,10 @@ const DetailsScreen = ({ navigation }) => {
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
     wearCount > 0 && paidPrice != null ? formatCostPerWear(paidPrice / wearCount) : 'N/A';
-
+  const wearHistory = useMemo(
+    () => sortWearsByDate(currentPurchase.wears || []).reverse(),
+    [currentPurchase.wears]
+  );
   return (
     <View style={styles.container}>
       {banner && (
@@ -154,115 +182,187 @@ const DetailsScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <Tab.Navigator
+        style={styles.tabNavigator}
+        sceneContainerStyle={styles.tabScene}
+        tabBar={(props) => <CustomTabBar {...props} backgroundColor={colors.primary} />}
+        screenOptions={{
+          swipeEnabled: true,
+          lazy: false,
+        }}
       >
-        <View style={styles.heroRow}>
-          <View style={styles.heroText}>
-            <Text style={styles.label}>Name</Text>
-            <Text style={styles.title} numberOfLines={2}>
-              {currentPurchase.name}
-            </Text>
-          </View>
+        <Tab.Screen name="Summary">
+          {() => (
+            <ScrollView
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.heroRow}>
+                <View style={styles.heroText}>
+                  <Text style={styles.label}>Name</Text>
+                  <Text style={styles.title} numberOfLines={2}>
+                    {currentPurchase.name}
+                  </Text>
+                </View>
 
-          <View style={styles.priceBlock}>
-            <Text style={styles.label}>Price</Text>
-            <View style={styles.priceContainer}>
-              <Text style={styles.paidPrice}>
-                {paidPrice != null ? `$${convertCentsToDollars(paidPrice)}` : 'No price'}
-              </Text>
-              {regularPrice && (
-                <Text style={styles.regularPrice}>${convertCentsToDollars(regularPrice)}</Text>
-              )}
-            </View>
-          </View>
-        </View>
+                <View style={styles.priceBlock}>
+                  <Text style={styles.label}>Price</Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.paidPrice}>
+                      {paidPrice != null ? `$${convertCentsToDollars(paidPrice)}` : 'No price'}
+                    </Text>
+                    {regularPrice && (
+                      <Text style={styles.regularPrice}>
+                        ${convertCentsToDollars(regularPrice)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
 
-        <View>
-          <View style={styles.listRow}>
-            <View style={[styles.rowText, styles.categoryTextBlock]}>
-              <Text style={styles.titleLabel}>Category</Text>
-              <Text style={styles.categoryValue} numberOfLines={1}>
-                {categoryLabel}
-              </Text>
-            </View>
+              <View>
+                <View style={styles.listRow}>
+                  <View style={[styles.rowText, styles.categoryTextBlock]}>
+                    <Text style={styles.titleLabel}>Category</Text>
+                    <Text style={styles.categoryValue} numberOfLines={1}>
+                      {categoryLabel}
+                    </Text>
+                  </View>
 
-            <View style={styles.rowMeta}>
-              <Text style={styles.titleLabel}>Purchased</Text>
-              <Text style={styles.valueText}>{formatDate(currentPurchase.datePurchased)}</Text>
-            </View>
-          </View>
+                  <View style={styles.rowMeta}>
+                    <Text style={styles.titleLabel}>Purchased</Text>
+                    <Text style={styles.valueText}>
+                      {formatDate(currentPurchase.datePurchased)}
+                    </Text>
+                  </View>
+                </View>
 
-          <View style={styles.listRow}>
-            <View style={styles.rowText}>
-              <Text style={styles.titleLabel}>Wear progress</Text>
-              <Text
-                style={[
-                  styles.wearProgress,
-                  {
-                    backgroundColor: wearProgressColors.bg,
-                    color: wearProgressColors.text,
-                  },
-                ]}
-              >
-                {wearProgress.detailLabel}
-              </Text>
-            </View>
+                <View style={styles.listRow}>
+                  <View style={styles.rowText}>
+                    <Text style={styles.titleLabel}>Wear progress</Text>
+                    <Text
+                      style={[
+                        styles.wearProgress,
+                        {
+                          backgroundColor: wearProgressColors.bg,
+                          color: wearProgressColors.text,
+                        },
+                      ]}
+                    >
+                      {wearProgress.detailLabel}
+                    </Text>
+                  </View>
 
-            <View style={styles.rowMeta}>
-              <Text style={styles.titleLabel}>Wear count</Text>
-              <View style={styles.wearCountRow}>
-                <Text style={styles.valueText}>
-                  {wearCount} / {wearGoal} wears
+                  <View style={styles.rowMeta}>
+                    <Text style={styles.titleLabel}>Wear count</Text>
+                    <View style={styles.wearCountRow}>
+                      <Text style={styles.valueText}>
+                        {wearCount} / {wearGoal} wears
+                      </Text>
+                      <TouchableOpacity
+                        onPress={onPressAddWear}
+                        disabled={isAddingWear}
+                        activeOpacity={0.75}
+                        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                        style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
+                      >
+                        <FontAwesome6 name="plus" size={11} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.listRow}>
+                  <View style={styles.rowText}>
+                    <Text style={styles.titleLabel}>Last worn</Text>
+                    <Text style={styles.valueText}>
+                      {lastWear ? formatTimeStampNoTime(lastWear) : 'Never worn'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.rowMeta}>
+                    <Text style={styles.titleLabel}>Cost per wear</Text>
+                    <Text style={styles.valueText}>{costPerWear}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
+
+              <View style={styles.noteBlock}>
+                <Text style={styles.titleLabel}>Notes</Text>
+                <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
+              </View>
+
+              <View style={styles.metaBlock}>
+                <Text style={styles.metaText}>
+                  Created: {formatTimeStamp(currentPurchase.dateCreated)}
                 </Text>
+                {currentPurchase.edited && (
+                  <Text style={styles.metaText}>
+                    Last edited: {formatTimeStamp(currentPurchase.edited)}
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+          )}
+        </Tab.Screen>
+
+        <Tab.Screen name="History">
+          {() => (
+            <ScrollView
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.historySummary}>
+                <View style={styles.historySummaryCountRow}>
+                  <View style={styles.historySummaryTopRow}>
+                    <Text style={styles.historySummaryCount}>{wearCount}</Text>
+                  </View>
+                  <Text style={styles.historySummaryText}>
+                    {wearCount === 1 ? 'Wear logged' : 'Wears logged'}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   onPress={onPressAddWear}
                   disabled={isAddingWear}
                   activeOpacity={0.75}
                   hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                  style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
+                  style={[
+                    styles.historyAddWearButton,
+                    isAddingWear && styles.addWearButtonDisabled,
+                  ]}
                 >
-                  <FontAwesome6 name="plus" size={11} color={colors.primary} />
+                  <FontAwesome6 name="plus" size={14} color={colors.primary} />
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
 
-          <View style={styles.listRow}>
-            <View style={styles.rowText}>
-              <Text style={styles.titleLabel}>Last worn</Text>
-              <Text style={styles.valueText}>
-                {lastWear ? formatTimeStampNoTime(lastWear) : 'Never worn'}
-              </Text>
-            </View>
-
-            <View style={styles.rowMeta}>
-              <Text style={styles.titleLabel}>Cost per wear</Text>
-              <Text style={styles.valueText}>{costPerWear}</Text>
-            </View>
-          </View>
-        </View>
-
-        <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
-
-        <View style={styles.noteBlock}>
-          <Text style={styles.titleLabel}>Notes</Text>
-          <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
-        </View>
-
-        <View style={styles.metaBlock}>
-          <Text style={styles.metaText}>
-            Created: {formatTimeStamp(currentPurchase.dateCreated)}
-          </Text>
-          {currentPurchase.edited && (
-            <Text style={styles.metaText}>
-              Last edited: {formatTimeStamp(currentPurchase.edited)}
-            </Text>
+              {wearHistory.length > 0 ? (
+                <View>
+                  {wearHistory.map((wear, index) => (
+                    <View
+                      key={`${getDateKeyInTimeZone(wear, timeZone)}-${index}`}
+                      style={styles.wearRow}
+                    >
+                      <Text style={styles.wearRowNumber}>{wearHistory.length - index}.</Text>
+                      <Text style={styles.wearRowDate}>{formatWearHistoryDate(wear)}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.historyEmpty}>
+                  <Text style={styles.historyEmptyTitle}>No wears logged yet</Text>
+                  <Text style={styles.historyEmptyText}>
+                    Add a wear from the Summary tab to start building this history.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
           )}
-        </View>
-      </ScrollView>
+        </Tab.Screen>
+      </Tab.Navigator>
 
       <ConfirmationModal
         data={currentPurchase.name}
@@ -332,6 +432,13 @@ const createStyles = (colors, insets) =>
       height: 28,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    tabNavigator: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    tabScene: {
+      backgroundColor: colors.bg,
     },
     content: {
       flexGrow: 1,
@@ -461,6 +568,82 @@ const createStyles = (colors, insets) =>
     metaText: {
       color: colors.gray,
       fontSize: 13,
+    },
+    historySummary: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      marginBottom: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    historySummaryCountRow: {
+      flex: 1,
+    },
+    historySummaryTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    historySummaryCount: {
+      color: colors.black,
+      fontSize: 24,
+      fontWeight: '800',
+      lineHeight: 28,
+    },
+    historySummaryText: {
+      paddingTop: 8,
+      color: colors.gray,
+    },
+    historyAddWearButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    wearRow: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 13,
+      marginBottom: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    wearRowDate: {
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
+      flex: 1,
+    },
+    wearRowNumber: {
+      color: colors.gray,
+      fontWeight: '500',
+      marginRight: 8,
+    },
+    historyEmpty: {
+      flex: 1,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 28,
+      paddingBottom: 80,
+      minHeight: 260,
+    },
+    historyEmptyTitle: {
+      color: colors.black,
+      fontSize: 17,
+      fontWeight: '700',
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    historyEmptyText: {
+      color: colors.gray,
+      lineHeight: 21,
+      textAlign: 'center',
     },
   });
 

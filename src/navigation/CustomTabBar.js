@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
-const CustomTabBar = ({ state, descriptors, navigation, hidden }) => {
+const CustomTabBar = ({ state, descriptors, navigation, hidden, backgroundColor }) => {
   const colors = useTheme();
 
   if (hidden) return null;
@@ -12,7 +12,8 @@ const CustomTabBar = ({ state, descriptors, navigation, hidden }) => {
         styles.container,
         {
           backgroundColor:
-            state.routes[state.index].name === 'Items' ? colors.primary : colors.primaryDark,
+            backgroundColor ??
+            (state.routes[state.index].name === 'Items' ? colors.primary : colors.primaryDark),
         },
       ]}
     >
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    letterSpacing: 1,
+    letterSpacing: 0.25,
   },
 });
 
