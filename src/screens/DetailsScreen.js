@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
@@ -61,10 +61,7 @@ const DetailsScreen = ({ navigation }) => {
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   const showBanner = (message, type = 'error') => {
-    setBanner(null);
-    setTimeout(() => {
-      setBanner({ message, type });
-    }, 10);
+    setBanner({ id: Date.now(), message, type });
   };
 
   const handleDelete = () => {
@@ -161,11 +158,21 @@ const DetailsScreen = ({ navigation }) => {
     () => sortWearsByDate(currentPurchase.wears || []).reverse(),
     [currentPurchase.wears]
   );
+  const renderTabBar = useCallback(
+    (props) => <CustomTabBar {...props} backgroundColor={colors.primary} />,
+    [colors.primary]
+  );
+  const tabScreenOptions = useMemo(
+    () => ({
+      swipeEnabled: true,
+      lazy: false,
+    }),
+    []
+  );
+
   return (
     <View style={styles.container}>
-      {banner && (
-        <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
-      )}
+      {banner && <Banner key={banner.id} message={banner.message} type={banner.type} />}
 
       <View style={styles.topbar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -185,11 +192,8 @@ const DetailsScreen = ({ navigation }) => {
       <Tab.Navigator
         style={styles.tabNavigator}
         sceneContainerStyle={styles.tabScene}
-        tabBar={(props) => <CustomTabBar {...props} backgroundColor={colors.primary} />}
-        screenOptions={{
-          swipeEnabled: true,
-          lazy: false,
-        }}
+        tabBar={renderTabBar}
+        screenOptions={tabScreenOptions}
       >
         <Tab.Screen name="Summary">
           {() => (

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -40,17 +40,27 @@ const Banner = ({ message, onFinish, onPress, type = 'error' }) => {
     opacity: opacity.value,
   }));
 
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
-      disabled={!onPress}
-      style={styles.touchable}
+  const content = (
+    <Animated.View
+      pointerEvents={onPress ? 'auto' : 'none'}
+      style={[styles.banner, { backgroundColor }, animatedStyle]}
     >
-      <Animated.View style={[styles.banner, { backgroundColor }, animatedStyle]}>
-        <Ionicons name={iconName} size={20} color="white" />
-        <Text style={styles.text}>{message}</Text>
-      </Animated.View>
+      <Ionicons name={iconName} size={20} color="white" />
+      <Text style={styles.text}>{message}</Text>
+    </Animated.View>
+  );
+
+  if (!onPress) {
+    return (
+      <View pointerEvents="none" style={styles.touchable}>
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.touchable}>
+      {content}
     </TouchableOpacity>
   );
 };
