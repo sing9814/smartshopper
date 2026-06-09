@@ -9,6 +9,7 @@ export const lightTheme = {
   white: '#fff',
   lightGrey: '#C3C7D2',
   lightestGrey: '#f0f0f0',
+  wearGoalProgressTrack: '#E2E5EC',
   bg: '#F1F0F5',
   error: '#bd413d',
   green: '#42c229',
@@ -55,32 +56,28 @@ export const lightTheme = {
       text: '#455A64',
     },
   },
-  wearGoalProgress: {
-    unworn: {
-      bg: '#ECEFF1',
-      text: '#607D8B',
+  wearGoalProgressRange: [
+    {
+      percent: 1,
+      bg: '#FFE0D1',
+      text: '#E94B16',
     },
-    early: {
-      bg: '#FFEBEE',
-      text: '#C62828',
+    {
+      percent: 35,
+      bg: '#FFEBA6',
+      text: '#D98F00',
     },
-    started: {
-      bg: '#FFF3E0',
-      text: '#C45A00',
+    {
+      percent: 65,
+      bg: '#DDF9A6',
+      text: '#65B600',
     },
-    halfway: {
-      bg: '#E3F2FD',
-      text: '#1565C0',
+    {
+      percent: 100,
+      bg: '#B8F5CD',
+      text: '#009E4C',
     },
-    near_goal: {
-      bg: '#E8F5E9',
-      text: '#2E7D32',
-    },
-    complete: {
-      bg: '#DFF5E1',
-      text: '#1B7F2A',
-    },
-  },
+  ],
 
   textSectionTitleColor: '#b6c1cd',
   dayTextColor: '#2d4150',
@@ -102,6 +99,7 @@ export const darkTheme = {
   white: '#121212',
   lightGrey: '#2E2E36',
   lightestGrey: '#2C2C2E',
+  wearGoalProgressTrack: '#242733',
   bg: '#1A1A1A',
   error: '#bd413d',
   green: '#66DD55',
@@ -148,32 +146,28 @@ export const darkTheme = {
       text: '#CFD8DC',
     },
   },
-  wearGoalProgress: {
-    unworn: {
-      bg: '#263238',
-      text: '#CFD8DC',
+  wearGoalProgressRange: [
+    {
+      percent: 1,
+      bg: '#4A241B',
+      text: '#E16F48',
     },
-    early: {
-      bg: '#3D1717',
-      text: '#FF9A9A',
+    {
+      percent: 35,
+      bg: '#4A3211',
+      text: '#E8A32B',
     },
-    started: {
-      bg: '#3D2A12',
-      text: '#FFC06A',
+    {
+      percent: 65,
+      bg: '#2D4315',
+      text: '#95D849',
     },
-    halfway: {
-      bg: '#12304A',
-      text: '#8DCBFF',
+    {
+      percent: 100,
+      bg: '#123F22',
+      text: '#50CF78',
     },
-    near_goal: {
-      bg: '#17351F',
-      text: '#8BE29A',
-    },
-    complete: {
-      bg: '#123A1B',
-      text: '#A7F3B4',
-    },
-  },
+  ],
 
   textSectionTitleColor: '#b6c1cd',
   dayTextColor: '#a1a1a1',

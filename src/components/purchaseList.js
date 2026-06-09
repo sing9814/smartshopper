@@ -12,7 +12,7 @@ import { formatDateShort, formatTimeStampNoTime } from '../utils/date';
 import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { convertCentsToDollars } from '../utils/price';
-import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const PurchaseList = ({
@@ -96,10 +96,7 @@ const PurchaseList = ({
     const wearCount = item.wears?.length || 0;
     const wearGoal = item.wearGoal ?? DEFAULT_WEAR_GOAL;
     const wearProgress = getWearGoalProgress(wearCount, wearGoal);
-    const wearProgressColors = colors.wearGoalProgress?.[wearProgress.code] || {
-      bg: colors.primaryLight,
-      text: colors.primary,
-    };
+    const wearProgressColors = getWearGoalProgressColors(wearProgress.visualPercentage, colors);
     const showWearAction = !overlay && selectedItems.length === 0 && onAddWear;
     const isAddingWear = addingWearItemId === item.key;
     const hasWearLoggedToday = isWearLoggedToday?.(item);

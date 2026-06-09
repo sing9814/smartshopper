@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
@@ -23,11 +23,18 @@ import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import WearHistoryChart from '../components/WearHistoryChart';
 import { convertCentsToDollars } from '../utils/price';
-import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
+import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 import CustomTabBar from '../navigation/CustomTabBar';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -57,8 +64,10 @@ const DetailsScreen = ({ navigation }) => {
   const [isAddingWear, setIsAddingWear] = useState(false);
   const [isWearDatePickerOpen, setIsWearDatePickerOpen] = useState(false);
   const [selectedWearDate, setSelectedWearDate] = useState(new Date());
+  const [wearProgressTrackWidth, setWearProgressTrackWidth] = useState(0);
 
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const animatedWearProgress = useSharedValue(0);
 
   const showBanner = (message, type = 'error') => {
     setBanner({ id: Date.now(), message, type });
@@ -141,10 +150,7 @@ const DetailsScreen = ({ navigation }) => {
   const wearCount = currentPurchase.wears?.length || 0;
   const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
   const wearProgress = getWearGoalProgress(wearCount, wearGoal);
-  const wearProgressColors = colors.wearGoalProgress?.[wearProgress.code] || {
-    bg: colors.primaryLight,
-    text: colors.primary,
-  };
+  const wearProgressColors = getWearGoalProgressColors(wearProgress.visualPercentage, colors);
   const lastWear = currentPurchase.wears?.[wearCount - 1];
   const categoryName =
     currentPurchase.category?.category ||
@@ -169,6 +175,24 @@ const DetailsScreen = ({ navigation }) => {
     }),
     []
   );
+  const animatedWearProgressBarStyle = useAnimatedStyle(() => ({
+    width: wearProgressTrackWidth * animatedWearProgress.value,
+  }));
+
+  useEffect(() => {
+    if (wearProgressTrackWidth <= 0) return;
+
+    const nextProgress = wearProgress.visualPercentage / 100;
+
+    animatedWearProgress.value = 0;
+    animatedWearProgress.value = withDelay(
+      120,
+      withTiming(nextProgress, {
+        duration: 450 + nextProgress * 1100,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+  }, [animatedWearProgress, wearProgress.visualPercentage, wearProgressTrackWidth]);
 
   return (
     <View style={styles.container}>
@@ -225,6 +249,46 @@ const DetailsScreen = ({ navigation }) => {
                 </View>
               </View>
 
+              <View style={styles.wearProgressPanel}>
+                <View style={styles.wearProgressPanelHeader}>
+                  <View>
+                    <Text style={styles.wearProgressCount}>{wearCount}</Text>
+                    <Text style={styles.titleLabel}>Wears</Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.wearProgress,
+                      {
+                        backgroundColor: wearProgressColors.bg,
+                        color: wearProgressColors.text,
+                      },
+                    ]}
+                  >
+                    {wearProgress.code === 'complete' ? 'Goal reached' : wearProgress.detailLabel}
+                  </Text>
+                </View>
+                <View
+                  style={styles.wearProgressBarTrack}
+                  onLayout={(event) => {
+                    setWearProgressTrackWidth(event.nativeEvent.layout.width);
+                  }}
+                >
+                  <Animated.View
+                    style={[
+                      styles.wearProgressBarFill,
+                      animatedWearProgressBarStyle,
+                      {
+                        backgroundColor: wearProgressColors.fill,
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.wearProgressPanelFooter}>
+                  <Text style={styles.wearProgressFooterText}>{wearGoal} goal</Text>
+                  <Text style={styles.wearProgressFooterText}>{wearProgress.label}</Text>
+                </View>
+              </View>
+
               <View>
                 <View style={styles.listRow}>
                   <View style={[styles.rowText, styles.categoryTextBlock]}>
@@ -244,21 +308,6 @@ const DetailsScreen = ({ navigation }) => {
 
                 <View style={styles.listRow}>
                   <View style={styles.rowText}>
-                    <Text style={styles.titleLabel}>Wear progress</Text>
-                    <Text
-                      style={[
-                        styles.wearProgress,
-                        {
-                          backgroundColor: wearProgressColors.bg,
-                          color: wearProgressColors.text,
-                        },
-                      ]}
-                    >
-                      {wearProgress.detailLabel}
-                    </Text>
-                  </View>
-
-                  <View style={styles.rowMeta}>
                     <Text style={styles.titleLabel}>Wear count</Text>
                     <View style={styles.wearCountRow}>
                       <Text style={styles.valueText}>
@@ -274,6 +323,13 @@ const DetailsScreen = ({ navigation }) => {
                         <FontAwesome6 name="plus" size={11} color={colors.primary} />
                       </TouchableOpacity>
                     </View>
+                  </View>
+
+                  <View style={styles.rowMeta}>
+                    <Text style={styles.titleLabel}>Status</Text>
+                    <Text style={styles.valueText}>
+                      {wearProgress.code === 'complete' ? 'Complete' : 'In progress'}
+                    </Text>
                   </View>
                 </View>
 
@@ -501,6 +557,27 @@ const createStyles = (colors, insets) =>
       fontSize: 13,
       color: colors.gray,
     },
+    wearProgressPanel: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      marginBottom: 2,
+      gap: 12,
+    },
+    wearProgressPanelHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    wearProgressCount: {
+      color: colors.black,
+      fontSize: 34,
+      fontWeight: '800',
+      lineHeight: 32,
+      paddingBottom: 4,
+      marginLeft: -2,
+    },
     wearProgress: {
       paddingVertical: 3,
       paddingBottom: 5,
@@ -510,6 +587,27 @@ const createStyles = (colors, insets) =>
       fontWeight: '500',
       minHeight: 27,
       overflow: 'hidden',
+    },
+    wearProgressBarTrack: {
+      alignSelf: 'stretch',
+      height: 18,
+      borderRadius: 999,
+      backgroundColor: colors.wearGoalProgressTrack,
+      overflow: 'hidden',
+    },
+    wearProgressBarFill: {
+      height: '100%',
+      borderRadius: 999,
+    },
+    wearProgressPanelFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    wearProgressFooterText: {
+      color: colors.gray,
+      // fontSize: 13,
+      // fontWeight: '500',
     },
     valueText: {
       color: colors.black,
