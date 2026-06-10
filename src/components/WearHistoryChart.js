@@ -146,8 +146,11 @@ const createStyles = (colors) =>
       paddingHorizontal: 18,
       paddingTop: 16,
       paddingBottom: 16,
-      marginBottom: 2,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      borderRadius: 12,
       gap: 18,
+      overflow: 'hidden',
     },
     historyHeader: {
       flexDirection: 'row',

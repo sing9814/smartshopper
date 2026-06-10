@@ -8,7 +8,6 @@ import ConfirmationModal from '../components/confirmationModal';
 import {
   formatDate,
   formatTimeStamp,
-  formatTimeStampNoTime,
   generateFirestoreTimestampFromDate,
   getDateKeyInTimeZone,
   getDeviceTimeZone,
@@ -126,7 +125,7 @@ const DetailsScreen = ({ navigation }) => {
     return `$${dollars.toFixed(2)}`;
   };
 
-  const formatWearHistoryDate = (wear) => {
+  const formatWearDate = (wear) => {
     const date = timestampToDate(wear);
     if (!date) return 'N/A';
 
@@ -140,6 +139,7 @@ const DetailsScreen = ({ navigation }) => {
     }).format(date);
 
     return date.toLocaleDateString('en-US', {
+      weekday: 'long',
       month: 'long',
       day: 'numeric',
       timeZone,
@@ -199,9 +199,12 @@ const DetailsScreen = ({ navigation }) => {
       {banner && <Banner key={banner.id} message={banner.message} type={banner.type} />}
 
       <View style={styles.topbar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.topbarAction}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
+        <Text style={styles.topbarTitle} numberOfLines={1}>
+          {currentPurchase.name}
+        </Text>
         <View style={styles.topbarActions}>
           <TouchableOpacity
             onPress={() => setIsSheetVisible(true)}
@@ -226,46 +229,37 @@ const DetailsScreen = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              <View style={styles.heroRow}>
-                <View style={styles.heroText}>
-                  <Text style={styles.label}>Name</Text>
-                  <Text style={styles.title} numberOfLines={2}>
-                    {currentPurchase.name}
-                  </Text>
-                </View>
-
-                <View style={styles.priceBlock}>
-                  <Text style={styles.label}>Price</Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.paidPrice}>
-                      {paidPrice != null ? `$${convertCentsToDollars(paidPrice)}` : 'No price'}
-                    </Text>
-                    {regularPrice && (
-                      <Text style={styles.regularPrice}>
-                        ${convertCentsToDollars(regularPrice)}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-
               <View style={styles.wearProgressPanel}>
                 <View style={styles.wearProgressPanelHeader}>
                   <View>
                     <Text style={styles.wearProgressCount}>{wearCount}</Text>
                     <Text style={styles.titleLabel}>Wears</Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.wearProgress,
-                      {
-                        backgroundColor: wearProgressColors.bg,
-                        color: wearProgressColors.text,
-                      },
-                    ]}
-                  >
-                    {wearProgress.code === 'complete' ? 'Goal reached' : wearProgress.detailLabel}
-                  </Text>
+                  <View style={styles.wearProgressActionRow}>
+                    <Text
+                      style={[
+                        styles.wearProgress,
+                        {
+                          backgroundColor: wearProgressColors.bg,
+                          color: wearProgressColors.text,
+                        },
+                      ]}
+                    >
+                      {wearProgress.code === 'complete' ? 'Goal reached' : wearProgress.detailLabel}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={onPressAddWear}
+                      disabled={isAddingWear}
+                      activeOpacity={0.75}
+                      hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                      style={[
+                        styles.wearProgressAddButton,
+                        isAddingWear && styles.addWearButtonDisabled,
+                      ]}
+                    >
+                      <FontAwesome6 name="plus" size={13} color={colors.primary} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={styles.wearProgressBarTrack}
@@ -284,12 +278,44 @@ const DetailsScreen = ({ navigation }) => {
                   />
                 </View>
                 <View style={styles.wearProgressPanelFooter}>
-                  <Text style={styles.wearProgressFooterText}>{wearGoal} goal</Text>
+                  <Text style={styles.wearProgressFooterText}>Goal: {wearGoal}</Text>
                   <Text style={styles.wearProgressFooterText}>{wearProgress.label}</Text>
                 </View>
               </View>
 
+              <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
+
               <View>
+                <View style={styles.listRow}>
+                  <View style={styles.rowText}>
+                    <Text style={styles.titleLabel}>Last worn</Text>
+                    <Text style={styles.valueText}>
+                      {lastWear ? formatWearDate(lastWear) : 'Never worn'}
+                    </Text>
+                  </View>
+                </View>
+
+                {paidPrice != null && (
+                  <View style={styles.listRow}>
+                    <View style={styles.rowText}>
+                      <Text style={styles.titleLabel}>Price</Text>
+                      <View style={styles.priceContainerInline}>
+                        <Text style={styles.valueText}>${convertCentsToDollars(paidPrice)}</Text>
+                        {regularPrice && (
+                          <Text style={styles.regularPrice}>
+                            ${convertCentsToDollars(regularPrice)}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    <View style={styles.rowMeta}>
+                      <Text style={styles.titleLabel}>Cost per wear</Text>
+                      <Text style={styles.valueText}>{costPerWear}</Text>
+                    </View>
+                  </View>
+                )}
+
                 <View style={styles.listRow}>
                   <View style={[styles.rowText, styles.categoryTextBlock]}>
                     <Text style={styles.titleLabel}>Category</Text>
@@ -305,50 +331,7 @@ const DetailsScreen = ({ navigation }) => {
                     </Text>
                   </View>
                 </View>
-
-                <View style={styles.listRow}>
-                  <View style={styles.rowText}>
-                    <Text style={styles.titleLabel}>Wear count</Text>
-                    <View style={styles.wearCountRow}>
-                      <Text style={styles.valueText}>
-                        {wearCount} / {wearGoal} wears
-                      </Text>
-                      <TouchableOpacity
-                        onPress={onPressAddWear}
-                        disabled={isAddingWear}
-                        activeOpacity={0.75}
-                        hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                        style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
-                      >
-                        <FontAwesome6 name="plus" size={11} color={colors.primary} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-
-                  <View style={styles.rowMeta}>
-                    <Text style={styles.titleLabel}>Status</Text>
-                    <Text style={styles.valueText}>
-                      {wearProgress.code === 'complete' ? 'Complete' : 'In progress'}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.listRow}>
-                  <View style={styles.rowText}>
-                    <Text style={styles.titleLabel}>Last worn</Text>
-                    <Text style={styles.valueText}>
-                      {lastWear ? formatTimeStampNoTime(lastWear) : 'Never worn'}
-                    </Text>
-                  </View>
-
-                  <View style={styles.rowMeta}>
-                    <Text style={styles.titleLabel}>Cost per wear</Text>
-                    <Text style={styles.valueText}>{costPerWear}</Text>
-                  </View>
-                </View>
               </View>
-
-              <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
 
               <View style={styles.noteBlock}>
                 <Text style={styles.titleLabel}>Notes</Text>
@@ -407,7 +390,7 @@ const DetailsScreen = ({ navigation }) => {
                       style={styles.wearRow}
                     >
                       <Text style={styles.wearRowNumber}>{wearHistory.length - index}.</Text>
-                      <Text style={styles.wearRowDate}>{formatWearHistoryDate(wear)}</Text>
+                      <Text style={styles.wearRowDate}>{formatWearDate(wear)}</Text>
                     </View>
                   ))}
                 </View>
@@ -475,13 +458,20 @@ const createStyles = (colors, insets) =>
     topbar: {
       width: '100%',
       backgroundColor: colors.primary,
-      gap: 6,
+      gap: 12,
       paddingTop: 10,
       paddingBottom: 13,
       paddingHorizontal: 20,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    topbarTitle: {
+      color: colors.white,
+      flex: 1,
+      fontSize: 17,
+      fontWeight: '700',
+      textAlign: 'center',
     },
     topbarActions: {
       flexDirection: 'row',
@@ -503,32 +493,6 @@ const createStyles = (colors, insets) =>
     content: {
       flexGrow: 1,
       paddingBottom: 160 + insets.bottom,
-    },
-    heroRow: {
-      backgroundColor: colors.white,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      paddingHorizontal: 16,
-      paddingVertical: 18,
-      marginBottom: 2,
-      gap: 16,
-    },
-    heroText: {
-      flex: 1,
-    },
-    title: {
-      color: colors.black,
-      fontWeight: '700',
-      fontSize: 21,
-      flexShrink: 1,
-    },
-    priceBlock: {
-      alignItems: 'flex-end',
-    },
-    priceContainer: {
-      alignItems: 'flex-end',
-      gap: 2,
     },
     listRow: {
       backgroundColor: colors.white,
@@ -561,14 +525,25 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.white,
       paddingHorizontal: 16,
       paddingVertical: 16,
-      marginBottom: 2,
+      marginTop: 10,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      borderRadius: 12,
       gap: 12,
+      overflow: 'hidden',
     },
     wearProgressPanelHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
       gap: 12,
+    },
+    wearProgressActionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 8,
+      flexShrink: 1,
     },
     wearProgressCount: {
       color: colors.black,
@@ -577,6 +552,14 @@ const createStyles = (colors, insets) =>
       lineHeight: 32,
       paddingBottom: 4,
       marginLeft: -2,
+    },
+    wearProgressAddButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     wearProgress: {
       paddingVertical: 3,
@@ -621,12 +604,6 @@ const createStyles = (colors, insets) =>
       fontWeight: '500',
       flexShrink: 1,
     },
-    wearCountRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 7,
-      minHeight: 27,
-    },
     addWearButton: {
       width: 22,
       height: 22,
@@ -647,6 +624,12 @@ const createStyles = (colors, insets) =>
       textDecorationLine: 'line-through',
       color: colors.gray,
       marginLeft: 2,
+    },
+    priceContainerInline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: 22,
     },
     noteBlock: {
       backgroundColor: colors.white,
