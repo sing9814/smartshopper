@@ -58,6 +58,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
   const [wearGoal, setWearGoal] = useState('');
+  const [itemColor, setItemColor] = useState(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [note, setNote] = useState(null);
   const [disabled, setDisabled] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
@@ -88,6 +90,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       );
       setPaidPrice(purchase.paidPrice != null ? convertCentsToDollars(purchase.paidPrice) : null);
       setWearGoal(purchase.wearGoal != null ? String(purchase.wearGoal) : '');
+      setItemColor(purchase.itemColor || null);
       setNote(purchase.note);
       setDisabled(purchase.regularPrice != null);
     }
@@ -115,11 +118,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         regularPrice !== null ||
         paidPrice !== null ||
         wearGoal !== '' ||
+        itemColor !== null ||
         note !== null
       );
     };
     setShowClearButton(checkFields());
-  }, [itemName, category, regularPrice, paidPrice, wearGoal, note]);
+  }, [itemName, category, regularPrice, paidPrice, wearGoal, itemColor, note]);
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
@@ -153,6 +157,10 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     }
     if (wearGoal && !validateWearGoal(wearGoal)) {
       showBanner('Wear goal must be a whole number greater than 0');
+      return false;
+    }
+    if (!itemColor) {
+      showBanner('Please choose a color');
       return false;
     }
     return true;
@@ -194,6 +202,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
         paidPrice: paidPrice ? Math.round(parseFloat(paidPrice) * 100) : null,
         wearGoal: savedWearGoal,
+        itemColor,
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: purchase.dateCreated,
       };
@@ -223,6 +232,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
         paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : null,
         wearGoal: savedWearGoal,
+        itemColor,
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: generateFirestoreTimestamp(),
       };
@@ -261,6 +271,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     setRegularPrice(null);
     setPaidPrice(null);
     setWearGoal('');
+    setItemColor(null);
+    setColorPickerOpen(false);
     setSelectedDate(null);
   };
 
@@ -298,6 +310,83 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Other details (optional)</Text>
+              <View style={styles.colorPicker}>
+                <TouchableOpacity
+                  style={styles.colorSelector}
+                  onPress={() => setColorPickerOpen((prev) => !prev)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose item color"
+                >
+                  <View style={styles.colorSelectorContent}>
+                    {itemColor ? (
+                      <View
+                        style={[
+                          styles.colorSelectorSwatch,
+                          {
+                            backgroundColor: itemColor.hex,
+                            borderColor:
+                              itemColor.name === 'White' || itemColor.name === 'Black'
+                                ? colors.lightGrey
+                                : itemColor.hex,
+                          },
+                        ]}
+                      />
+                    ) : (
+                      <View style={styles.noColorSwatch}>
+                        <View style={styles.noColorSlash} />
+                      </View>
+                    )}
+                  </View>
+                  <Ionicons
+                    name={colorPickerOpen ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color={colors.gray}
+                  />
+                </TouchableOpacity>
+
+                {colorPickerOpen && (
+                  <View style={styles.colorOptions}>
+                    {colors.itemColorOptions.map((option) => {
+                      const isSelected = itemColor?.name === option.name;
+
+                      return (
+                        <TouchableOpacity
+                          key={option.name}
+                          style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
+                          onPress={() => {
+                            setItemColor(option);
+                            setColorPickerOpen(false);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${option.name} color`}
+                        >
+                          <View
+                            style={[
+                              styles.colorSwatch,
+                              {
+                                backgroundColor: option.hex,
+                                borderColor:
+                                  option.name === 'White' || option.name === 'Black'
+                                    ? colors.lightGrey
+                                    : option.hex,
+                              },
+                            ]}
+                          />
+                          <Text
+                            style={[
+                              styles.colorOptionText,
+                              isSelected && styles.colorOptionTextSelected,
+                            ]}
+                          >
+                            {option.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
               <CustomInput
                 placeholder="Price"
                 value={paidPrice}
@@ -444,6 +533,82 @@ const createStyles = (colors) =>
       fontWeight: '500',
       marginBottom: 2,
       textTransform: 'uppercase',
+    },
+    colorPicker: {
+      width: '100%',
+      gap: 8,
+    },
+    colorSelector: {
+      width: '100%',
+      backgroundColor: colors.white,
+      minHeight: 52,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    colorSelectorContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    colorSelectorSwatch: {
+      width: 18,
+      height: 18,
+      borderRadius: 10,
+      borderWidth: 1,
+    },
+    noColorSwatch: {
+      width: 18,
+      height: 18,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      backgroundColor: colors.white,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    noColorSlash: {
+      width: 26,
+      height: 1,
+      backgroundColor: colors.gray,
+      transform: [{ rotate: '-45deg' }],
+    },
+    colorOptions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    colorOption: {
+      minHeight: 34,
+      paddingVertical: 7,
+      paddingHorizontal: 10,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.white,
+    },
+    colorOptionSelected: {
+      borderColor: colors.primary,
+    },
+    colorSwatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      borderWidth: 1,
+    },
+    colorOptionText: {
+      color: colors.black,
+    },
+    colorOptionTextSelected: {
+      color: colors.primary,
     },
     submitBtn: {
       borderRadius: 10,

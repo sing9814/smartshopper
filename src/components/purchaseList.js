@@ -128,12 +128,28 @@ const PurchaseList = ({
             )}
           </View>
           <View style={styles.row}>
-            <Text
-              numberOfLines={1}
-              style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
-            >
-              {getLastWornText(item)}
-            </Text>
+            <View style={styles.detailLine}>
+              {item.itemColor && !overlay && (
+                <View
+                  style={[
+                    styles.itemColorSwatch,
+                    {
+                      backgroundColor: item.itemColor.hex,
+                      borderColor:
+                        item.itemColor.name === 'White' || item.itemColor.name === 'Black'
+                          ? colors.lightGrey
+                          : item.itemColor.hex,
+                    },
+                  ]}
+                />
+              )}
+              <Text
+                numberOfLines={1}
+                style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
+              >
+                {getLastWornText(item)}
+              </Text>
+            </View>
             {showWearAction && (
               <TouchableOpacity
                 onPress={() => onAddWear(item)}
@@ -219,7 +235,20 @@ const createStyles = (colors) =>
     lastWorn: {
       color: colors.gray,
       flexShrink: 1,
+    },
+    detailLine: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       marginRight: 30,
+    },
+    itemColorSwatch: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      borderWidth: 1,
+      flexShrink: 0,
     },
     mostRecentWear: {
       color: colors.secondary,

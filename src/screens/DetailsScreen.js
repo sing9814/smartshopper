@@ -156,6 +156,7 @@ const DetailsScreen = ({ navigation }) => {
     currentPurchase.category?.category ||
     (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'N/A');
   const categoryLabel = categoryName;
+  const itemColor = currentPurchase.itemColor;
   const paidPrice = currentPurchase.paidPrice;
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
@@ -324,13 +325,45 @@ const DetailsScreen = ({ navigation }) => {
                     </Text>
                   </View>
 
-                  <View style={styles.rowMeta}>
-                    <Text style={styles.titleLabel}>Purchased</Text>
-                    <Text style={styles.valueText}>
-                      {formatDate(currentPurchase.datePurchased)}
-                    </Text>
-                  </View>
+                  {itemColor ? (
+                    <View style={styles.rowMeta}>
+                      <Text style={styles.titleLabel}>Color</Text>
+                      <View style={styles.colorValue}>
+                        <View
+                          style={[
+                            styles.colorSwatch,
+                            {
+                              backgroundColor: itemColor.hex,
+                              borderColor:
+                                itemColor.name === 'White' || itemColor.name === 'Black'
+                                  ? colors.lightGrey
+                                  : itemColor.hex,
+                            },
+                          ]}
+                        />
+                        <Text style={styles.valueText}>{itemColor.name}</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.rowMeta}>
+                      <Text style={styles.titleLabel}>Purchased</Text>
+                      <Text style={styles.valueText}>
+                        {formatDate(currentPurchase.datePurchased)}
+                      </Text>
+                    </View>
+                  )}
                 </View>
+
+                {itemColor && (
+                  <View style={styles.listRow}>
+                    <View style={styles.rowText}>
+                      <Text style={styles.titleLabel}>Purchased</Text>
+                      <Text style={styles.valueText}>
+                        {formatDate(currentPurchase.datePurchased)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
               </View>
 
               <View style={styles.noteBlock}>
@@ -603,6 +636,17 @@ const createStyles = (colors, insets) =>
       fontSize: 15,
       fontWeight: '500',
       flexShrink: 1,
+    },
+    colorValue: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    colorSwatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      borderWidth: 1,
     },
     addWearButton: {
       width: 22,

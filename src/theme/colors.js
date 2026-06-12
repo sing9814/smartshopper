@@ -26,6 +26,21 @@ export const lightTheme = {
   Accessories: '#4ED8A8',
   Other: '#8A9399',
 
+  itemColorOptions: [
+    { name: 'Black', hex: '#111111' },
+    { name: 'White', hex: '#FFFFFF' },
+    { name: 'Gray', hex: '#8A8F98' },
+    { name: 'Brown', hex: '#7A5230' },
+    { name: 'Beige', hex: '#D8C2A4' },
+    { name: 'Red', hex: '#D94A45' },
+    { name: 'Pink', hex: '#E78AAE' },
+    { name: 'Orange', hex: '#E58B37' },
+    { name: 'Yellow', hex: '#E6C84F' },
+    { name: 'Green', hex: '#4E9A62' },
+    { name: 'Blue', hex: '#3F75C6' },
+    { name: 'Purple', hex: '#8461C9' },
+  ],
+
   wearLevels: {
     unworn: {
       bg: '#ECEFF1',
@@ -115,6 +130,21 @@ export const darkTheme = {
   Footwear: '#FFCC80',
   Accessories: '#80EEC9',
   Other: '#B0BEC5',
+
+  itemColorOptions: [
+    { name: 'Black', hex: '#111111' },
+    { name: 'White', hex: '#F6F6F6' },
+    { name: 'Gray', hex: '#A7ADB7' },
+    { name: 'Brown', hex: '#9A6A44' },
+    { name: 'Beige', hex: '#BFA98C' },
+    { name: 'Red', hex: '#F06A63' },
+    { name: 'Pink', hex: '#F0A0BE' },
+    { name: 'Orange', hex: '#F0A052' },
+    { name: 'Yellow', hex: '#F0D86A' },
+    { name: 'Green', hex: '#6CBD7B' },
+    { name: 'Blue', hex: '#6E9AE0' },
+    { name: 'Purple', hex: '#A58AE0' },
+  ],
 
   wearLevels: {
     unworn: {
