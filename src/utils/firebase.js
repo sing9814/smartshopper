@@ -330,28 +330,40 @@ export const fetchMergedCategories = async (defaultCategories) => {
   }));
 
   for (const { id, category, subCategory } of customData) {
-    const name = subCategory || category;
-    const exists = merged.some((c) => c.name === name);
+    if (subCategory) {
+      const parent = merged.find((c) => c.name === category);
 
-    if (!exists) {
-      merged.push({
-        id,
-        name,
-        custom: true,
-        subCategories: [],
-      });
+      if (parent && !parent.subCategories.some((sub) => sub.id === id)) {
+        parent.subCategories.push({
+          id,
+          name: subCategory,
+          custom: true,
+        });
+      }
+    } else {
+      const exists = merged.some((c) => c.name === category);
+
+      if (!exists) {
+        merged.push({
+          id,
+          name: category,
+          custom: true,
+          subCategories: [],
+        });
+      }
     }
   }
 
   const flattenedCustom = customData.map(({ id, category, subCategory }) => ({
     id,
+    category,
     name: subCategory || category,
   }));
 
   return { merged, customCategories: flattenedCustom };
 };
 
-export const saveCustomCategory = async ({ id, category }) => {
+export const saveCustomCategory = async ({ id, category, subCategory = null }) => {
   try {
     const userID = auth().currentUser.uid;
 
@@ -360,16 +372,16 @@ export const saveCustomCategory = async ({ id, category }) => {
       .doc(userID)
       .collection('customCategories')
       .doc(id)
-      .set({ category });
+      .set({ category, subCategory });
 
     return true;
   } catch (error) {
-    console.error('Failed to save custom category:', error);
+    console.error('Failed to save custom subcategory:', error);
     return false;
   }
 };
 
-export const updateCustomCategory = async ({ id, category }) => {
+export const updateCustomCategory = async ({ id, category, subCategory = null }) => {
   const userID = auth().currentUser.uid;
   try {
     await firestore()
@@ -379,12 +391,12 @@ export const updateCustomCategory = async ({ id, category }) => {
       .doc(id)
       .update({
         category,
-        subCategory: firestore.FieldValue.delete(),
+        subCategory,
       });
 
     return true;
   } catch (error) {
-    console.error('Failed to update custom category:', error);
+    console.error('Failed to update custom subcategory:', error);
     return false;
   }
 };

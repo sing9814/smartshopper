@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/themeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomButton from './button';
 import SearchBar from './searchBar';
 import BottomSheet from './bottomSheet';
@@ -19,58 +20,122 @@ const CategoryPickerSheet = ({
   const tabBarHeight = useBottomTabBarHeight();
 
   const [search, setSearch] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState({});
 
-  const getFilteredItems = () => {
+  const getCategoryName = (category) => category.name || category.category || '';
+
+  const getSubcategoryName = (subCategory) =>
+    typeof subCategory === 'string' ? subCategory : subCategory?.name || '';
+
+  const getSubcategoryItem = (categoryName, subCategory) => ({
+    category: categoryName,
+    subCategory:
+      typeof subCategory === 'string'
+        ? {
+            id: `${categoryName}-${subCategory}`,
+            name: subCategory,
+            custom: false,
+          }
+        : subCategory,
+    custom: subCategory?.custom || false,
+  });
+
+  const getVisibleItems = () => {
     const normalizedSearch = search.toLowerCase();
-    const topLevelItems = items
-      .map((category) => ({
-        category: category.name || category.category,
+    const isSearching = normalizedSearch.length > 0;
+
+    return items.flatMap((category) => {
+      const categoryName = getCategoryName(category);
+      const subCategories = category.subCategories || [];
+
+      if (!categoryName) return [];
+
+      const categoryRow = {
+        category: categoryName,
         subCategory: null,
         custom: category.custom || false,
-      }))
-      .filter((item) => item.category);
-    const customItems = items.flatMap((category) =>
-      (category.subCategories || [])
-        .filter((subCategory) => subCategory.custom)
-        .map((subCategory) => ({
-          category: subCategory.name,
-          subCategory: null,
-          custom: true,
-        }))
-        .filter((item) => item.category)
-    );
+        type: 'category',
+        isExpanded: expandedCategories[categoryName],
+        hasSubcategories: subCategories.length > 0,
+      };
 
-    return [...topLevelItems, ...customItems].filter((item) =>
-      item.category.toLowerCase().includes(normalizedSearch)
-    );
+      if (!isSearching) {
+        const childRows = expandedCategories[categoryName]
+          ? subCategories.map((subCategory) => ({
+              ...getSubcategoryItem(categoryName, subCategory),
+              type: 'subcategory',
+            }))
+          : [];
+
+        return [categoryRow, ...childRows];
+      }
+
+      const categoryMatches = categoryName.toLowerCase().includes(normalizedSearch);
+      const matchingSubcategories = subCategories
+        .filter((subCategory) =>
+          getSubcategoryName(subCategory).toLowerCase().includes(normalizedSearch)
+        )
+        .map((subCategory) => ({
+          ...getSubcategoryItem(categoryName, subCategory),
+          type: 'subcategory',
+        }));
+
+      return categoryMatches ? [categoryRow, ...matchingSubcategories] : matchingSubcategories;
+    });
   };
 
-  const filteredItems = getFilteredItems();
+  const visibleItems = getVisibleItems();
 
   const handleSelect = (item) => {
     onSelect(item);
-    setSelectedItem(item);
+    setSelectedItem?.(item);
     onClose();
     setSearch('');
   };
 
-  const renderItem = useCallback(
-    ({ item, index }) => {
-      return (
-        <TouchableOpacity
-          key={`${item.category}-${index}`}
-          style={[styles.item, index === filteredItems.length - 1 && styles.lastItem]}
-          onPress={() => handleSelect(item)}
-        >
-          <View style={styles.customLabelContainer}>
-            <Text style={styles.itemText}>{item.category}</Text>
-            {item.custom && <Text style={styles.customTag}>(custom)</Text>}
-          </View>
-        </TouchableOpacity>
-      );
-    },
-    [filteredItems]
-  );
+  const toggleCategory = (category) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  };
+
+  const renderItem = ({ item, index }) => {
+    const isCategory = item.type === 'category';
+    const isLast = index === visibleItems.length - 1;
+
+    return (
+      <TouchableOpacity
+        key={`${item.category}-${index}`}
+        style={[
+          styles.item,
+          item.type === 'subcategory' && styles.subcategoryItem,
+          isLast && styles.lastItem,
+        ]}
+        onPress={() => {
+          if (isCategory && item.hasSubcategories) {
+            toggleCategory(item.category);
+          } else {
+            handleSelect(item);
+          }
+        }}
+      >
+        <View style={styles.customLabelContainer}>
+          <Text style={[styles.itemText, item.type === 'subcategory' && styles.subcategoryText]}>
+            {item.subCategory?.name || item.category}
+          </Text>
+          {item.custom && <Text style={styles.customTag}>(custom)</Text>}
+        </View>
+        {isCategory && item.hasSubcategories && (
+          <Ionicons
+            name={item.isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={colors.gray}
+          />
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <BottomSheet title="Choose category" visible={visible} onClose={onClose} height="72%">
@@ -80,7 +145,7 @@ const CategoryPickerSheet = ({
         placeholder="Search categories"
         style={styles.searchBar}
       />
-      {filteredItems.length === 0 ? (
+      {visibleItems.length === 0 ? (
         <View style={styles.noResults}>
           <Text style={styles.noResultsTitle}>No result for "{search}"</Text>
           <Text style={styles.noResultsSubtitle}>
@@ -92,16 +157,18 @@ const CategoryPickerSheet = ({
               onClose();
               onOpenCustomSheet?.(search);
             }}
-            title="Create custom category"
+            title="Create subcategory"
           />
         </View>
       ) : (
         <FlatList
           style={styles.list}
           contentContainerStyle={{ paddingBottom: tabBarHeight + 40 }}
-          data={filteredItems}
+          data={visibleItems}
           renderItem={renderItem}
-          keyExtractor={(item, index) => `${item.category}-${index}`}
+          keyExtractor={(item, index) =>
+            `${item.type}-${item.category}-${item.subCategory?.id || index}`
+          }
           keyboardShouldPersistTaps="handled"
         />
       )}
@@ -148,6 +215,9 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    subcategoryItem: {
+      paddingLeft: 20,
+    },
     lastItem: {
       borderBottomWidth: 0,
     },
@@ -159,6 +229,9 @@ const createStyles = (colors) =>
     itemText: {
       fontSize: 15,
       color: colors.black,
+    },
+    subcategoryText: {
+      color: colors.gray,
     },
     customTag: {
       color: colors.gray,

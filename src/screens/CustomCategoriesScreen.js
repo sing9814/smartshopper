@@ -42,9 +42,16 @@ const CustomCategoriesScreen = ({ navigation }) => {
         <View style={styles.categoryIcon}>
           <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
         </View>
-        <Text style={styles.categoryName} numberOfLines={1}>
-          {item.name}
-        </Text>
+        <View style={styles.categoryTextBlock}>
+          <Text style={styles.categoryName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.category && (
+            <Text style={styles.categoryParent} numberOfLines={1}>
+              {item.category}
+            </Text>
+          )}
+        </View>
       </View>
 
       <TouchableOpacity
@@ -69,7 +76,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={styles.topbarIcon}>
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Custom categories</Text>
+        <Text style={styles.headerTitle}>Custom subcategories</Text>
         <TouchableOpacity
           onPress={() => {
             setEditingCategory(null);
@@ -95,10 +102,8 @@ const CustomCategoriesScreen = ({ navigation }) => {
               <View style={styles.emptyIcon}>
                 <Ionicons name="pricetag-outline" size={26} color={colors.primary} />
               </View>
-              <Text style={styles.emptyTitle}>No custom categories yet</Text>
-              <Text style={styles.emptyText}>
-                Create your own categories for the items you track.
-              </Text>
+              <Text style={styles.emptyTitle}>No custom subcategories yet</Text>
+              <Text style={styles.emptyText}>Create your own subcategories under a category.</Text>
               <TouchableOpacity
                 style={styles.emptyButton}
                 onPress={() => {
@@ -106,7 +111,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
                   setShowEditSheet(true);
                 }}
               >
-                <Text style={styles.emptyButtonText}>Add category</Text>
+                <Text style={styles.emptyButtonText}>Add subcategory</Text>
               </TouchableOpacity>
             </View>
           }
@@ -124,9 +129,9 @@ const CustomCategoriesScreen = ({ navigation }) => {
         editingCategory={editingCategory}
         onSave={(_, wasSaved) => {
           if (wasSaved) {
-            showBanner('Category updated!', 'success');
+            showBanner(editingCategory ? 'Subcategory updated!' : 'Subcategory added!', 'success');
           } else {
-            showBanner('Failed to update category.');
+            showBanner('Failed to update subcategory.');
           }
           setShowEditSheet(false);
           setEditingCategory(null);
@@ -139,7 +144,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           setShowActionSheet(false);
           setSelectedCategory(null);
         }}
-        title="Category options"
+        title="Subcategory options"
         height={210}
       >
         <Pressable
@@ -151,7 +156,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           }}
         >
           <Ionicons name="pencil-outline" size={20} color={colors.black} style={styles.sheetIcon} />
-          <Text style={styles.sheetText}>Edit category</Text>
+          <Text style={styles.sheetText}>Edit subcategory</Text>
         </Pressable>
 
         <Pressable
@@ -163,7 +168,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           }}
         >
           <Ionicons name="trash-outline" size={20} color={colors.red} style={styles.sheetIcon} />
-          <Text style={styles.deleteText}>Delete category</Text>
+          <Text style={styles.deleteText}>Delete subcategory</Text>
         </Pressable>
       </BottomSheet>
 
@@ -183,13 +188,13 @@ const CustomCategoriesScreen = ({ navigation }) => {
 
             const updatedCategories = categories.map((cat) => ({
               ...cat,
-              subCategories: cat.subCategories.filter((sub) => sub.id !== pendingDelete.id),
+              subCategories: (cat.subCategories || []).filter((sub) => sub.id !== pendingDelete.id),
             }));
             dispatch(setCategories(updatedCategories.filter((cat) => cat.id !== pendingDelete.id)));
 
-            showBanner('Category deleted!', 'success');
+            showBanner('Subcategory deleted!', 'success');
           } catch (err) {
-            showBanner('Failed to delete category.');
+            showBanner('Failed to delete subcategory.');
           }
 
           setShowDeletePopup(false);
@@ -252,6 +257,10 @@ const createStyles = (colors) =>
       gap: 10,
       marginRight: 12,
     },
+    categoryTextBlock: {
+      flex: 1,
+      gap: 2,
+    },
     categoryIcon: {
       width: 32,
       height: 32,
@@ -261,10 +270,13 @@ const createStyles = (colors) =>
       backgroundColor: colors.primaryLight,
     },
     categoryName: {
-      flex: 1,
       color: colors.black,
       fontSize: 15,
       fontWeight: '500',
+    },
+    categoryParent: {
+      color: colors.gray,
+      fontSize: 13,
     },
     iconButton: {
       width: 32,

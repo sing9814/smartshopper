@@ -285,7 +285,7 @@ const ProfileScreen = ({ navigation }) => {
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
-                <Text style={styles.title}>Custom categories</Text>
+                <Text style={styles.title}>Custom subcategories</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray} />
             </TouchableOpacity>

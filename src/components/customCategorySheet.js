@@ -1,5 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Text, TextInput, StyleSheet, View } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Keyboard,
+  Text,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  ScrollView,
+} from 'react-native';
 import BottomSheet from './bottomSheet';
 import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
@@ -7,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { saveCustomCategory, updateCustomCategory } from '../utils/firebase';
 import { setCustomCategories, setCategories } from '../redux/actions/userActions';
 import uuid from 'react-native-uuid';
+import CustomInput from './customInput';
 
 const CustomCategorySheet = ({
   visible,
@@ -23,24 +32,36 @@ const CustomCategorySheet = ({
   const categories = useSelector((state) => state.user.categories);
 
   const [customName, setCustomName] = useState(initialSubcategoryName);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const parentCategories = useMemo(
+    () => categories.filter((category) => !category.custom),
+    [categories]
+  );
 
   useEffect(() => {
     if (visible) {
       if (editingCategory) {
         setCustomName(editingCategory.name);
+        setSelectedCategory(editingCategory.category || parentCategories[0]?.name || '');
       } else {
         setCustomName(initialSubcategoryName);
+        setSelectedCategory(parentCategories[0]?.name || '');
       }
     }
-  }, [visible, initialSubcategoryName, editingCategory]);
+  }, [visible, initialSubcategoryName, editingCategory, parentCategories]);
 
   const handleSave = async () => {
-    if (!customName) return;
+    const normalizedName = customName.trim();
+    const savedName = normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1);
+
+    if (!savedName || !selectedCategory) return;
 
     const id = editingCategory?.id || uuid.v4();
     const payload = {
       id,
-      category: customName,
+      category: selectedCategory,
+      subCategory: savedName,
     };
 
     const wasSaved = editingCategory
@@ -50,31 +71,39 @@ const CustomCategorySheet = ({
     if (!wasSaved) return;
 
     const updatedCustoms = editingCategory
-      ? customCategories.map((c) => (c.id === id ? { ...c, name: customName } : c))
-      : [...customCategories, { id, name: customName }];
+      ? customCategories.map((c) =>
+          c.id === id ? { ...c, category: selectedCategory, name: savedName } : c
+        )
+      : [...customCategories, { id, category: selectedCategory, name: savedName }];
     dispatch(setCustomCategories(updatedCustoms));
 
-    const updatedCategories = editingCategory
-      ? categories
-          .map((cat) => ({
-            ...cat,
-            name: cat.id === id ? customName : cat.name,
-            subCategories: (cat.subCategories || []).filter((sub) => sub.id !== id),
-          }))
-          .concat(
-            categories.some((cat) => cat.id === id)
-              ? []
-              : [{ id, name: customName, custom: true, subCategories: [] }]
-          )
-      : [...categories, { id, name: customName, custom: true, subCategories: [] }];
+    const updatedCategories = categories.map((cat) => {
+      const subCategories = (cat.subCategories || []).filter((sub) => sub.id !== id);
+
+      if (cat.name !== selectedCategory) {
+        return {
+          ...cat,
+          subCategories,
+        };
+      }
+
+      return {
+        ...cat,
+        subCategories: [...subCategories, { id, name: savedName, custom: true }],
+      };
+    });
 
     dispatch(setCategories(updatedCategories));
 
     onSave?.(
       {
         id,
-        category: customName,
-        subCategory: null,
+        category: selectedCategory,
+        subCategory: {
+          id,
+          name: savedName,
+          custom: true,
+        },
         custom: true,
       },
       wasSaved
@@ -86,27 +115,57 @@ const CustomCategorySheet = ({
 
   return (
     <BottomSheet
-      title={editingCategory ? 'Edit Custom Category' : 'Create Custom Category'}
+      title={editingCategory ? 'Edit Subcategory' : 'Create Subcategory'}
       visible={visible}
       onClose={onClose}
-      height={300}
+      height={420}
     >
-      <View style={styles.content}>
-        <View>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.sheetInput}
-            placeholder="Enter category name"
-            value={customName}
-            onChangeText={setCustomName}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.content}>
+          <View style={styles.fields}>
+            <CustomInput
+              style={styles.sheetInput}
+              placeholder="Enter subcategory name"
+              value={customName}
+              onChangeText={setCustomName}
+            />
+
+            <Text style={styles.label}>Belongs to</Text>
+            <ScrollView
+              style={styles.categoryList}
+              contentContainerStyle={styles.categoryOptions}
+              keyboardShouldPersistTaps="handled"
+            >
+              {parentCategories.map((category) => {
+                const isSelected = selectedCategory === category.name;
+
+                return (
+                  <TouchableOpacity
+                    key={category.name}
+                    style={[styles.categoryPill, isSelected && styles.categoryPillSelected]}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      setSelectedCategory(category.name);
+                    }}
+                  >
+                    <Text
+                      style={[styles.categoryName, isSelected && styles.categoryNameSelected]}
+                      numberOfLines={1}
+                    >
+                      {category.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          <CustomButton
+            title={editingCategory ? 'Save changes' : 'Add subcategory'}
+            onPress={handleSave}
           />
         </View>
-
-        <CustomButton
-          title={editingCategory ? 'Save changes' : 'Add category'}
-          onPress={handleSave}
-        />
-      </View>
+      </TouchableWithoutFeedback>
     </BottomSheet>
   );
 };
@@ -119,11 +178,14 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       paddingBottom: 120,
     },
+    fields: {
+      gap: 8,
+      paddingTop: 8,
+    },
     label: {
       color: colors.gray,
-      fontWeight: '500',
       alignSelf: 'flex-start',
-      marginBottom: 2,
+      marginTop: 4,
     },
     sheetInput: {
       width: '100%',
@@ -134,6 +196,38 @@ const createStyles = (colors) =>
       paddingHorizontal: 12,
       color: colors.black,
       fontSize: 14,
+    },
+    categoryList: {
+      maxHeight: 180,
+      width: '100%',
+    },
+    categoryOptions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      paddingVertical: 2,
+    },
+    categoryPill: {
+      minHeight: 34,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.white,
+    },
+    categoryPillSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primary,
+    },
+    categoryName: {
+      color: colors.black,
+    },
+    categoryNameSelected: {
+      color: colors.white,
     },
   });
 

@@ -67,7 +67,9 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
 
   const [banner, setBanner] = useState(null);
-  const selectedCategoryText = category?.category || category || 'Category';
+  const selectedCategoryText = category?.subCategory?.name
+    ? `${category.category} - ${category.subCategory.name}`
+    : category?.category || category || 'Category';
 
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
@@ -157,17 +159,21 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   };
 
   const mergeCategory = (categories, newItem) => {
-    const updated = [...categories];
-    const match = updated.find((c) => c.name === newItem.category);
-    if (!match) {
-      updated.push({
-        id: newItem.id,
-        name: newItem.category,
-        custom: true,
-        subCategories: [],
-      });
-    }
-    return updated;
+    return categories.map((cat) => {
+      const subCategories = (cat.subCategories || []).filter((sub) => sub.id !== newItem.id);
+
+      if (cat.name !== newItem.category) {
+        return {
+          ...cat,
+          subCategories,
+        };
+      }
+
+      return {
+        ...cat,
+        subCategories: [...subCategories, newItem.subCategory],
+      };
+    });
   };
 
   const updatePurchaseInArray = (purchase) =>
@@ -389,7 +395,10 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
           dispatch(setCategories(updated));
           setCategory(newItem);
           setShowCustomSheet(false);
-          showBanner(wasAdded ? 'Custom category added!' : 'Category already exists.', 'success');
+          showBanner(
+            wasAdded ? 'Custom subcategory added!' : 'Subcategory already exists.',
+            'success'
+          );
         }}
       />
       <CategoryPickerSheet
