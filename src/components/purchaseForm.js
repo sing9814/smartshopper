@@ -140,6 +140,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const savedWearGoal = wearGoal ? parseInt(wearGoal, 10) : DEFAULT_WEAR_GOAL;
 
   const validateFields = () => {
+    if (!category) {
+      showBanner('Please choose a category');
+      return false;
+    }
+    if (!itemColor) {
+      showBanner('Please choose a color');
+      return false;
+    }
     if (!validateName(itemName)) {
       showBanner('Please enter an item name');
       return false;
@@ -157,10 +165,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     }
     if (wearGoal && !validateWearGoal(wearGoal)) {
       showBanner('Wear goal must be a whole number greater than 0');
-      return false;
-    }
-    if (!itemColor) {
-      showBanner('Please choose a color');
       return false;
     }
     return true;
@@ -298,6 +302,102 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
           <View style={styles.formCard}>
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Item details</Text>
+              <View style={styles.categoryColorRow}>
+                <TouchableOpacity
+                  style={styles.categorySelector}
+                  onPress={() => setShowCategorySheet(true)}
+                >
+                  <View style={styles.categoryContent}>
+                    <View style={styles.categoryIcon}>
+                      <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                    </View>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.categoryText,
+                        { color: category ? colors.black : colors.gray },
+                      ]}
+                    >
+                      {selectedCategoryText}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-down" size={18} color={colors.gray} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.colorSelector}
+                  onPress={() => setColorPickerOpen((prev) => !prev)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose item color"
+                >
+                  {itemColor ? (
+                    <View
+                      style={[
+                        styles.colorSelectorSwatch,
+                        {
+                          backgroundColor: itemColor.hex,
+                          borderColor:
+                            itemColor.name === 'White' || itemColor.name === 'Black'
+                              ? colors.lightGrey
+                              : itemColor.hex,
+                        },
+                      ]}
+                    />
+                  ) : (
+                    <View style={styles.noColorSwatch}>
+                      <View style={styles.noColorSlash} />
+                    </View>
+                  )}
+                  <Ionicons
+                    name={colorPickerOpen ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={colors.gray}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {colorPickerOpen && (
+                <View style={styles.colorOptions}>
+                  {colors.itemColorOptions.map((option) => {
+                    const isSelected = itemColor?.name === option.name;
+
+                    return (
+                      <TouchableOpacity
+                        key={option.name}
+                        style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
+                        onPress={() => {
+                          setItemColor(option);
+                          setColorPickerOpen(false);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${option.name} color`}
+                      >
+                        <View
+                          style={[
+                            styles.colorSwatch,
+                            {
+                              backgroundColor: option.hex,
+                              borderColor:
+                                option.name === 'White' || option.name === 'Black'
+                                  ? colors.lightGrey
+                                  : option.hex,
+                            },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.colorOptionText,
+                            isSelected && styles.colorOptionTextSelected,
+                          ]}
+                        >
+                          {option.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
               <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
 
               <CustomInput
@@ -310,83 +410,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Other details (optional)</Text>
-              <View style={styles.colorPicker}>
-                <TouchableOpacity
-                  style={styles.colorSelector}
-                  onPress={() => setColorPickerOpen((prev) => !prev)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Choose item color"
-                >
-                  <View style={styles.colorSelectorContent}>
-                    {itemColor ? (
-                      <View
-                        style={[
-                          styles.colorSelectorSwatch,
-                          {
-                            backgroundColor: itemColor.hex,
-                            borderColor:
-                              itemColor.name === 'White' || itemColor.name === 'Black'
-                                ? colors.lightGrey
-                                : itemColor.hex,
-                          },
-                        ]}
-                      />
-                    ) : (
-                      <View style={styles.noColorSwatch}>
-                        <View style={styles.noColorSlash} />
-                      </View>
-                    )}
-                  </View>
-                  <Ionicons
-                    name={colorPickerOpen ? 'chevron-up' : 'chevron-down'}
-                    size={18}
-                    color={colors.gray}
-                  />
-                </TouchableOpacity>
-
-                {colorPickerOpen && (
-                  <View style={styles.colorOptions}>
-                    {colors.itemColorOptions.map((option) => {
-                      const isSelected = itemColor?.name === option.name;
-
-                      return (
-                        <TouchableOpacity
-                          key={option.name}
-                          style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
-                          onPress={() => {
-                            setItemColor(option);
-                            setColorPickerOpen(false);
-                          }}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${option.name} color`}
-                        >
-                          <View
-                            style={[
-                              styles.colorSwatch,
-                              {
-                                backgroundColor: option.hex,
-                                borderColor:
-                                  option.name === 'White' || option.name === 'Black'
-                                    ? colors.lightGrey
-                                    : option.hex,
-                              },
-                            ]}
-                          />
-                          <Text
-                            style={[
-                              styles.colorOptionText,
-                              isSelected && styles.colorOptionTextSelected,
-                            ]}
-                          >
-                            {option.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-
               <CustomInput
                 placeholder="Price"
                 value={paidPrice}
@@ -415,23 +438,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                   }
                 />
               )}
-              <TouchableOpacity
-                style={styles.categorySelector}
-                onPress={() => setShowCategorySheet(true)}
-              >
-                <View style={styles.categoryContent}>
-                  <View style={styles.categoryIcon}>
-                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.categoryText, { color: category ? colors.black : colors.gray }]}
-                  >
-                    {selectedCategoryText}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.gray} />
-              </TouchableOpacity>
               <View>
                 <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateBtn}>
                   <View style={styles.dateContent}>
@@ -534,26 +540,23 @@ const createStyles = (colors) =>
       marginBottom: 2,
       textTransform: 'uppercase',
     },
-    colorPicker: {
+    categoryColorRow: {
       width: '100%',
-      gap: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
     },
     colorSelector: {
-      width: '100%',
+      width: 64,
       backgroundColor: colors.white,
       minHeight: 52,
-      paddingHorizontal: 14,
+      paddingHorizontal: 10,
       borderRadius: 10,
       borderWidth: 1,
       borderColor: colors.lightGrey,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
-    colorSelectorContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
     },
     colorSelectorSwatch: {
       width: 18,
@@ -647,7 +650,7 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
     },
     categorySelector: {
-      width: '100%',
+      flex: 1,
       backgroundColor: colors.white,
       minHeight: 52,
       paddingHorizontal: 14,
