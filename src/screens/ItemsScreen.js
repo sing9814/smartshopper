@@ -95,16 +95,13 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       } else if (sortField === 'progress') {
         aValue = getWearProgressPercentage(a);
         bValue = getWearProgressPercentage(b);
-      } else if (sortField === 'price') {
-        aValue = a.paidPrice ?? a.regularPrice;
-        bValue = b.paidPrice ?? b.regularPrice;
-
-        if (aValue == null && bValue == null) return 0;
-        if (aValue == null) return 1;
-        if (bValue == null) return -1;
       } else if (sortField === 'dateAdded') {
         aValue = getDateCreatedTime(a);
         bValue = getDateCreatedTime(b);
+      } else if (sortField === 'name') {
+        const aName = a.name || '';
+        const bName = b.name || '';
+        return sortDirection === 'asc' ? aName.localeCompare(bName) : bName.localeCompare(aName);
       }
 
       return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
@@ -113,9 +110,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const sortOptions = [
     { label: 'Last worn', value: 'lastWorn' },
     { label: 'Date added', value: 'dateAdded' },
-    { label: 'Progress', value: 'progress' },
     { label: 'Wear count', value: 'wears' },
-    { label: 'Price', value: 'price' },
+    { label: 'Goal progress', value: 'progress' },
+    { label: 'A-Z', value: 'name' },
   ];
 
   const fetchData = async () => {
@@ -385,7 +382,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
                   setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
                 } else {
                   setSortField(option.value);
-                  setSortDirection('desc');
+                  setSortDirection(option.value === 'name' ? 'asc' : 'desc');
                 }
               }}
               style={[styles.sortContainer, { borderBottomWidth: isLast ? 0 : 1 }]}

@@ -11,7 +11,6 @@ import { useTheme } from '../theme/themeContext';
 import { formatDateShort, formatTimeStampNoTime } from '../utils/date';
 import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
-import { convertCentsToDollars } from '../utils/price';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -38,7 +37,7 @@ const PurchaseList = ({
 
   const renderFooter = () => (
     <View style={styles.footer}>
-      <Text style={styles.footerText}>No more data to show</Text>
+      <Text style={styles.footerText}>End of list</Text>
     </View>
   );
 
@@ -68,19 +67,6 @@ const PurchaseList = ({
     return overlay && getLastWornText(item).toLowerCase().includes('most recent');
   };
 
-  const getPriceText = (item) => {
-    const price = item.paidPrice;
-    if (price == null) return 'No price';
-
-    return `$${convertCentsToDollars(price)}`;
-  };
-
-  const getCategoryText = (item) => {
-    if (item.category?.category) return item.category.category;
-    if (typeof item.category === 'string') return item.category;
-    return '';
-  };
-
   const renderPlaceholder = () => (
     <View>
       <View style={[styles.placeholder, { opacity: 1 }]} />
@@ -92,7 +78,6 @@ const PurchaseList = ({
 
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.key);
-    const categoryText = getCategoryText(item);
     const wearCount = item.wears?.length || 0;
     const wearGoal = item.wearGoal ?? DEFAULT_WEAR_GOAL;
     const wearProgress = getWearGoalProgress(wearCount, wearGoal);
@@ -122,38 +107,26 @@ const PurchaseList = ({
         ]}
       >
         <View style={styles.textContainer}>
-          <View style={styles.row}>
+          <View style={styles.titleRow}>
             <Text style={styles.title} numberOfLines={1}>
               {item.name}
             </Text>
-            <Text style={styles.date}>{overlay ? `${wearCount} wears` : getPriceText(item)}</Text>
+            {overlay ? (
+              <Text style={styles.date}>{wearCount} wears</Text>
+            ) : (
+              <Text
+                style={[
+                  styles.wearProgress,
+                  {
+                    backgroundColor: wearProgressColors.bg,
+                    color: wearProgressColors.text,
+                  },
+                ]}
+              >
+                {wearProgress.label}
+              </Text>
+            )}
           </View>
-          {!overlay && (
-            <View style={styles.row}>
-              <View style={styles.wearRow}>
-                <Text
-                  style={[
-                    styles.wearProgress,
-                    {
-                      backgroundColor: wearProgressColors.bg,
-                      color: wearProgressColors.text,
-                    },
-                  ]}
-                >
-                  {wearProgress.label} goal
-                </Text>
-                {categoryText ? (
-                  <>
-                    <Text style={styles.metaDot}>{'\u2022'}</Text>
-                    <Text style={styles.categoryText} numberOfLines={1}>
-                      {categoryText}
-                    </Text>
-                  </>
-                ) : null}
-              </View>
-              <Text style={styles.wears}>{wearCount} wears</Text>
-            </View>
-          )}
           <View style={styles.row}>
             <Text
               numberOfLines={1}
@@ -252,30 +225,19 @@ const createStyles = (colors) =>
       color: colors.secondary,
       fontWeight: '500',
     },
-    wearRow: {
-      flex: 1,
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4,
-      marginRight: 10,
-    },
-    categoryText: {
-      color: colors.gray,
-      fontSize: 14,
-      flexShrink: 1,
-    },
-    metaDot: {
-      color: colors.gray,
-      fontSize: 14,
-    },
     row: {
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    titleRow: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     wearProgress: {
-      marginTop: 6,
       paddingVertical: 3,
       paddingBottom: 5,
       paddingHorizontal: 8,
@@ -283,6 +245,7 @@ const createStyles = (colors) =>
       fontSize: 14,
       fontWeight: '500',
       overflow: 'hidden',
+      flexShrink: 0,
     },
     addWearButton: {
       minWidth: 70,
@@ -314,10 +277,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: colors.gray,
       marginLeft: 10,
-    },
-    wears: {
-      fontSize: 14,
-      color: colors.gray,
     },
     footer: {
       padding: 8,

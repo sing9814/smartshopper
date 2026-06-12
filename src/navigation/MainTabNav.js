@@ -21,9 +21,9 @@ function MainTabNav() {
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: theme.white,
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          height: 65 + insets.bottom,
+          // borderTopLeftRadius: 18,
+          // borderTopRightRadius: 18,
+          height: 62 + insets.bottom,
           paddingTop: 8,
           paddingBottom: 8 + insets.bottom,
           borderTopWidth: 0,
