@@ -29,7 +29,7 @@ export const lightTheme = {
   itemColorOptions: [
     { name: 'Black', hex: '#111111' },
     { name: 'White', hex: '#FFFFFF' },
-    { name: 'Gray', hex: '#8A8F98' },
+    { name: 'Grey', hex: '#8A8F98' },
     { name: 'Brown', hex: '#7A5230' },
     { name: 'Beige', hex: '#D8C2A4' },
     { name: 'Red', hex: '#D94A45' },
@@ -134,7 +134,7 @@ export const darkTheme = {
   itemColorOptions: [
     { name: 'Black', hex: '#111111' },
     { name: 'White', hex: '#F6F6F6' },
-    { name: 'Gray', hex: '#A7ADB7' },
+    { name: 'Grey', hex: '#A7ADB7' },
     { name: 'Brown', hex: '#9A6A44' },
     { name: 'Beige', hex: '#BFA98C' },
     { name: 'Red', hex: '#F06A63' },

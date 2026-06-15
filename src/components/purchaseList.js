@@ -108,6 +108,24 @@ const PurchaseList = ({
       >
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>
+            {item.itemColor ? (
+              <View
+                style={[
+                  styles.itemColorSwatch,
+                  {
+                    backgroundColor: item.itemColor.hex,
+                    borderColor:
+                      item.itemColor.name === 'White' || item.itemColor.name === 'Black'
+                        ? colors.gray
+                        : item.itemColor.hex,
+                  },
+                ]}
+              />
+            ) : (
+              <View style={styles.noColorSwatch}>
+                <View style={styles.noColorSlash} />
+              </View>
+            )}
             <Text style={styles.title} numberOfLines={1}>
               {item.name}
             </Text>
@@ -129,20 +147,6 @@ const PurchaseList = ({
           </View>
           <View style={styles.row}>
             <View style={styles.detailLine}>
-              {item.itemColor && !overlay && (
-                <View
-                  style={[
-                    styles.itemColorSwatch,
-                    {
-                      backgroundColor: item.itemColor.hex,
-                      borderColor:
-                        item.itemColor.name === 'White' || item.itemColor.name === 'Black'
-                          ? colors.lightGrey
-                          : item.itemColor.hex,
-                    },
-                  ]}
-                />
-              )}
               <Text
                 numberOfLines={1}
                 style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
@@ -249,6 +253,24 @@ const createStyles = (colors) =>
       borderRadius: 6,
       borderWidth: 1,
       flexShrink: 0,
+    },
+    noColorSwatch: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: colors.gray,
+      backgroundColor: colors.white,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    noColorSlash: {
+      width: 17,
+      height: 1,
+      backgroundColor: colors.gray,
+      transform: [{ rotate: '-45deg' }],
     },
     mostRecentWear: {
       color: colors.secondary,

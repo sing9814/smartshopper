@@ -40,6 +40,16 @@ dayjs.extend(utc);
 
 const DEFAULT_WEAR_GOAL = 10;
 
+const titleCaseName = (value) => value.replace(/\b\w/g, (char) => char.toUpperCase());
+
+const getSuggestedItemName = (category, color) => {
+  const categoryName = category?.subCategory?.name;
+  if (!categoryName) return '';
+
+  const itemTypeName = titleCaseName(categoryName);
+  return color ? `${color.name} ${itemTypeName}` : itemTypeName;
+};
+
 const PurchaseForm = ({ purchase, name, date, edit }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -51,6 +61,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const navigation = useNavigation();
 
   const [itemName, setItemName] = useState('');
+  const [dismissedSuggestedName, setDismissedSuggestedName] = useState('');
+  const [appliedSuggestedName, setAppliedSuggestedName] = useState('');
   const [category, setCategory] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const formattedDate = selectedDate ? dayjs.utc(selectedDate).format('ddd, MMM D') : null;
@@ -72,6 +84,13 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const selectedCategoryText = category?.subCategory?.name
     ? `${category.category} - ${category.subCategory.name}`
     : category?.category || category || 'Category';
+
+  const suggestedName = getSuggestedItemName(category, itemColor);
+  const showNameSuggestion =
+    suggestedName &&
+    itemName !== suggestedName &&
+    dismissedSuggestedName !== suggestedName &&
+    appliedSuggestedName !== suggestedName;
 
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
@@ -96,8 +115,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     }
     if (name) {
       setItemName(name);
+      setDismissedSuggestedName('');
+      setAppliedSuggestedName('');
     } else if (name === null) {
       setItemName('');
+      setDismissedSuggestedName('');
+      setAppliedSuggestedName('');
     }
     if (date) {
       setSelectedDate(dayjs(date + 'T12:00:00').toDate());
@@ -270,6 +293,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
   const resetFields = () => {
     setItemName('');
+    setDismissedSuggestedName('');
+    setAppliedSuggestedName('');
     setCategory(null);
     setNote(null);
     setRegularPrice(null);
@@ -338,7 +363,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                           backgroundColor: itemColor.hex,
                           borderColor:
                             itemColor.name === 'White' || itemColor.name === 'Black'
-                              ? colors.lightGrey
+                              ? colors.gray
                               : itemColor.hex,
                         },
                       ]}
@@ -379,7 +404,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                               backgroundColor: option.hex,
                               borderColor:
                                 option.name === 'White' || option.name === 'Black'
-                                  ? colors.lightGrey
+                                  ? colors.gray
                                   : option.hex,
                             },
                           ]}
@@ -398,7 +423,39 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 </View>
               )}
 
-              <CustomInput placeholder="Item name" value={itemName} onChangeText={setItemName} />
+              <CustomInput
+                placeholder="Item name"
+                value={itemName}
+                onChangeText={setItemName}
+                component={
+                  showNameSuggestion && (
+                    <View style={styles.nameSuggestion}>
+                      <TouchableOpacity
+                        style={styles.nameSuggestionApply}
+                        onPress={() => {
+                          setItemName(suggestedName);
+                          setAppliedSuggestedName(suggestedName);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Use suggested name ${suggestedName}`}
+                      >
+                        <Text style={styles.nameSuggestionLabel} numberOfLines={1}>
+                          {suggestedName}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.nameSuggestionDismiss}
+                        onPress={() => setDismissedSuggestedName(suggestedName)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Dismiss suggested name"
+                        hitSlop={8}
+                      >
+                        <Ionicons name="close" size={13} color={colors.gray} />
+                      </TouchableOpacity>
+                    </View>
+                  )
+                }
+              />
 
               <CustomInput
                 placeholder={`Wear goal (default ${DEFAULT_WEAR_GOAL})`}
@@ -569,7 +626,7 @@ const createStyles = (colors) =>
       height: 18,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.lightGrey,
+      borderColor: colors.gray,
       backgroundColor: colors.white,
       overflow: 'hidden',
       alignItems: 'center',
@@ -612,6 +669,36 @@ const createStyles = (colors) =>
     },
     colorOptionTextSelected: {
       color: colors.primary,
+    },
+    nameSuggestion: {
+      maxWidth: 170,
+      minHeight: 28,
+      paddingVertical: 6,
+      paddingLeft: 9,
+      paddingRight: 4,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      backgroundColor: colors.bg,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginLeft: 8,
+    },
+    nameSuggestionApply: {
+      flexShrink: 1,
+    },
+    nameSuggestionLabel: {
+      color: colors.black,
+      fontSize: 13,
+      flexShrink: 1,
+    },
+    nameSuggestionDismiss: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     submitBtn: {
       borderRadius: 10,
