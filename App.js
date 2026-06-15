@@ -2,13 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AuthStackNav from './src/navigation/AuthStackNav';
-import {
-  StatusBar,
-  View,
-  ActivityIndicator,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { StatusBar, View, ActivityIndicator } from 'react-native';
 import { lightTheme } from './src/theme/colors';
 import SplashScreen from 'react-native-splash-screen';
 import MainStackNav from './src/navigation/MainStackNav';
@@ -78,20 +72,18 @@ function AppWrapper() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
-        <NavigationContainer>
-          <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
-          {!isAuthenticated ? (
-            <AuthStackNav />
-          ) : isOnboarded || userOnboarded ? (
-            <MainStackNav />
-          ) : (
-            <OnboardingScreen route={{ params: {} }} />
-          )}
-        </NavigationContainer>
-      </View>
-    </TouchableWithoutFeedback>
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
+        {!isAuthenticated ? (
+          <AuthStackNav />
+        ) : isOnboarded || userOnboarded ? (
+          <MainStackNav />
+        ) : (
+          <OnboardingScreen route={{ params: {} }} />
+        )}
+      </NavigationContainer>
+    </View>
   );
 }
 

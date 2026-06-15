@@ -1,7 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, RefreshControl, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Calendar } from 'react-native-calendars';
-import { ScrollView } from 'react-native-gesture-handler';
 import { fetchAllUserData, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
@@ -74,7 +81,8 @@ const getWearNumberText = (item, dateKey, timeZone) => {
 
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const tabBarHeight = useBottomTabBarHeight();
+  const styles = createStyles(colors, tabBarHeight);
   const { height } = useWindowDimensions();
   const timeZone = getDeviceTimeZone();
   useStatusBar(colors.primary);
@@ -259,11 +267,14 @@ const HomeScreen = ({ navigation }) => {
       <Header title={loading ? ' ' : `Overview`} />
 
       <ScrollView
+        style={styles.scroller}
         contentContainerStyle={[
           styles.scrollView,
           open && { paddingBottom: height * 0.5 + styles.scrollView.paddingBottom },
         ]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         {loading ? (
           <HomeLoadingPlaceholders styles={styles} />
@@ -431,7 +442,7 @@ const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (colors, tabBarHeight) =>
   StyleSheet.create({
     sheetContainer: {
       flex: 1,
@@ -451,10 +462,13 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.bg,
     },
+    scroller: {
+      flex: 1,
+    },
     scrollView: {
       flexGrow: 1,
       paddingTop: 10,
-      paddingBottom: 78,
+      paddingBottom: tabBarHeight + 16,
       paddingHorizontal: 16,
     },
     calendar: {

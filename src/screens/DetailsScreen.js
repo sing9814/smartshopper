@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useTheme } from '../theme/themeContext';
 import { deleteDoc } from '../utils/firebase';
@@ -226,6 +225,7 @@ const DetailsScreen = ({ navigation }) => {
         <Tab.Screen name="Summary">
           {() => (
             <ScrollView
+              style={styles.scroller}
               contentContainerStyle={styles.content}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -388,6 +388,7 @@ const DetailsScreen = ({ navigation }) => {
         <Tab.Screen name="History">
           {() => (
             <ScrollView
+              style={styles.scroller}
               contentContainerStyle={styles.content}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -431,7 +432,7 @@ const DetailsScreen = ({ navigation }) => {
                 <View style={styles.historyEmpty}>
                   <Text style={styles.historyEmptyTitle}>No wears logged yet</Text>
                   <Text style={styles.historyEmptyText}>
-                    Add a wear from the Summary tab to start building this history.
+                    Add a wear to start tracking your wear history
                   </Text>
                 </View>
               )}
@@ -500,7 +501,7 @@ const createStyles = (colors, insets) =>
       alignItems: 'center',
     },
     topbarTitle: {
-      color: colors.white,
+      color: 'white',
       flex: 1,
       fontSize: 17,
       fontWeight: '700',
@@ -521,7 +522,11 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.bg,
     },
     tabScene: {
+      flex: 1,
       backgroundColor: colors.bg,
+    },
+    scroller: {
+      flex: 1,
     },
     content: {
       flexGrow: 1,
@@ -766,12 +771,11 @@ const createStyles = (colors, insets) =>
       color: colors.black,
       fontSize: 17,
       fontWeight: '700',
-      marginBottom: 8,
+      marginBottom: 12,
       textAlign: 'center',
     },
     historyEmptyText: {
       color: colors.gray,
-      lineHeight: 21,
       textAlign: 'center',
     },
   });
