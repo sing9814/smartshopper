@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Linking, Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Linking,
+  Modal,
+  NativeModules,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import CustomButton from '../components/button';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -10,6 +18,7 @@ import MoneySVG from '../../assets/moneySVG';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
@@ -17,10 +26,16 @@ import { setUser } from '../redux/actions/userActions';
 
 const FEEDBACK_FORM_URL =
   'https://docs.google.com/forms/d/1BWQtUvXFn9GeCFqAAg4uTJHN6H-54EXAnHxqzphthRg/viewform';
+const AppInfo = NativeModules.AppInfo ?? {};
+const appVersionText =
+  AppInfo.versionName && AppInfo.buildNumber
+    ? `Version ${AppInfo.versionName} (${AppInfo.buildNumber})`
+    : 'Version unavailable';
 
 const ProfileScreen = ({ navigation }) => {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
   useStatusBar(colors.primary);
   const toggleTheme = useToggleTheme();
   const isDark = useIsDark();
@@ -372,12 +387,13 @@ const ProfileScreen = ({ navigation }) => {
         {/* <View style={styles.svgContainer}>
           <WomanSVG />
         </View> */}
+        {appVersionText && <Text style={styles.versionText}>{appVersionText}</Text>}
       </View>
     </View>
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (colors, insets) =>
   StyleSheet.create({
     container: {
       height: '100%',
@@ -388,6 +404,16 @@ const createStyles = (colors) =>
       width: '100%',
       paddingHorizontal: 16,
       flex: 1,
+    },
+    versionText: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      bottom: 74 + insets.bottom,
+      color: colors.gray,
+      fontSize: 12,
+      textAlign: 'center',
+      zIndex: 1,
     },
     section: {
       marginTop: 12,
