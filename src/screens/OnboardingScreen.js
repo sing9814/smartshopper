@@ -17,6 +17,7 @@ import Form from '../../assets/onboarding/form';
 import WomanSVG from '../../assets/womanSVG';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -66,6 +67,7 @@ const OnboardingScreen = ({ route, navigation }) => {
   const isCompletingRef = useRef(false);
   const { isReplay = false } = route.params || {};
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [activeIndex, setActiveIndex] = useState(0);
   const [gradientColors, setGradientColors] = useState([
     lightTheme.primaryDark,
@@ -223,7 +225,7 @@ const OnboardingScreen = ({ route, navigation }) => {
         })}
       />
 
-      <View style={styles.paginator}>
+      <View style={[styles.paginator, { bottom: 82 + insets.bottom }]}>
         {slides.map((_, i) => (
           <PaginationDot
             key={i}
@@ -235,7 +237,7 @@ const OnboardingScreen = ({ route, navigation }) => {
         ))}
       </View>
 
-      <View style={styles.controls}>
+      <View style={[styles.controls, { bottom: 24 + insets.bottom }]}>
         <TouchableOpacity
           style={[styles.arrowButton, activeIndex === 0 && styles.hiddenControl]}
           onPress={() => scrollToSlide(activeIndex - 1)}

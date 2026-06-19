@@ -256,16 +256,6 @@ const ProfileScreen = ({ navigation }) => {
         subtitle={isGuestAccount ? 'Guest account' : user?.email || ' '}
         rounded
         padding
-        rightComponent={
-          <TouchableOpacity
-            style={styles.helpButton}
-            onPress={() => navigation.getParent()?.navigate('Onboarding', { isReplay: true })}
-            accessibilityRole="button"
-            accessibilityLabel="View onboarding"
-          >
-            <Ionicons name="help-circle-outline" size={28} color={'white'} />
-          </TouchableOpacity>
-        }
       />
 
       <View style={styles.innerContainer}>
@@ -301,6 +291,24 @@ const ProfileScreen = ({ navigation }) => {
                   style={styles.rowIcon}
                 />
                 <Text style={styles.title}>Custom subcategories</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.sectionRow, styles.rowDivider]}
+              onPress={() => navigation.getParent()?.navigate('Onboarding', { isReplay: true })}
+              accessibilityRole="button"
+              accessibilityLabel="Revisit onboarding"
+            >
+              <View style={styles.innerRowContainer}>
+                <Ionicons
+                  name="refresh-outline"
+                  size={22}
+                  color={colors.primary}
+                  style={styles.rowIcon}
+                />
+                <Text style={styles.title}>Revisit onboarding</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray} />
             </TouchableOpacity>
@@ -444,14 +452,6 @@ const createStyles = (colors, insets) =>
     rowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
-    },
-    helpButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
     },
     logoutConfirmButton: {
       backgroundColor: colors.red,
