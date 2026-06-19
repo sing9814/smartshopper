@@ -5,14 +5,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import PurchaseList from '../components/purchaseList';
 import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { setCollections } from '../redux/actions/purchaseActions';
-import { deleteDoc } from '../utils/firebase';
+import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
+import { deleteDoc, updateMultiplePurchaseWears } from '../utils/firebase';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '../components/bottomSheet';
-import { formatTimeStampNoTime } from '../utils/date';
+import {
+  formatTimeStampNoTime,
+  generateFirestoreTimestampFromDate,
+  getDateKeyInTimeZone,
+  getDeviceTimeZone,
+  timestampToDate,
+} from '../utils/date';
+
+const sortWearsByDate = (wears) =>
+  [...wears].sort((a, b) => {
+    const aTime = timestampToDate(a)?.getTime() || 0;
+    const bTime = timestampToDate(b)?.getTime() || 0;
+
+    return aTime - bTime;
+  });
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -23,6 +37,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
+  const [isAddingWears, setIsAddingWears] = useState(false);
 
   useEffect(() => {
     const checkDismissed = async () => {
@@ -53,6 +68,60 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const itemsInCollection = purchases.filter((item) => collection.items.includes(item.key));
   const itemCount = itemsInCollection.length;
   const createdDate = formatTimeStampNoTime(collection.dateCreated);
+  const timeZone = getDeviceTimeZone();
+
+  const handleWearCollectionToday = async () => {
+    if (isAddingWears || itemCount === 0) return;
+
+    const wearDate = new Date();
+    const todayKey = getDateKeyInTimeZone(wearDate, timeZone);
+    const newWear = generateFirestoreTimestampFromDate(wearDate);
+    const updates = itemsInCollection
+      .filter(
+        (item) =>
+          !(item.wears || []).some((wear) => getDateKeyInTimeZone(wear, timeZone) === todayKey)
+      )
+      .map((item) => ({
+        purchaseId: item.key,
+        updatedItem: {
+          ...item,
+          wears: sortWearsByDate([...(item.wears || []), newWear]),
+        },
+      }));
+
+    if (updates.length === 0) {
+      showBanner('Every item in this collection is already worn today', 'success');
+      return;
+    }
+
+    setIsAddingWears(true);
+
+    try {
+      await updateMultiplePurchaseWears(
+        updates.map(({ purchaseId, updatedItem }) => ({
+          purchaseId,
+          wears: updatedItem.wears,
+        }))
+      );
+
+      const updatesById = new Map(
+        updates.map(({ purchaseId, updatedItem }) => [purchaseId, updatedItem])
+      );
+      dispatch(
+        setPurchases(purchases.map((purchase) => updatesById.get(purchase.key) || purchase))
+      );
+
+      const skippedCount = itemCount - updates.length;
+      const addedText = `${updates.length} wear${updates.length === 1 ? '' : 's'} added`;
+      const skippedText = skippedCount > 0 ? `, ${skippedCount} already worn today` : '';
+      showBanner(`${addedText}${skippedText}`, 'success');
+    } catch (error) {
+      console.error('Failed to wear collection:', error);
+      showBanner('Failed to add wears for this collection');
+    } finally {
+      setIsAddingWears(false);
+    }
+  };
 
   const confirmDeleteCollection = async () => {
     try {
@@ -104,9 +173,24 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             <Ionicons name="albums-outline" size={24} color={colors.primary} />
           </View>
           <View style={styles.heroText}>
-            <Text style={styles.name} numberOfLines={2}>
-              {collection.name}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={2}>
+                {collection.name}
+              </Text>
+              {itemCount > 0 && (
+                <TouchableOpacity
+                  style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
+                  onPress={handleWearCollectionToday}
+                  activeOpacity={0.8}
+                  disabled={isAddingWears}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Wear ${collection.name} today`}
+                >
+                  <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+                  <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <Text style={styles.description} numberOfLines={3}>
               {collection.description || 'No description yet'}
             </Text>
@@ -247,7 +331,32 @@ const createStyles = (colors) =>
       flex: 1,
       gap: 5,
     },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    wearButton: {
+      minWidth: 70,
+      height: 32,
+      paddingHorizontal: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 4,
+      borderRadius: 8,
+      backgroundColor: colors.primaryLight,
+    },
+    wearButtonDisabled: {
+      opacity: 0.6,
+    },
+    wearButtonText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
     name: {
+      flex: 1,
       fontSize: 22,
       fontWeight: '700',
       color: colors.black,

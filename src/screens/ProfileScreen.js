@@ -286,13 +286,13 @@ const ProfileScreen = ({ navigation }) => {
               <View style={styles.innerRowContainer}>
                 <Ionicons
                   name="folder-outline"
-                  size={22}
+                  size={20}
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
                 <Text style={styles.title}>Custom subcategories</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -304,20 +304,20 @@ const ProfileScreen = ({ navigation }) => {
               <View style={styles.innerRowContainer}>
                 <Ionicons
                   name="refresh-outline"
-                  size={22}
+                  size={20}
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
                 <Text style={styles.title}>Revisit onboarding</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </TouchableOpacity>
 
             <View style={styles.sectionRow}>
               <View style={styles.innerRowContainer}>
                 <Ionicons
                   name={isDark ? 'moon' : 'sunny-outline'}
-                  size={22}
+                  size={20}
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
@@ -441,12 +441,12 @@ const createStyles = (colors, insets) =>
       elevation: 1,
     },
     sectionRow: {
-      minHeight: 52,
+      minHeight: 46,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 12,
-      paddingVertical: 12,
+      paddingVertical: 8,
       backgroundColor: colors.white,
     },
     rowDivider: {
