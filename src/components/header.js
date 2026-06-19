@@ -1,10 +1,12 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/themeContext';
 
 const Header = ({ title, subtitle, rounded, padding, style, rightComponent }) => {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets.top);
 
   return (
     <View style={[styles.container, rounded && styles.rounded, padding && styles.padding, style]}>
@@ -19,13 +21,13 @@ const Header = ({ title, subtitle, rounded, padding, style, rightComponent }) =>
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (colors, topInset) =>
   StyleSheet.create({
     container: {
       width: '100%',
       backgroundColor: colors.primary,
       gap: 6,
-      paddingTop: 10,
+      paddingTop: topInset + 10,
       paddingBottom: 15,
       paddingHorizontal: 20,
     },
@@ -49,7 +51,7 @@ const createStyles = (colors) =>
       borderBottomRightRadius: 16,
     },
     padding: {
-      paddingTop: 4,
+      paddingTop: topInset + 4,
       paddingBottom: 24,
       paddingHorizontal: 24,
     },
