@@ -1,88 +1,81 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text, StyleSheet, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Banner = ({ message, onFinish, onPress, type = 'error' }) => {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(insets.top);
+  const [visible, setVisible] = useState(true);
+  const onFinishRef = useRef(onFinish);
 
-  const translateY = useSharedValue(-100);
-  const opacity = useSharedValue(0);
+  onFinishRef.current = onFinish;
 
   const backgroundColor = type === 'error' ? colors.red : colors.green;
   const iconName = type === 'error' ? 'alert-circle-outline' : 'checkmark-circle-outline';
 
   useEffect(() => {
-    translateY.value = withTiming(0, { duration: 400, reduceMotion: 'never' });
-    opacity.value = withTiming(1, { duration: 400, reduceMotion: 'never' });
+    setVisible(true);
 
     const timeout = setTimeout(() => {
-      translateY.value = withTiming(-100, { duration: 400, reduceMotion: 'never' });
-      opacity.value = withTiming(0, { duration: 400, reduceMotion: 'never' }, (finished) => {
-        if (finished && onFinish) {
-          runOnJS(onFinish)();
-        }
-      });
+      setVisible(false);
+      onFinishRef.current?.();
     }, 3000);
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [message]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
+  if (!visible || !message) return null;
 
   const content = (
     <Animated.View
-      pointerEvents={onPress ? 'auto' : 'none'}
-      style={[styles.banner, { backgroundColor }, animatedStyle]}
+      entering={FadeInDown.duration(180)}
+      exiting={FadeOutUp.duration(150)}
+      style={[styles.banner, { backgroundColor }]}
+      accessibilityRole={type === 'error' ? 'alert' : 'text'}
+      accessibilityLiveRegion="polite"
     >
       <Ionicons name={iconName} size={20} color="white" />
-      <Text style={styles.text}>{message}</Text>
+      <Text style={styles.text} numberOfLines={3}>
+        {message}
+      </Text>
+      {onPress && <Ionicons name="chevron-forward" size={18} color="white" />}
     </Animated.View>
   );
 
   if (!onPress) {
     return (
-      <View pointerEvents="none" style={styles.touchable}>
+      <View pointerEvents="none" style={styles.container}>
         {content}
       </View>
     );
   }
 
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.touchable}>
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.container}>
       {content}
     </TouchableOpacity>
   );
 };
 
-const createStyles = (colors) =>
+const createStyles = (topInset) =>
   StyleSheet.create({
-    touchable: {
+    container: {
       position: 'absolute',
-      top: 12,
+      top: topInset + 8,
       left: 16,
       right: 16,
-      zIndex: 999,
+      zIndex: 1000,
+      elevation: 20,
     },
     banner: {
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      borderRadius: 10,
-      elevation: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
+      minHeight: 44,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 8,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
