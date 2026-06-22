@@ -20,6 +20,7 @@ import {
   formatDate,
   getDateKeyInTimeZone,
   getDeviceTimeZone,
+  getFirstDayOfWeek,
   timestampToDate,
 } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
@@ -85,6 +86,7 @@ const HomeScreen = ({ navigation }) => {
   const styles = createStyles(colors, tabBarHeight);
   const { height } = useWindowDimensions();
   const timeZone = getDeviceTimeZone();
+  const firstDayOfWeek = getFirstDayOfWeek();
   useStatusBar(colors.primary);
 
   const calendarTheme = useMemo(
@@ -328,7 +330,8 @@ const HomeScreen = ({ navigation }) => {
               )}
             </View>
             <Calendar
-              key={colors.mode}
+              key={`${colors.mode}-${firstDayOfWeek}`}
+              firstDay={firstDayOfWeek}
               theme={calendarTheme}
               style={styles.calendar}
               onDayPress={(day) => {

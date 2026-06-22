@@ -1,4 +1,5 @@
 import firestore from '@react-native-firebase/firestore';
+import { I18nManager } from 'react-native';
 
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -26,6 +27,35 @@ export const getDeviceTimeZone = () => {
   } catch {
     return 'UTC';
   }
+};
+
+export const getDeviceLocale = () => {
+  const nativeLocale = I18nManager.getConstants?.().localeIdentifier;
+  if (nativeLocale) return nativeLocale.replace('_', '-');
+
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().locale || 'en-US';
+  } catch {
+    return 'en-US';
+  }
+};
+
+export const getFirstDayOfWeek = (locale = getDeviceLocale()) => {
+  try {
+    if (typeof Intl.Locale === 'function') {
+      const localeInfo = new Intl.Locale(locale);
+      const weekInfo =
+        typeof localeInfo.getWeekInfo === 'function'
+          ? localeInfo.getWeekInfo()
+          : localeInfo.weekInfo;
+
+      if (weekInfo?.firstDay) return weekInfo.firstDay % 7;
+    }
+  } catch {
+    // Fall through to a simple default for older JavaScript engines
+  }
+
+  return /(?:^|[-_])US(?:[-_]|$)/i.test(locale) ? 0 : 1;
 };
 
 export const timestampToDate = (timestamp) => {
