@@ -54,6 +54,8 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
+  const [colorSheetVisible, setColorSheetVisible] = useState(false);
+  const [selectedColors, setSelectedColors] = useState([]);
   const [addingWearItemId, setAddingWearItemId] = useState(null);
 
   const [sortField, setSortField] = useState('dateAdded');
@@ -82,7 +84,11 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   };
 
   const filteredPurchases = purchases
-    .filter((purchase) => purchase.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(
+      (purchase) =>
+        purchase.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedColors.length === 0 || selectedColors.includes(purchase.itemColor?.name))
+    )
     .sort((a, b) => {
       let aValue, bValue;
 
@@ -274,6 +280,23 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         <TouchableOpacity onPress={() => setSortSheetVisible(true)} style={styles.sortButton}>
           <Ionicons name="swap-vertical-outline" size={22} color={colors.gray} />
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setColorSheetVisible(true)}
+          style={[styles.sortButton, selectedColors.length > 0 && styles.filterButtonActive]}
+          accessibilityRole="button"
+          accessibilityLabel="Filter items by color"
+        >
+          <Ionicons
+            name="color-palette-outline"
+            size={22}
+            color={selectedColors.length > 0 ? colors.primary : colors.gray}
+          />
+          {selectedColors.length > 0 && (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>{selectedColors.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.countContainer}>
@@ -297,7 +320,11 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         >
           <Ionicons name="search-outline" size={28} color={colors.gray} />
           <Text style={styles.emptyText}>
-            {searchQuery ? `No items match "${searchQuery}"` : 'No items found'}
+            {searchQuery
+              ? `No items match "${searchQuery}"`
+              : selectedColors.length > 0
+              ? 'No items match the selected colors'
+              : 'No items found'}
           </Text>
           <Text style={styles.emptyHint}>Pull down to refresh</Text>
         </ScrollView>
@@ -393,6 +420,70 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           );
         })}
       </BottomSheet>
+      <BottomSheet
+        visible={colorSheetVisible}
+        onClose={() => setColorSheetVisible(false)}
+        title="Filter by color"
+        height={480}
+      >
+        <View style={styles.colorFilterHeader}>
+          <Text style={styles.colorFilterCount}>
+            {selectedColors.length === 0 ? 'All colors' : `${selectedColors.length} selected`}
+          </Text>
+          {selectedColors.length > 0 && (
+            <TouchableOpacity onPress={() => setSelectedColors([])}>
+              <Text style={styles.clearFilterText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <ScrollView
+          style={styles.colorList}
+          contentContainerStyle={styles.colorListContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {colors.itemColorOptions.map((option) => {
+            const isSelected = selectedColors.includes(option.name);
+
+            return (
+              <TouchableOpacity
+                key={option.name}
+                style={styles.colorOption}
+                onPress={() =>
+                  setSelectedColors((current) =>
+                    isSelected
+                      ? current.filter((name) => name !== option.name)
+                      : [...current, option.name]
+                  )
+                }
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isSelected }}
+                accessibilityLabel={`Filter by ${option.name}`}
+              >
+                <View style={styles.colorOptionLeft}>
+                  <View
+                    style={[
+                      styles.colorSwatch,
+                      {
+                        backgroundColor: option.hex,
+                        borderColor:
+                          option.name === 'White' || option.name === 'Black'
+                            ? colors.gray
+                            : option.hex,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.colorOptionText}>{option.name}</Text>
+                </View>
+                <Ionicons
+                  name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={22}
+                  color={isSelected ? colors.primary : colors.gray}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 };
@@ -452,6 +543,27 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.lightGrey,
       backgroundColor: colors.white,
+    },
+    filterButtonActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryLight,
+    },
+    filterBadge: {
+      position: 'absolute',
+      top: 4,
+      right: 4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      paddingHorizontal: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+    },
+    filterBadgeText: {
+      color: 'white',
+      fontSize: 10,
+      fontWeight: '700',
     },
     sortContainer: {
       width: '100%',
@@ -541,6 +653,59 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
       position: 'absolute',
       bottom: 110,
+    },
+    colorFilterHeader: {
+      width: '100%',
+      minHeight: 40,
+      paddingHorizontal: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+    },
+    colorFilterCount: {
+      color: colors.gray,
+      fontSize: 13,
+    },
+    clearFilterText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    colorList: {
+      width: '100%',
+      flex: 1,
+      paddingTop: 6,
+    },
+    colorListContent: {
+      paddingBottom: 110,
+    },
+    colorOption: {
+      width: '100%',
+      minHeight: 48,
+      paddingHorizontal: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.white,
+    },
+    colorOptionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    colorSwatch: {
+      width: 18,
+      height: 18,
+      borderRadius: 12,
+      borderWidth: 1,
+    },
+    colorOptionText: {
+      color: colors.black,
+      fontWeight: '500',
     },
   });
 
