@@ -153,8 +153,9 @@ const DetailsScreen = ({ navigation }) => {
   const lastWear = currentPurchase.wears?.[wearCount - 1];
   const categoryName =
     currentPurchase.category?.category ||
-    (typeof currentPurchase.category === 'string' ? currentPurchase.category : 'N/A');
-  const categoryLabel = categoryName;
+    (typeof currentPurchase.category === 'string' ? currentPurchase.category : '');
+  const subCategoryName = currentPurchase.category?.subCategory?.name;
+  const categoryLabel = categoryName && subCategoryName ? `${categoryName} - ${subCategoryName}` : 'N/A';
   const itemColor = currentPurchase.itemColor;
   const paidPrice = currentPurchase.paidPrice;
   const regularPrice = currentPurchase.regularPrice;

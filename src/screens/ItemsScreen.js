@@ -12,6 +12,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import SearchBar from '../components/searchBar';
+import MultiSelectFilterSheet from '../components/multiSelectFilterSheet';
 import {
   generateFirestoreTimestampFromDate,
   getDateKeyInTimeZone,
@@ -48,13 +49,16 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const collections = useSelector((state) => state.purchase.collections);
+  const categories = useSelector((state) => state.user.categories);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState('');
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
+  const [categorySheetVisible, setCategorySheetVisible] = useState(false);
   const [colorSheetVisible, setColorSheetVisible] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [addingWearItemId, setAddingWearItemId] = useState(null);
 
@@ -83,10 +87,19 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     }, 10);
   };
 
+  const getCategoryName = (purchase) =>
+    typeof purchase.category === 'string' ? purchase.category : purchase.category?.category;
+
+  const categoryOptions = Array.from(
+    new Set(categories.filter((category) => !category.custom).map((category) => category.name))
+  ).filter(Boolean);
+
   const filteredPurchases = purchases
     .filter(
       (purchase) =>
         purchase.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedCategories.length === 0 ||
+          selectedCategories.includes(getCategoryName(purchase))) &&
         (selectedColors.length === 0 || selectedColors.includes(purchase.itemColor?.name))
     )
     .sort((a, b) => {
@@ -277,8 +290,22 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           placeholder="Search items"
           style={styles.searchBar}
         />
-        <TouchableOpacity onPress={() => setSortSheetVisible(true)} style={styles.sortButton}>
-          <Ionicons name="swap-vertical-outline" size={22} color={colors.gray} />
+        <TouchableOpacity
+          onPress={() => setCategorySheetVisible(true)}
+          style={[styles.sortButton, selectedCategories.length > 0 && styles.filterButtonActive]}
+          accessibilityRole="button"
+          accessibilityLabel="Filter items by category"
+        >
+          <Ionicons
+            name="pricetags-outline"
+            size={22}
+            color={selectedCategories.length > 0 ? colors.primary : colors.gray}
+          />
+          {selectedCategories.length > 0 && (
+            <View style={styles.filterBadge}>
+              <Text style={styles.filterBadgeText}>{selectedCategories.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setColorSheetVisible(true)}
@@ -301,14 +328,25 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
       <View style={styles.countContainer}>
         <View style={styles.resultsLeft}>
-          <Text style={styles.count}>
-            Sorted by {sortOptions.find((opt) => opt.value === sortField)?.label}
-          </Text>
-          <Ionicons
-            name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
-            size={14}
-            color={colors.gray}
-          />
+          <Text style={styles.count}>Sorted by</Text>
+          <TouchableOpacity
+            style={styles.sortControl}
+            onPress={() => setSortSheetVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Change sort. Currently sorted by ${
+              sortOptions.find((opt) => opt.value === sortField)?.label
+            } ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+            hitSlop={8}
+          >
+            <Text style={styles.sortValue}>
+              {sortOptions.find((opt) => opt.value === sortField)?.label}
+            </Text>
+            <Ionicons
+              name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
+              size={14}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
         </View>
         <Text style={styles.resultCount}>{filteredPurchases.length} found</Text>
       </View>
@@ -322,6 +360,8 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           <Text style={styles.emptyText}>
             {searchQuery
               ? `No items match "${searchQuery}"`
+              : selectedCategories.length > 0
+              ? 'No items match the selected categories'
               : selectedColors.length > 0
               ? 'No items match the selected colors'
               : 'No items found'}
@@ -420,70 +460,38 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           );
         })}
       </BottomSheet>
-      <BottomSheet
+      <MultiSelectFilterSheet
+        visible={categorySheetVisible}
+        onClose={() => setCategorySheetVisible(false)}
+        title="Filter by category"
+        allLabel="All categories"
+        options={categoryOptions}
+        selectedValues={selectedCategories}
+        onChange={setSelectedCategories}
+      />
+      <MultiSelectFilterSheet
         visible={colorSheetVisible}
         onClose={() => setColorSheetVisible(false)}
         title="Filter by color"
-        height={480}
-      >
-        <View style={styles.colorFilterHeader}>
-          <Text style={styles.colorFilterCount}>
-            {selectedColors.length === 0 ? 'All colors' : `${selectedColors.length} selected`}
-          </Text>
-          {selectedColors.length > 0 && (
-            <TouchableOpacity onPress={() => setSelectedColors([])}>
-              <Text style={styles.clearFilterText}>Clear</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <ScrollView
-          style={styles.colorList}
-          contentContainerStyle={styles.colorListContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {colors.itemColorOptions.map((option) => {
-            const isSelected = selectedColors.includes(option.name);
-
-            return (
-              <TouchableOpacity
-                key={option.name}
-                style={styles.colorOption}
-                onPress={() =>
-                  setSelectedColors((current) =>
-                    isSelected
-                      ? current.filter((name) => name !== option.name)
-                      : [...current, option.name]
-                  )
-                }
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: isSelected }}
-                accessibilityLabel={`Filter by ${option.name}`}
-              >
-                <View style={styles.colorOptionLeft}>
-                  <View
-                    style={[
-                      styles.colorSwatch,
-                      {
-                        backgroundColor: option.hex,
-                        borderColor:
-                          option.name === 'White' || option.name === 'Black'
-                            ? colors.gray
-                            : option.hex,
-                      },
-                    ]}
-                  />
-                  <Text style={styles.colorOptionText}>{option.name}</Text>
-                </View>
-                <Ionicons
-                  name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={22}
-                  color={isSelected ? colors.primary : colors.gray}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </BottomSheet>
+        allLabel="All colors"
+        options={colors.itemColorOptions}
+        selectedValues={selectedColors}
+        onChange={setSelectedColors}
+        getLabel={(option) => option.name}
+        getValue={(option) => option.name}
+        renderLeading={(option) => (
+          <View
+            style={[
+              styles.colorSwatch,
+              {
+                backgroundColor: option.hex,
+                borderColor:
+                  option.name === 'White' || option.name === 'Black' ? colors.gray : option.hex,
+              },
+            ]}
+          />
+        )}
+      />
     </View>
   );
 };
@@ -596,6 +604,16 @@ const createStyles = (colors) =>
       color: colors.gray,
       fontSize: 13,
     },
+    sortValue: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    sortControl: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     resultCount: {
       color: colors.black,
       fontSize: 13,
@@ -654,58 +672,11 @@ const createStyles = (colors) =>
       position: 'absolute',
       bottom: 110,
     },
-    colorFilterHeader: {
-      width: '100%',
-      minHeight: 40,
-      paddingHorizontal: 4,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottomWidth: 1,
-      borderBottomColor: colors.bg,
-    },
-    colorFilterCount: {
-      color: colors.gray,
-      fontSize: 13,
-    },
-    clearFilterText: {
-      color: colors.primary,
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    colorList: {
-      width: '100%',
-      flex: 1,
-      paddingTop: 6,
-    },
-    colorListContent: {
-      paddingBottom: 110,
-    },
-    colorOption: {
-      width: '100%',
-      minHeight: 48,
-      paddingHorizontal: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.bg,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.white,
-    },
-    colorOptionLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
     colorSwatch: {
       width: 18,
       height: 18,
       borderRadius: 12,
       borderWidth: 1,
-    },
-    colorOptionText: {
-      color: colors.black,
-      fontWeight: '500',
     },
   });
 
