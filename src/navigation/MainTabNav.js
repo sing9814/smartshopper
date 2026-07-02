@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
+import InsightsScreen from '../screens/InsightsScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../theme/themeContext';
 import AddPurchaseScreen from '../screens/AddPurchaseScreen';
@@ -39,6 +40,8 @@ function MainTabNav() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Insights') {
+            iconName = focused ? 'analytics' : 'analytics-outline';
           } else if (route.name === 'Add') {
             iconName = focused ? 'add' : 'add-outline';
           } else if (route.name === 'Purchases') {
@@ -56,8 +59,9 @@ function MainTabNav() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Add" component={AddPurchaseScreen} />
       <Tab.Screen name="Purchases" component={ItemStack} />
+      <Tab.Screen name="Add" component={AddPurchaseScreen} />
+      <Tab.Screen name="Insights" component={InsightsScreen} />
       <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
   );

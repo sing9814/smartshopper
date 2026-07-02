@@ -21,14 +21,12 @@ import {
   getDateKeyInTimeZone,
   getDeviceTimeZone,
   getFirstDayOfWeek,
-  timestampToDate,
 } from '../utils/date';
 import PurchaseList from '../components/purchaseList';
 import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 import {
   USE_FAKE_DATA,
   createMockCategories,
@@ -37,11 +35,6 @@ import {
   mockPurchases,
   mockUserData,
 } from '../utils/mockData';
-
-const getLastWearDate = (item) => {
-  const wears = item.wears || [];
-  return timestampToDate(wears[wears.length - 1]);
-};
 
 const itemWasWornOnDate = (item, dateKey, timeZone) => {
   return (item.wears || []).some((wear) => {
@@ -228,41 +221,10 @@ const HomeScreen = ({ navigation }) => {
     timeZone,
   ]);
 
-  const wearStats = useMemo(() => {
-    const totalItems = purchases.length;
-    const totalWears = purchases.reduce((total, item) => total + (item.wears?.length || 0), 0);
-    const wornItems = purchases.filter((item) => (item.wears?.length || 0) > 0).length;
-    const mostWorn = purchases.reduce((topItem, item) => {
-      if (!topItem) return item;
-
-      return (item.wears?.length || 0) > (topItem.wears?.length || 0) ? item : topItem;
-    }, null);
-    const leastWorn =
-      purchases.length > 1
-        ? [...purchases]
-            .filter((item) => item.key !== mostWorn?.key)
-            .sort((a, b) => {
-              const wearDifference = (a.wears?.length || 0) - (b.wears?.length || 0);
-              if (wearDifference !== 0) return wearDifference;
-
-              const aLastWorn = getLastWearDate(a)?.getTime() || 0;
-              const bLastWorn = getLastWearDate(b)?.getTime() || 0;
-
-              return aLastWorn - bLastWorn;
-            })[0]
-        : null;
-
-    return {
-      totalItems,
-      totalWears,
-      wornItems,
-      mostWorn,
-      leastWorn,
-    };
-  }, [purchases]);
-
-  const mostWornCount = wearStats.mostWorn?.wears?.length || 0;
-  const leastWornCount = wearStats.leastWorn?.wears?.length || 0;
+  const totalWears = useMemo(
+    () => purchases.reduce((total, item) => total + (item.wears?.length || 0), 0),
+    [purchases]
+  );
 
   return (
     <View style={styles.container}>
@@ -286,49 +248,10 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.totalWearsIcon}>
                 <Ionicons name="repeat-outline" size={20} color={colors.primary} />
               </View>
-              <Text style={styles.analyticsValue}>{wearStats.totalWears}</Text>
+              <Text style={styles.analyticsValue}>{totalWears}</Text>
               <Text style={styles.analyticsSubtext}>Total wears</Text>
             </View>
 
-            <View style={styles.analyticsCard}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Item insights</Text>
-                <Ionicons name="bulb-outline" size={20} color={colors.primary} />
-              </View>
-              <View style={styles.coverageRow}>
-                <View style={styles.coverageIcon}>
-                  <Ionicons name="checkmark-circle-outline" size={18} color={colors.primary} />
-                </View>
-                <Text style={styles.coverageText}>
-                  {wearStats.totalItems
-                    ? `${wearStats.wornItems} of ${wearStats.totalItems} items have been worn`
-                    : 'Add items to start seeing trends'}
-                </Text>
-              </View>
-              {wearStats.mostWorn ? (
-                <>
-                  <ItemInsight
-                    title="Most worn"
-                    icon="trending-up-outline"
-                    item={wearStats.mostWorn}
-                    wearCount={mostWornCount}
-                    colors={colors}
-                    styles={styles}
-                  />
-                  <View style={styles.divider} />
-                  <ItemInsight
-                    title="Least worn"
-                    icon="trending-down-outline"
-                    item={wearStats.leastWorn}
-                    wearCount={leastWornCount}
-                    colors={colors}
-                    styles={styles}
-                  />
-                </>
-              ) : (
-                <Text style={styles.mutedText}>No items yet.</Text>
-              )}
-            </View>
             <Calendar
               key={`${colors.mode}-${firstDayOfWeek}`}
               firstDay={firstDayOfWeek}
@@ -390,17 +313,6 @@ const HomeLoadingPlaceholders = ({ styles }) => {
         <PlaceholderBlock styles={styles} style={styles.pTotalWearsSubtext} />
       </View>
 
-      <View style={styles.analyticsCard}>
-        <View style={styles.pInsightsHeaderRow}>
-          <PlaceholderBlock styles={styles} style={styles.pInsightsTitle} />
-          <PlaceholderBlock styles={styles} style={styles.pIcon} />
-        </View>
-        <View style={styles.pInsightsCoverageRow}>
-          <PlaceholderBlock styles={styles} style={styles.pIcon} />
-          <PlaceholderBlock styles={styles} style={styles.pInsightsCoverageText} />
-        </View>
-      </View>
-
       <View style={styles.pCalendarCard}>
         <View style={styles.pCalendarHeader}>
           <PlaceholderBlock styles={styles} style={styles.pCalendarArrow} />
@@ -412,36 +324,6 @@ const HomeLoadingPlaceholders = ({ styles }) => {
         <PlaceholderBlock styles={styles} style={styles.pCalendarShortLine} />
       </View>
     </>
-  );
-};
-
-const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
-  const wearGoal = item?.wearGoal ?? DEFAULT_WEAR_GOAL;
-  const wearProgress = getWearGoalProgress(wearCount, wearGoal);
-
-  if (!item) {
-    return (
-      <View>
-        <Text style={styles.insightLabel}>{title}</Text>
-        <Text style={styles.mutedText}>Not enough items yet.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.highlightRow}>
-      <View style={styles.insightIcon}>
-        <Ionicons name={icon} size={18} color={colors.primary} />
-      </View>
-      <View style={styles.highlightText}>
-        <Text style={styles.insightLabel}>{title}</Text>
-        <Text style={styles.highlightTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.mutedText}>{wearProgress.detailLabel}</Text>
-      </View>
-      <Text style={styles.highlightValue}>{wearCount} wears</Text>
-    </View>
   );
 };
 
@@ -545,35 +427,11 @@ const createStyles = (colors, tabBarHeight) =>
       borderRadius: 18,
       backgroundColor: colors.primaryLight,
     },
-    pInsightsHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    pInsightsTitle: {
-      width: 118,
-      height: 18,
-    },
     pIcon: {
       width: 30,
       height: 30,
       borderRadius: 15,
       backgroundColor: colors.primaryLight,
-    },
-    pInsightsCoverageRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      padding: 10,
-      borderRadius: 8,
-      backgroundColor: colors.white,
-      elevation: 2,
-      marginBottom: 4,
-    },
-    pInsightsCoverageText: {
-      flex: 1,
-      height: 14,
-      marginRight: 80,
     },
     pCalendarHeader: {
       flexDirection: 'row',
@@ -599,14 +457,6 @@ const createStyles = (colors, tabBarHeight) =>
       width: '72%',
       height: 28,
       borderRadius: 8,
-    },
-    analyticsCard: {
-      backgroundColor: colors.white,
-      marginBottom: 10,
-      borderRadius: 10,
-      padding: 14,
-      gap: 12,
-      elevation: 1,
     },
     totalWearsCard: {
       backgroundColor: colors.white,
@@ -638,81 +488,6 @@ const createStyles = (colors, tabBarHeight) =>
       color: colors.gray,
       marginTop: 2,
       fontSize: 14,
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    cardTitle: {
-      color: colors.black,
-      fontSize: 16,
-      fontWeight: '700',
-    },
-    coverageRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      padding: 10,
-      borderRadius: 8,
-      backgroundColor: colors.white,
-      elevation: 2,
-      marginBottom: 4,
-    },
-    coverageIcon: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      alignItems: 'center',
-      justifyContent: 'center',
-      // backgroundColor: colors.primaryLight,
-    },
-    coverageText: {
-      flex: 1,
-      color: colors.black,
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    highlightRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
-    insightIcon: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      alignItems: 'center',
-      justifyContent: 'center',
-      // backgroundColor: colors.primaryLight,
-    },
-    highlightText: {
-      flex: 1,
-    },
-    highlightTitle: {
-      color: colors.black,
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 4,
-    },
-    insightLabel: {
-      color: colors.gray,
-      fontSize: 12,
-      fontWeight: '600',
-      marginBottom: 4,
-      textTransform: 'uppercase',
-    },
-    highlightValue: {
-      color: colors.gray,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: colors.bg,
-    },
-    mutedText: {
-      color: colors.gray,
-      fontSize: 13,
     },
   });
 

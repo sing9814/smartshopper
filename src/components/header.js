@@ -45,6 +45,7 @@ const createStyles = (colors, topInset) =>
     },
     subtitle: {
       color: 'white',
+      paddingTop: 6,
     },
     rounded: {
       borderBottomLeftRadius: 16,
