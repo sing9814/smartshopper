@@ -23,6 +23,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
 import { setUser } from '../redux/actions/userActions';
+import { formatCentsAsCurrency } from '../utils/price';
 
 const FEEDBACK_FORM_URL =
   'https://docs.google.com/forms/d/1BWQtUvXFn9GeCFqAAg4uTJHN6H-54EXAnHxqzphthRg/viewform';
@@ -74,8 +75,8 @@ const ProfileScreen = ({ navigation }) => {
       }
     });
 
-    setTotalSpent((spent / 100).toFixed(2));
-    setTotalSaved((saved / 100).toFixed(2));
+    setTotalSpent(formatCentsAsCurrency(spent));
+    setTotalSaved(formatCentsAsCurrency(saved));
 
     setLoading(false);
   };
@@ -265,14 +266,14 @@ const ProfileScreen = ({ navigation }) => {
               <MoneySVG color={colors.secondary} size={44} />
             </View>
             <Text style={styles.statLabel}>Spent</Text>
-            <Text style={[styles.amount, styles.spentAmount]}>${totalSpent}</Text>
+            <Text style={[styles.amount, styles.spentAmount]}>{totalSpent}</Text>
           </View>
           <View style={styles.card}>
             <View style={styles.statIcon}>
               <PigSVG color={colors.green} size={44} />
             </View>
             <Text style={styles.statLabel}>Saved</Text>
-            <Text style={[styles.amount, styles.savedAmount]}>${totalSaved}</Text>
+            <Text style={[styles.amount, styles.savedAmount]}>{totalSaved}</Text>
           </View>
         </View>
 

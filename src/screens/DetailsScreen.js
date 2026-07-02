@@ -20,7 +20,7 @@ import Banner from '../components/banner';
 import { updatePurchaseWears } from '../utils/firebase';
 import DetailsSheet from '../components/detailsSheet';
 import WearHistoryChart from '../components/WearHistoryChart';
-import { convertCentsToDollars } from '../utils/price';
+import { formatCentsAsCostPerWear, formatCentsAsCurrency } from '../utils/price';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -117,13 +117,6 @@ const DetailsScreen = ({ navigation }) => {
     }
   };
 
-  const formatCostPerWear = (cents) => {
-    if (cents == null) return 'N/A';
-    const dollars = cents / 100;
-    if (dollars > 0 && dollars < 0.01) return '<$0.01';
-    return `$${dollars.toFixed(2)}`;
-  };
-
   const formatWearDate = (wear) => {
     const date = timestampToDate(wear);
     if (!date) return 'N/A';
@@ -155,12 +148,13 @@ const DetailsScreen = ({ navigation }) => {
     currentPurchase.category?.category ||
     (typeof currentPurchase.category === 'string' ? currentPurchase.category : '');
   const subCategoryName = currentPurchase.category?.subCategory?.name;
-  const categoryLabel = categoryName && subCategoryName ? `${categoryName} - ${subCategoryName}` : 'N/A';
+  const categoryLabel =
+    categoryName && subCategoryName ? `${categoryName} - ${subCategoryName}` : 'N/A';
   const itemColor = currentPurchase.itemColor;
   const paidPrice = currentPurchase.paidPrice;
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
-    wearCount > 0 && paidPrice != null ? formatCostPerWear(paidPrice / wearCount) : 'N/A';
+    wearCount > 0 && paidPrice != null ? formatCentsAsCostPerWear(paidPrice / wearCount) : 'N/A';
   const wearHistory = useMemo(
     () => sortWearsByDate(currentPurchase.wears || []).reverse(),
     [currentPurchase.wears]
@@ -302,10 +296,10 @@ const DetailsScreen = ({ navigation }) => {
                     <View style={styles.rowText}>
                       <Text style={styles.titleLabel}>Price</Text>
                       <View style={styles.priceContainerInline}>
-                        <Text style={styles.valueText}>${convertCentsToDollars(paidPrice)}</Text>
+                        <Text style={styles.valueText}>{formatCentsAsCurrency(paidPrice)}</Text>
                         {regularPrice && (
                           <Text style={styles.regularPrice}>
-                            ${convertCentsToDollars(regularPrice)}
+                            {formatCentsAsCurrency(regularPrice)}
                           </Text>
                         )}
                       </View>

@@ -30,7 +30,11 @@ import {
 } from '../utils/date';
 import CustomCategorySheet from './customCategorySheet';
 import { setCategories } from '../redux/actions/userActions';
-import { convertCentsToDollars, convertDollarsToCents } from '../utils/price';
+import {
+  convertCentsToDollars,
+  convertDollarsToCents,
+  getLocalCurrencySymbol,
+} from '../utils/price';
 import Banner from './banner';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -84,6 +88,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const selectedCategoryText = category?.subCategory?.name
     ? `${category.category} - ${category.subCategory.name}`
     : category?.category || category || 'Category';
+  const currencySymbol = getLocalCurrencySymbol();
 
   const suggestedName = getSuggestedItemName(category, itemColor);
   const showNameSuggestion =
@@ -472,7 +477,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 value={paidPrice}
                 onChangeText={setPaidPrice}
                 type="numeric"
-                prefix="$"
+                prefix={currencySymbol}
                 component={<AddButton onPress={() => setDisabled(true)} disabled={disabled} />}
               />
 
@@ -482,7 +487,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                   value={regularPrice}
                   onChangeText={setRegularPrice}
                   type="numeric"
-                  prefix="$"
+                  prefix={currencySymbol}
                   component={
                     <TouchableWithoutFeedback onPress={removeRegularPrice}>
                       <Ionicons
