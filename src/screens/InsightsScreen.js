@@ -46,6 +46,15 @@ const InsightsScreen = () => {
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.summaryRow}>
+          <MetricCard label="Total items" value={purchases.length} styles={styles} />
+          <MetricCard
+            label="Total wears"
+            value={purchases.reduce((total, item) => total + getWearCount(item), 0)}
+            styles={styles}
+          />
+        </View>
+
         <View style={styles.analyticsCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Item insights</Text>
@@ -93,6 +102,13 @@ const InsightsScreen = () => {
     </View>
   );
 };
+
+const MetricCard = ({ label, value, styles }) => (
+  <View style={styles.metricCard}>
+    <Text style={styles.metricValue}>{value}</Text>
+    <Text style={styles.metricLabel}>{label}</Text>
+  </View>
+);
 
 const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
   const wearGoal = item?.wearGoal ?? DEFAULT_WEAR_GOAL;
@@ -219,6 +235,28 @@ const createStyles = (colors, tabBarHeight) =>
     mutedText: {
       color: colors.gray,
       fontSize: 13,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    metricCard: {
+      flex: 1,
+      minHeight: 108,
+      backgroundColor: colors.white,
+      borderRadius: 10,
+      padding: 16,
+      elevation: 1,
+    },
+    metricValue: {
+      color: colors.black,
+      fontSize: 30,
+      fontWeight: '700',
+    },
+    metricLabel: {
+      color: colors.gray,
+      fontSize: 13,
+      marginTop: 4,
     },
   });
 
