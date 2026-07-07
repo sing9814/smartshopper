@@ -27,14 +27,7 @@ import { categories as defaultCategories } from '../../assets/json/categories';
 import { useTheme } from '../theme/themeContext';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {
-  USE_FAKE_DATA,
-  createMockCategories,
-  mockCollections,
-  mockCustomCategories,
-  mockPurchases,
-  mockUserData,
-} from '../utils/mockData';
+import { USE_FAKE_DATA, createMockCategories, selectedMockProfile } from '../utils/mockData';
 
 const itemWasWornOnDate = (item, dateKey, timeZone) => {
   return (item.wears || []).some((wear) => {
@@ -147,11 +140,13 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchData = async () => {
     if (USE_FAKE_DATA) {
-      dispatch(setUser(mockUserData));
-      dispatch(setPurchases(mockPurchases));
-      dispatch(setCollections(mockCollections));
-      dispatch(setCategories(createMockCategories(defaultCategories)));
-      dispatch(setCustomCategories(mockCustomCategories));
+      dispatch(setUser(selectedMockProfile.userData));
+      dispatch(setPurchases(selectedMockProfile.purchases));
+      dispatch(setCollections(selectedMockProfile.collections));
+      dispatch(
+        setCategories(createMockCategories(defaultCategories, selectedMockProfile.customCategories))
+      );
+      dispatch(setCustomCategories(selectedMockProfile.customCategories));
       setLoading(false);
       setRefreshing(false);
       return;

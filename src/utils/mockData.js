@@ -57,10 +57,20 @@ const makePurchase = ({
   wearGoal,
 });
 
+// To test with local mock data, set USE_FAKE_DATA to true.
+// MOCK_PROFILE can be 'populated' for the full demo closet or 'blank' for an empty profile.
 export const USE_FAKE_DATA = false;
+export const MOCK_PROFILE = 'blank';
 
 export const mockUserData = {
   email: 'demo@smartshopper.app',
+  isGuest: false,
+  onboarded: true,
+  upgradedAt: null,
+};
+
+export const mockBlankUserData = {
+  email: 'blank@smartshopper.app',
   isGuest: false,
   onboarded: true,
   upgradedAt: null,
@@ -81,7 +91,9 @@ export const mockCustomCategories = [
   },
 ];
 
-export const createMockCategories = (categories) => [
+export const mockBlankCustomCategories = [];
+
+export const createMockCategories = (categories, customCategories = mockCustomCategories) => [
   ...categories.map((category) => ({
     name: category.name,
     subCategories: category.subCategories.map((subCategory) => ({
@@ -92,7 +104,7 @@ export const createMockCategories = (categories) => [
       custom: false,
     })),
   })),
-  ...mockCustomCategories.map((category) => ({
+  ...customCategories.map((category) => ({
     id: category.id,
     name: category.name,
     custom: true,
@@ -405,3 +417,23 @@ export const mockPurchases = [
     wearDates: makeWearDates(9, '2026-04-20', 5),
   }),
 ];
+
+export const mockBlankCollections = [];
+export const mockBlankPurchases = [];
+
+export const mockProfiles = {
+  populated: {
+    userData: mockUserData,
+    purchases: mockPurchases,
+    collections: mockCollections,
+    customCategories: mockCustomCategories,
+  },
+  blank: {
+    userData: mockBlankUserData,
+    purchases: mockBlankPurchases,
+    collections: mockBlankCollections,
+    customCategories: mockBlankCustomCategories,
+  },
+};
+
+export const selectedMockProfile = mockProfiles[MOCK_PROFILE] || mockProfiles.populated;
