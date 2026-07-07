@@ -13,6 +13,7 @@ import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
 
 const PurchaseList = ({
   purchases,
@@ -86,6 +87,7 @@ const PurchaseList = ({
     const isAddingWear = addingWearItemId === item.key;
     const hasWearLoggedToday = isWearLoggedToday?.(item);
     const isWearButtonDisabled = isAddingWear || hasWearLoggedToday;
+    const itemColor = getCurrentItemColor(item.itemColor, colors);
     let addWearButtonLabel = 'Wear';
     if (hasWearLoggedToday) {
       addWearButtonLabel = 'Worn today';
@@ -108,16 +110,13 @@ const PurchaseList = ({
       >
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>
-            {item.itemColor ? (
+            {itemColor ? (
               <View
                 style={[
                   styles.itemColorSwatch,
                   {
-                    backgroundColor: item.itemColor.hex,
-                    borderColor:
-                      item.itemColor.name === 'White' || item.itemColor.name === 'Black'
-                        ? colors.gray
-                        : item.itemColor.hex,
+                    backgroundColor: itemColor.hex,
+                    borderColor: getItemColorBorder(itemColor, colors),
                   },
                 ]}
               />

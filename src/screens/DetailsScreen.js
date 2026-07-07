@@ -26,6 +26,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 import CustomTabBar from '../navigation/CustomTabBar';
+import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -150,7 +151,7 @@ const DetailsScreen = ({ navigation }) => {
   const subCategoryName = currentPurchase.category?.subCategory?.name;
   const categoryLabel =
     categoryName && subCategoryName ? `${categoryName} - ${subCategoryName}` : 'N/A';
-  const itemColor = currentPurchase.itemColor;
+  const itemColor = getCurrentItemColor(currentPurchase.itemColor, colors);
   const paidPrice = currentPurchase.paidPrice;
   const regularPrice = currentPurchase.regularPrice;
   const costPerWear =
@@ -329,10 +330,7 @@ const DetailsScreen = ({ navigation }) => {
                             styles.colorSwatch,
                             {
                               backgroundColor: itemColor.hex,
-                              borderColor:
-                                itemColor.name === 'White' || itemColor.name === 'Black'
-                                  ? colors.lightGrey
-                                  : itemColor.hex,
+                              borderColor: getItemColorBorder(itemColor, colors),
                             },
                           ]}
                         />

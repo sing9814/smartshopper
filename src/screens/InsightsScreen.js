@@ -7,6 +7,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import { useTheme } from '../theme/themeContext';
 import { timestampToDate } from '../utils/date';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
+import { getItemColorBorder } from '../utils/itemColor';
 
 const getLastWearDate = (item) => {
   const wears = item.wears || [];
@@ -16,6 +17,37 @@ const getLastWearDate = (item) => {
 const getWearCount = (item) => item?.wears?.length || 0;
 
 const getLastWearTime = (item) => getLastWearDate(item)?.getTime() || 0;
+
+const getColorName = (item) => item.itemColor?.name || 'No color';
+
+const getColorHex = (item, colors) => item.itemColor?.hex || colors.noColor;
+
+const getColorDistribution = (purchases, colors) => {
+  const colorCounts = purchases.reduce((groups, item) => {
+    const label = getColorName(item);
+
+    groups[label] = groups[label] || {
+      label,
+      color: getColorHex(item, colors),
+      count: 0,
+    };
+    groups[label].count += 1;
+
+    return groups;
+  }, {});
+
+  const paletteDistribution = colors.itemColorOptions.map((option, index) => ({
+    label: option.name,
+    color: option.hex,
+    count: colorCounts[option.name]?.count || 0,
+    order: index,
+  }));
+  const extraDistribution = Object.values(colorCounts)
+    .filter((item) => !colors.itemColorOptions.some((option) => option.name === item.label))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  return [...paletteDistribution, ...extraDistribution];
+};
 
 const sortByLeastWorn = (a, b) => {
   const wearDifference = getWearCount(a) - getWearCount(b);
@@ -34,6 +66,13 @@ const InsightsScreen = () => {
     purchases.length > 1
       ? [...purchases].filter((item) => item.key !== mostWorn?.key).sort(sortByLeastWorn)[0]
       : null;
+  const colorDistribution = getColorDistribution(purchases, colors);
+  const activeColors = colorDistribution
+    .filter((item) => item.count > 0)
+    .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
+  const unusedColors = colorDistribution
+    .filter((item) => item.count === 0)
+    .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
 
   useStatusBar(colors.primary);
 
@@ -96,6 +135,104 @@ const InsightsScreen = () => {
             </>
           ) : (
             <Text style={styles.mutedText}>No items yet.</Text>
+          )}
+        </View>
+
+        <View style={styles.chartCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Color breakdown</Text>
+            <Ionicons name="color-palette-outline" size={20} color={colors.primary} />
+          </View>
+
+          {purchases.length ? (
+            <View style={styles.chartRows}>
+              <View style={[styles.paletteStrip, styles.paletteStripWithLegend]}>
+                {colorDistribution
+                  .filter((item) => item.count > 0)
+                  .map((item, index, visibleData) => (
+                    <View
+                      key={`${item.label}-palette`}
+                      style={[
+                        styles.paletteSegment,
+                        {
+                          flex: item.count,
+                          marginLeft: index === 0 ? 0 : -8,
+                          zIndex: visibleData.length - index,
+                          backgroundColor: item.color,
+                          borderColor: 'rgba(0, 0, 0, 0.2)',
+                        },
+                        index === 0 && styles.paletteSegmentFirst,
+                        index === visibleData.length - 1 && styles.paletteSegmentLast,
+                      ]}
+                    />
+                  ))}
+              </View>
+              <View style={styles.legendGroups}>
+                {activeColors.length > 0 && (
+                  <View style={styles.legendGroup}>
+                    <View style={styles.legendList}>
+                      {activeColors.map((item) => {
+                        const percent = Math.round((item.count / purchases.length) * 100);
+
+                        return (
+                          <View key={item.label} style={styles.legendItem}>
+                            <View
+                              style={[
+                                styles.chartSwatch,
+                                styles.legendSwatch,
+                                {
+                                  backgroundColor: item.color,
+                                  borderColor: getItemColorBorder(
+                                    { name: item.label, hex: item.color },
+                                    colors
+                                  ),
+                                },
+                              ]}
+                            />
+                            <Text style={styles.legendLabel} numberOfLines={1}>
+                              {item.label}
+                            </Text>
+                            <Text style={styles.legendValue}>
+                              {item.count} ({percent}%)
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {unusedColors.length > 0 && (
+                  <View style={styles.legendGroup}>
+                    <Text style={styles.legendGroupTitle}>Not logged yet</Text>
+                    <View style={[styles.legendList, styles.unusedLegendList]}>
+                      {unusedColors.map((item) => (
+                        <View key={item.label} style={styles.legendItem}>
+                          <View
+                            style={[
+                              styles.chartSwatch,
+                              styles.legendSwatch,
+                              {
+                                backgroundColor: item.color,
+                                borderColor: getItemColorBorder(
+                                  { name: item.label, hex: item.color },
+                                  colors
+                                ),
+                              },
+                            ]}
+                          />
+                          <Text style={styles.legendLabel} numberOfLines={1}>
+                            {item.label}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.mutedText}>Add items to see this breakdown.</Text>
           )}
         </View>
       </ScrollView>
@@ -235,6 +372,87 @@ const createStyles = (colors, tabBarHeight) =>
     mutedText: {
       color: colors.gray,
       fontSize: 13,
+    },
+    chartCard: {
+      backgroundColor: colors.white,
+      borderRadius: 10,
+      padding: 16,
+      gap: 14,
+      elevation: 1,
+    },
+    chartRows: {
+      gap: 12,
+    },
+    paletteStrip: {
+      height: 20,
+      flexDirection: 'row',
+      overflow: 'hidden',
+      borderRadius: 10,
+      backgroundColor: colors.bg,
+    },
+    paletteStripWithLegend: {
+      marginBottom: 8,
+    },
+    paletteSegment: {
+      borderTopRightRadius: 10,
+      borderBottomRightRadius: 10,
+      borderWidth: 0.5,
+    },
+    paletteSegmentFirst: {
+      borderTopLeftRadius: 10,
+      borderBottomLeftRadius: 10,
+    },
+    paletteSegmentLast: {
+      borderTopRightRadius: 10,
+      borderBottomRightRadius: 10,
+    },
+    chartSwatch: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      borderWidth: 1,
+    },
+    legendSwatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+    },
+    legendGroups: {
+      gap: 14,
+    },
+    legendGroup: {
+      gap: 14,
+    },
+    legendGroupTitle: {
+      color: colors.gray,
+      fontSize: 13,
+    },
+    legendList: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      columnGap: 22,
+      rowGap: 16,
+    },
+    unusedLegendList: {
+      paddingBottom: 8,
+    },
+    legendItem: {
+      minWidth: '44%',
+      maxWidth: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 8,
+    },
+    legendLabel: {
+      flexShrink: 1,
+      color: colors.black,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    legendValue: {
+      color: colors.gray,
+      fontSize: 12,
+      fontWeight: '600',
     },
     summaryRow: {
       flexDirection: 'row',

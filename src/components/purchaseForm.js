@@ -39,6 +39,7 @@ import Banner from './banner';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useNavigation } from '@react-navigation/native';
+import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
 
 dayjs.extend(utc);
 
@@ -89,6 +90,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     ? `${category.category} - ${category.subCategory.name}`
     : category?.category || category || 'Category';
   const currencySymbol = getLocalCurrencySymbol();
+  const displayItemColor = getCurrentItemColor(itemColor, colors);
 
   const suggestedName = getSuggestedItemName(category, itemColor);
   const showNameSuggestion =
@@ -360,16 +362,13 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                   accessibilityRole="button"
                   accessibilityLabel="Choose item color"
                 >
-                  {itemColor ? (
+                  {displayItemColor ? (
                     <View
                       style={[
                         styles.colorSelectorSwatch,
                         {
-                          backgroundColor: itemColor.hex,
-                          borderColor:
-                            itemColor.name === 'White' || itemColor.name === 'Black'
-                              ? colors.gray
-                              : itemColor.hex,
+                          backgroundColor: displayItemColor.hex,
+                          borderColor: getItemColorBorder(displayItemColor, colors),
                         },
                       ]}
                     />
@@ -615,7 +614,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 10,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.lightGrey,
+      borderColor: colors.gray,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -631,7 +630,7 @@ const createStyles = (colors) =>
       height: 18,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.gray,
+      borderColor: colors.lightGrey,
       backgroundColor: colors.white,
       overflow: 'hidden',
       alignItems: 'center',
