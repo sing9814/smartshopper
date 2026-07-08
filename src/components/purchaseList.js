@@ -64,6 +64,11 @@ const PurchaseList = ({
     return `Last worn ${formatDateShort(lastWear)}`;
   };
 
+  const getCategoryLabel = (item) => {
+    if (typeof item.category === 'string') return item.category;
+    return item.category?.category || '';
+  };
+
   const isMostRecentOverlay = (item) => {
     return overlay && getLastWornText(item).toLowerCase().includes('most recent');
   };
@@ -88,6 +93,7 @@ const PurchaseList = ({
     const hasWearLoggedToday = isWearLoggedToday?.(item);
     const isWearButtonDisabled = isAddingWear || hasWearLoggedToday;
     const itemColor = getCurrentItemColor(item.itemColor, colors);
+    const categoryLabel = getCategoryLabel(item);
     let addWearButtonLabel = 'Wear';
     if (hasWearLoggedToday) {
       addWearButtonLabel = 'Worn today';
@@ -103,7 +109,6 @@ const PurchaseList = ({
           styles.itemContainer,
           isSelected && {
             backgroundColor: colors.primaryLight,
-            borderLeftWidth: 4,
             borderLeftColor: colors.primary,
           },
         ]}
@@ -146,6 +151,14 @@ const PurchaseList = ({
           </View>
           <View style={styles.row}>
             <View style={styles.detailLine}>
+              {!!categoryLabel && (
+                <>
+                  <Text numberOfLines={1} style={styles.categoryLabel}>
+                    {categoryLabel}
+                  </Text>
+                  <Text style={styles.detailSeparator}>•</Text>
+                </>
+              )}
               <Text
                 numberOfLines={1}
                 style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
@@ -221,8 +234,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       paddingVertical: 12,
       borderBottomColor: colors.bg,
-      marginBottom: 2,
+      borderLeftWidth: 4,
+      borderLeftColor: 'transparent',
+      marginBottom: 1,
       paddingHorizontal: 16,
+      paddingLeft: 12,
     },
     textContainer: {
       flex: 1,
@@ -237,6 +253,16 @@ const createStyles = (colors) =>
     },
     lastWorn: {
       color: colors.gray,
+      flexShrink: 1,
+    },
+    detailSeparator: {
+      color: colors.gray,
+      fontSize: 13,
+      flexShrink: 0,
+    },
+    categoryLabel: {
+      color: colors.gray,
+      fontSize: 14,
       flexShrink: 1,
     },
     detailLine: {
@@ -277,6 +303,7 @@ const createStyles = (colors) =>
     },
     row: {
       width: '100%',
+      minHeight: 32,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -339,7 +366,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.white,
       width: '100%',
       height: 80,
-      marginBottom: 2,
+      marginBottom: 1,
     },
     loadingIndicator: {
       position: 'absolute',

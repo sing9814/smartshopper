@@ -347,7 +347,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                       numberOfLines={1}
                       style={[
                         styles.categoryText,
-                        { color: category ? colors.black : colors.gray },
+                        { color: category ? colors.black : colors.placeholder },
                       ]}
                     >
                       {selectedCategoryText}
@@ -614,7 +614,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 10,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.gray,
+      borderColor: colors.lightGrey,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -630,7 +630,7 @@ const createStyles = (colors) =>
       height: 18,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.lightGrey,
+      borderColor: colors.gray,
       backgroundColor: colors.white,
       overflow: 'hidden',
       alignItems: 'center',
@@ -765,7 +765,6 @@ const createStyles = (colors) =>
     },
     categoryText: {
       flex: 1,
-      fontSize: 15,
       lineHeight: 22,
     },
     dateContent: {
@@ -775,10 +774,10 @@ const createStyles = (colors) =>
     },
     text: {
       color: colors.black,
-      fontSize: 15,
+      // fontSize: 15,
     },
     placeholderText: {
-      color: colors.gray,
+      color: colors.placeholder,
     },
   });
 

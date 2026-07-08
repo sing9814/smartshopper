@@ -532,7 +532,7 @@ const createStyles = (colors, insets) =>
       alignItems: 'flex-start',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginBottom: 2,
+      marginBottom: 1,
     },
     rowText: {
       flex: 1,
@@ -677,7 +677,7 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.white,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      marginBottom: 2,
+      marginBottom: 1,
       gap: 4,
     },
     note: {

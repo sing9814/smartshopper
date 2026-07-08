@@ -427,26 +427,26 @@ const createStyles = (colors, insets) =>
     section: {
       marginTop: 12,
       gap: 6,
+      marginHorizontal: -16,
     },
     sectionTitle: {
       color: colors.gray,
       fontSize: 12,
       fontWeight: '500',
       marginBottom: 2,
+      paddingHorizontal: 16,
       textTransform: 'uppercase',
     },
     sectionGroup: {
       backgroundColor: colors.white,
-      borderRadius: 10,
       overflow: 'hidden',
-      elevation: 1,
     },
     sectionRow: {
-      minHeight: 46,
+      minHeight: 52,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
       paddingVertical: 8,
       backgroundColor: colors.white,
     },
@@ -547,7 +547,7 @@ const createStyles = (colors, insets) =>
     },
     title: {
       color: colors.black,
-      fontSize: 16,
+      fontSize: 15,
     },
     cardContainer: {
       width: '100%',

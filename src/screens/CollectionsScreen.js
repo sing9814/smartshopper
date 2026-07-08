@@ -76,7 +76,7 @@ const createStyles = (colors) =>
     card: {
       minHeight: 82,
       backgroundColor: colors.white,
-      marginBottom: 2,
+      marginBottom: 1,
       paddingVertical: 14,
       paddingHorizontal: 14,
       flexDirection: 'row',
@@ -128,7 +128,7 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
-      paddingTop: 6,
+      paddingTop: 2,
     },
     flatlist: {
       paddingBottom: 140,
