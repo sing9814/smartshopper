@@ -30,6 +30,8 @@ const PurchaseList = ({
   onAddWear,
   addingWearItemId,
   isWearLoggedToday,
+  renderEndAction,
+  disableItemPress = false,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -43,6 +45,8 @@ const PurchaseList = ({
   );
 
   const onPress = (item) => {
+    if (disableItemPress) return;
+
     const isSelectionMode = selectedItems.length > 0;
 
     if (isSelectionMode) {
@@ -104,7 +108,9 @@ const PurchaseList = ({
     return (
       <TouchableOpacity
         onPress={() => onPress(item)}
-        onLongPress={() => onItemLongPress?.(item)}
+        onLongPress={() => {
+          if (!disableItemPress) onItemLongPress?.(item);
+        }}
         style={[
           styles.itemContainer,
           isSelected && {
@@ -192,6 +198,7 @@ const PurchaseList = ({
             )}
           </View>
         </View>
+        {renderEndAction?.(item)}
       </TouchableOpacity>
     );
   };
@@ -232,6 +239,7 @@ const createStyles = (colors) =>
     itemContainer: {
       backgroundColor: colors.white,
       flexDirection: 'row',
+      alignItems: 'center',
       paddingVertical: 12,
       borderBottomColor: colors.bg,
       borderLeftWidth: 4,

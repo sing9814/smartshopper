@@ -267,10 +267,7 @@ export const updateMultiplePurchaseWears = async (wearUpdates) => {
   if (wearUpdates.length === 0) return;
 
   const batch = firestore().batch();
-  const purchasesRef = firestore()
-    .collection('users')
-    .doc(user.uid)
-    .collection('Purchases');
+  const purchasesRef = firestore().collection('users').doc(user.uid).collection('Purchases');
 
   wearUpdates.forEach(({ purchaseId, wears }) => {
     batch.update(purchasesRef.doc(purchaseId), { wears });
@@ -436,4 +433,15 @@ export const addItemsToCollections = async (itemIDs, collectionIDs) => {
   });
 
   await Promise.all(promises);
+};
+
+export const removeItemsFromCollection = async (itemIDs, collectionID) => {
+  const user = auth().currentUser.uid;
+  if (!user) throw new Error('User not authenticated');
+
+  const ref = firestore().collection('users').doc(user).collection('Collections').doc(collectionID);
+
+  await ref.update({
+    items: firestore.FieldValue.arrayRemove(...itemIDs),
+  });
 };

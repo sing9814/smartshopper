@@ -6,7 +6,11 @@ import PurchaseList from '../components/purchaseList';
 import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
-import { deleteDoc, updateMultiplePurchaseWears } from '../utils/firebase';
+import {
+  deleteDoc,
+  removeItemsFromCollection,
+  updateMultiplePurchaseWears,
+} from '../utils/firebase';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
@@ -38,6 +42,9 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [isAddingWears, setIsAddingWears] = useState(false);
+  const [isRemovingItems, setIsRemovingItems] = useState(false);
+  const [removingItemId, setRemovingItemId] = useState(null);
+  const [itemToRemove, setItemToRemove] = useState(null);
 
   useEffect(() => {
     const checkDismissed = async () => {
@@ -65,9 +72,11 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const collections = useSelector((state) => state.purchase.collections);
   const purchases = useSelector((state) => state.purchase.purchases);
 
-  const itemsInCollection = purchases.filter((item) => collection.items.includes(item.key));
+  const currentCollection = collections.find((item) => item.id === collection.id) || collection;
+  const collectionItemIds = currentCollection.items || [];
+  const itemsInCollection = purchases.filter((item) => collectionItemIds.includes(item.key));
   const itemCount = itemsInCollection.length;
-  const createdDate = formatTimeStampNoTime(collection.dateCreated);
+  const createdDate = formatTimeStampNoTime(currentCollection.dateCreated);
   const timeZone = getDeviceTimeZone();
 
   const handleWearCollectionToday = async () => {
@@ -125,9 +134,9 @@ const CollectionDetailScreen = ({ route, navigation }) => {
 
   const confirmDeleteCollection = async () => {
     try {
-      await deleteDoc('Collections', collection.id);
+      await deleteDoc('Collections', currentCollection.id);
 
-      const updated = collections.filter((c) => c.id !== collection.id);
+      const updated = collections.filter((c) => c.id !== currentCollection.id);
       dispatch(setCollections(updated));
 
       setModalVisible(false);
@@ -136,6 +145,38 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       console.error('Failed to delete collection:', error);
       showBanner('Failed to delete collection');
       setModalVisible(false);
+    }
+  };
+
+  const removeItemFromCollection = async () => {
+    if (!itemToRemove || removingItemId) return;
+
+    const updatedCollection = {
+      ...currentCollection,
+      items: collectionItemIds.filter((itemId) => itemId !== itemToRemove.key),
+    };
+
+    setRemovingItemId(itemToRemove.key);
+
+    try {
+      await removeItemsFromCollection([itemToRemove.key], currentCollection.id);
+      dispatch(
+        setCollections(
+          collections.map((savedCollection) =>
+            savedCollection.id === currentCollection.id ? updatedCollection : savedCollection
+          )
+        )
+      );
+      setItemToRemove(null);
+      if (updatedCollection.items.length === 0) {
+        setIsRemovingItems(false);
+      }
+      showBanner(`${itemToRemove.name} removed`, 'success');
+    } catch (error) {
+      console.error('Failed to remove item from collection:', error);
+      showBanner('Failed to remove item');
+    } finally {
+      setRemovingItemId(null);
     }
   };
 
@@ -148,7 +189,21 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         visible={modalVisible}
         onConfirm={confirmDeleteCollection}
         onCancel={() => setModalVisible(false)}
-        data={`"${collection.name}"`}
+        data={`"${currentCollection.name}"`}
+      />
+      <ConfirmationModal
+        visible={!!itemToRemove}
+        title="Remove item?"
+        message={
+          itemToRemove
+            ? `Remove ${itemToRemove.name} from ${currentCollection.name}? The item will stay in your closet.`
+            : ''
+        }
+        confirmText="Remove"
+        onConfirm={removeItemFromCollection}
+        onCancel={() => {
+          if (!removingItemId) setItemToRemove(null);
+        }}
       />
       <View style={styles.topbar}>
         <TouchableOpacity
@@ -159,7 +214,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
         <Text style={styles.topbarTitle} numberOfLines={1}>
-          {collection.name}
+          {currentCollection.name}
         </Text>
         <TouchableOpacity
           onPress={() => setActionSheetVisible(true)}
@@ -170,22 +225,36 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        {itemCount > 0 && (
+        {(itemCount > 0 || isRemovingItems) && (
           <View style={styles.actionBar}>
             <Text style={styles.itemCountText}>
-              {itemCount} {itemCount !== 1 ? 'items' : 'item'}
+              {isRemovingItems
+                ? 'Remove items'
+                : `${itemCount} ${itemCount !== 1 ? 'items' : 'item'}`}
             </Text>
-            <TouchableOpacity
-              style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
-              onPress={handleWearCollectionToday}
-              activeOpacity={0.8}
-              disabled={isAddingWears}
-              accessibilityRole="button"
-              accessibilityLabel={`Wear ${collection.name} today`}
-            >
-              <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
-              <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
-            </TouchableOpacity>
+            {isRemovingItems ? (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setIsRemovingItems(false)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Done removing items"
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
+                onPress={handleWearCollectionToday}
+                activeOpacity={0.8}
+                disabled={isAddingWears}
+                accessibilityRole="button"
+                accessibilityLabel={`Wear ${currentCollection.name} today`}
+              >
+                <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+                <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -214,6 +283,22 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             loading={false}
             refreshing={false}
             navigation={navigation}
+            disableItemPress={isRemovingItems}
+            renderEndAction={
+              isRemovingItems
+                ? (item) => (
+                    <TouchableOpacity
+                      style={styles.removeItemButton}
+                      onPress={() => setItemToRemove(item)}
+                      disabled={removingItemId === item.key}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${item.name} from ${currentCollection.name}`}
+                    >
+                      <Ionicons name="close" size={20} color={colors.red} />
+                    </TouchableOpacity>
+                  )
+                : null
+            }
           />
         ) : (
           <View style={styles.emptyState}>
@@ -239,7 +324,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
         title="Collection options"
-        height={230}
+        height={280}
       >
         <TouchableOpacity
           style={styles.sheetRow}
@@ -255,6 +340,24 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             style={styles.sheetIcon}
           />
           <Text style={styles.sheetText}>Browse items to add</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sheetRow, itemCount === 0 && styles.sheetRowDisabled]}
+          disabled={itemCount === 0}
+          onPress={() => {
+            setActionSheetVisible(false);
+            setIsRemovingItems(true);
+          }}
+        >
+          <Ionicons
+            name="close-outline"
+            size={20}
+            color={itemCount === 0 ? colors.gray : colors.primary}
+            style={styles.sheetIcon}
+          />
+          <Text style={[styles.sheetText, itemCount === 0 && styles.sheetTextDisabled]}>
+            Remove items
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sheetRow}
@@ -339,6 +442,27 @@ const createStyles = (colors) =>
       fontSize: 14,
       fontWeight: '500',
     },
+    doneButton: {
+      minWidth: 70,
+      height: 32,
+      paddingHorizontal: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
+      backgroundColor: colors.primaryDark,
+    },
+    doneButtonText: {
+      color: 'white',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    removeItemButton: {
+      width: 36,
+      height: 36,
+      marginLeft: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     metaPanel: {
       backgroundColor: colors.white,
       paddingHorizontal: 16,
@@ -421,6 +545,9 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
+    sheetRowDisabled: {
+      opacity: 0.5,
+    },
     sheetIcon: {
       marginRight: 10,
     },
@@ -428,6 +555,9 @@ const createStyles = (colors) =>
       color: colors.black,
       fontSize: 15,
       fontWeight: '500',
+    },
+    sheetTextDisabled: {
+      color: colors.gray,
     },
     deleteText: {
       color: colors.red,
