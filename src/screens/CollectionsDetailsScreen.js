@@ -158,7 +158,9 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         >
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <Text style={styles.topbarTitle}>Collection</Text>
+        <Text style={styles.topbarTitle} numberOfLines={1}>
+          {collection.name}
+        </Text>
         <TouchableOpacity
           onPress={() => setActionSheetVisible(true)}
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
@@ -168,31 +170,24 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        <View style={styles.hero}>
-          <View style={styles.heroIcon}>
-            <Ionicons name="albums-outline" size={24} color={colors.primary} />
+        {itemCount > 0 && (
+          <View style={styles.actionBar}>
+            <Text style={styles.itemCountText}>
+              {itemCount} {itemCount !== 1 ? 'items' : 'item'}
+            </Text>
+            <TouchableOpacity
+              style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
+              onPress={handleWearCollectionToday}
+              activeOpacity={0.8}
+              disabled={isAddingWears}
+              accessibilityRole="button"
+              accessibilityLabel={`Wear ${collection.name} today`}
+            >
+              <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+              <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.heroText}>
-            <View style={styles.nameRow}>
-              <Text style={styles.name} numberOfLines={2}>
-                {collection.name}
-              </Text>
-              {itemCount > 0 && (
-                <TouchableOpacity
-                  style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
-                  onPress={handleWearCollectionToday}
-                  activeOpacity={0.8}
-                  disabled={isAddingWears}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Wear ${collection.name} today`}
-                >
-                  <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
-                  <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
+        )}
 
         {createdDate && (
           <View style={styles.metaPanel}>
@@ -304,34 +299,26 @@ const createStyles = (colors) =>
       justifyContent: 'center',
     },
     topbarTitle: {
+      flex: 1,
       color: 'white',
       fontSize: 18,
+      fontWeight: '600',
+      textAlign: 'center',
+      marginHorizontal: 12,
     },
-    hero: {
+    actionBar: {
       backgroundColor: colors.white,
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 14,
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 16,
-      paddingVertical: 18,
+      paddingVertical: 12,
       marginBottom: 2,
     },
-    heroIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    heroText: {
-      flex: 1,
-      gap: 5,
-    },
-    nameRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
+    itemCountText: {
+      color: colors.gray,
+      fontSize: 14,
+      fontWeight: '500',
     },
     wearButton: {
       minWidth: 70,
@@ -351,12 +338,6 @@ const createStyles = (colors) =>
       color: colors.primary,
       fontSize: 14,
       fontWeight: '500',
-    },
-    name: {
-      flex: 1,
-      fontSize: 22,
-      fontWeight: '700',
-      color: colors.black,
     },
     metaPanel: {
       backgroundColor: colors.white,
