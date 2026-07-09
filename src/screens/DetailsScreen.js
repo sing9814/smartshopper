@@ -61,6 +61,8 @@ const DetailsScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [banner, setBanner] = useState(null);
   const [isAddingWear, setIsAddingWear] = useState(false);
+  const [wearToDelete, setWearToDelete] = useState(null);
+  const [isDeletingWear, setIsDeletingWear] = useState(false);
   const [isWearDatePickerOpen, setIsWearDatePickerOpen] = useState(false);
   const [selectedWearDate, setSelectedWearDate] = useState(new Date());
   const [wearProgressTrackWidth, setWearProgressTrackWidth] = useState(0);
@@ -115,6 +117,31 @@ const DetailsScreen = ({ navigation }) => {
       showBanner('Wear added successfully!', 'success');
     } finally {
       setIsAddingWear(false);
+    }
+  };
+
+  const deleteWear = async () => {
+    if (!wearToDelete || isDeletingWear) return;
+
+    setIsDeletingWear(true);
+    const wearTime = timestampToDate(wearToDelete)?.getTime();
+    const newWears = (currentPurchase.wears || []).filter(
+      (wear) => timestampToDate(wear)?.getTime() !== wearTime
+    );
+    const updatedPurchase = { ...currentPurchase, wears: newWears };
+    const updatedPurchases = purchases.map((purchase) =>
+      purchase.key === currentPurchase.key ? updatedPurchase : purchase
+    );
+
+    dispatch(setPurchases(updatedPurchases));
+    dispatch(setCurrentPurchase(updatedPurchase));
+
+    try {
+      await updatePurchaseWears(currentPurchase.key, newWears);
+      setWearToDelete(null);
+      showBanner('Wear deleted', 'success');
+    } finally {
+      setIsDeletingWear(false);
     }
   };
 
@@ -418,6 +445,16 @@ const DetailsScreen = ({ navigation }) => {
                     >
                       <Text style={styles.wearRowNumber}>{wearHistory.length - index}.</Text>
                       <Text style={styles.wearRowDate}>{formatWearDate(wear)}</Text>
+                      <TouchableOpacity
+                        onPress={() => setWearToDelete(wear)}
+                        disabled={isDeletingWear}
+                        hitSlop={{ top: 10, right: 8, bottom: 10, left: 8 }}
+                        style={styles.deleteWearButton}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Delete wear from ${formatWearDate(wear)}`}
+                      >
+                        <FontAwesome6 name="trash-can" size={15} color={colors.red} />
+                      </TouchableOpacity>
                     </View>
                   ))}
                 </View>
@@ -439,6 +476,22 @@ const DetailsScreen = ({ navigation }) => {
         visible={modalVisible}
         onConfirm={handleDelete}
         onCancel={() => setModalVisible(false)}
+      />
+
+      <ConfirmationModal
+        visible={!!wearToDelete}
+        title="Delete wear?"
+        message={
+          wearToDelete
+            ? `Delete the wear from ${formatWearDate(
+                wearToDelete
+              )}? Your wear count, cost per wear, and goal progress will be updated.`
+            : ''
+        }
+        onConfirm={deleteWear}
+        onCancel={() => {
+          if (!isDeletingWear) setWearToDelete(null);
+        }}
       />
 
       <DatePicker
@@ -700,7 +753,7 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.white,
       paddingHorizontal: 16,
       paddingVertical: 16,
-      marginBottom: 2,
+      marginBottom: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -736,7 +789,7 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.white,
       paddingHorizontal: 16,
       paddingVertical: 13,
-      marginBottom: 2,
+      marginBottom: 1,
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -750,6 +803,13 @@ const createStyles = (colors, insets) =>
       color: colors.gray,
       fontWeight: '500',
       marginRight: 8,
+    },
+    deleteWearButton: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 8,
     },
     historyEmpty: {
       flex: 1,
