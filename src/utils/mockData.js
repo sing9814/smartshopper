@@ -116,21 +116,18 @@ export const mockCollections = [
   {
     id: 'mock-work-capsule',
     name: 'Work outfit',
-    description: 'Easy weekday pieces',
     items: ['mock-black-trousers', 'mock-cream-cardigan', 'mock-loafers'],
     dateCreated: timestampFromIso('2026-03-02T11:00:00.000Z'),
   },
   {
     id: 'mock-weekend',
     name: 'Weekend',
-    description: 'Comfortable repeat favorites',
     items: ['mock-white-sneakers', 'mock-graphic-tee', 'mock-denim-jacket'],
     dateCreated: timestampFromIso('2026-04-05T11:00:00.000Z'),
   },
   {
     id: 'mock-wear-levels',
     name: 'Wear progress samples',
-    description: 'Items covering the progress color range',
     items: [
       'mock-progress-0',
       'mock-progress-10',

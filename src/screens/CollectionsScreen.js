@@ -11,38 +11,41 @@ const CollectionsScreen = ({ navigation }) => {
   useStatusBar(colors.primaryDark);
 
   const collections = useSelector((state) => state.purchase.collections);
+  const purchases = useSelector((state) => state.purchase.purchases);
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
-      }
-    >
-      <View style={styles.collectionIcon}>
-        <Ionicons name="albums-outline" size={20} color={colors.primary} />
-      </View>
+  const renderItem = ({ item }) => {
+    const collectionItems = item.items || [];
+    const itemNames = collectionItems
+      .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
+      .filter(Boolean);
+    const previewText =
+      itemNames.length > 0
+        ? `${itemNames.slice(0, 3).join(', ')}${
+            itemNames.length > 3 ? ` + ${itemNames.length - 3} more` : ''
+          }`
+        : 'No items added yet';
 
-      <View style={styles.cardBody}>
-        <View style={styles.row}>
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
+        }
+      >
+        <View style={styles.cardBody}>
           <Text style={styles.title} numberOfLines={1}>
             {item.name}
           </Text>
-          <View style={styles.countPill}>
-            <Text style={styles.countText}>
-              {item.items.length} {item.items.length !== 1 ? 'items' : 'item'}
-            </Text>
-          </View>
+
+          <Text style={styles.description} numberOfLines={2}>
+            {previewText}
+          </Text>
         </View>
 
-        <Text style={styles.description} numberOfLines={2}>
-          {item.description || 'No description'}
-        </Text>
-      </View>
-
-      <Ionicons name="chevron-forward" size={20} color={colors.gray} />
-    </TouchableOpacity>
-  );
+        <Ionicons name="chevron-forward" size={20} color={colors.gray} />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -78,28 +81,14 @@ const createStyles = (colors) =>
       backgroundColor: colors.white,
       marginBottom: 1,
       paddingVertical: 14,
-      paddingHorizontal: 14,
+      paddingHorizontal: 22,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
     },
-    collectionIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
-    },
     cardBody: {
       flex: 1,
       gap: 5,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
     },
     title: {
       flex: 1,
@@ -107,23 +96,10 @@ const createStyles = (colors) =>
       fontWeight: '600',
       color: colors.black,
     },
-    countPill: {
-      minHeight: 24,
-      paddingHorizontal: 9,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.bg,
-    },
-    countText: {
-      color: colors.gray,
-      fontSize: 12,
-      fontWeight: '600',
-    },
     description: {
       fontSize: 14,
       color: colors.gray,
-      lineHeight: 19,
+      lineHeight: 24,
     },
     container: {
       flex: 1,

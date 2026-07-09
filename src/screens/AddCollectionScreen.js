@@ -24,7 +24,6 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
   const collections = useSelector((state) => state.purchase.collections);
 
   const [collectionName, setCollectionName] = useState('');
-  const [description, setDescription] = useState('');
   const [showClearButton, setShowClearButton] = useState(false);
   const [banner, setBanner] = useState(null);
 
@@ -38,7 +37,6 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
   useEffect(() => {
     if (collection) {
       setCollectionName(collection.name);
-      setDescription(collection.description || '');
     } else if (name) {
       setCollectionName(name);
     }
@@ -51,9 +49,9 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
   );
 
   useEffect(() => {
-    const hasInput = collectionName.trim() !== '' || description.trim() !== '';
+    const hasInput = collectionName.trim() !== '';
     setShowClearButton(hasInput);
-  }, [collectionName, description]);
+  }, [collectionName]);
 
   const validateFields = () => {
     if (collectionName.trim() === '') {
@@ -72,7 +70,6 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
       const newCollection = {
         id,
         name: collectionName.trim(),
-        description: description.trim(),
         items: [],
         dateCreated: generateFirestoreTimestamp(),
       };
@@ -98,7 +95,6 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
 
   const resetFields = () => {
     setCollectionName('');
-    setDescription('');
   };
 
   return (
@@ -119,14 +115,6 @@ const CollectionForm = ({ collection, navigation, name, edit }) => {
             placeholder="Enter collection name"
             value={collectionName}
             onChangeText={setCollectionName}
-          />
-
-          <CustomInput
-            label="Description"
-            placeholder="Enter description"
-            value={description}
-            onChangeText={setDescription}
-            multiline
           />
         </View>
 

@@ -191,9 +191,6 @@ const CollectionDetailScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
               )}
             </View>
-            <Text style={styles.description} numberOfLines={3}>
-              {collection.description || 'No description yet'}
-            </Text>
           </View>
         </View>
 
@@ -360,11 +357,6 @@ const createStyles = (colors) =>
       fontSize: 22,
       fontWeight: '700',
       color: colors.black,
-    },
-    description: {
-      fontSize: 14,
-      color: colors.gray,
-      lineHeight: 20,
     },
     metaPanel: {
       backgroundColor: colors.white,

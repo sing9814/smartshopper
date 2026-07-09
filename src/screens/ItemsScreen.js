@@ -410,9 +410,6 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
                       ({collection.items.length} {collection.items.length !== 1 ? 'items' : 'item'})
                     </Text>
                   </View>
-                  <Text style={styles.sheetRowDesc}>
-                    {collection.description ? collection.description : '(No description)'}
-                  </Text>
                 </View>
                 <Ionicons
                   name={isSelected ? 'checkmark-circle-outline' : 'ellipse-outline'}
