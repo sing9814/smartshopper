@@ -56,9 +56,12 @@ const CollectionsScreen = ({ navigation }) => {
         contentContainerStyle={[styles.flatlist, collections.length === 0 && styles.emptyList]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="albums-outline" size={28} color={colors.primary} />
-            </View>
+            <Ionicons
+              name="sad-outline"
+              size={34}
+              color={colors.primary}
+              style={styles.emptyIcon}
+            />
             <Text style={styles.emptyTitle}>No collections yet</Text>
             <Text style={styles.emptyText}>Create collections to organize your items</Text>
           </View>
@@ -118,14 +121,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 30,
     },
     emptyIcon: {
-      width: 58,
-      height: 58,
-      borderRadius: 30,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
       marginBottom: 14,
-      elevation: 1,
     },
     emptyTitle: {
       color: colors.black,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +14,6 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '../components/bottomSheet';
 import {
   formatTimeStampNoTime,
@@ -40,24 +39,10 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const [banner, setBanner] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
   const [isAddingWears, setIsAddingWears] = useState(false);
   const [isRemovingItems, setIsRemovingItems] = useState(false);
   const [removingItemId, setRemovingItemId] = useState(null);
   const [itemToRemove, setItemToRemove] = useState(null);
-
-  useEffect(() => {
-    const checkDismissed = async () => {
-      const dismissed = await AsyncStorage.getItem('messageDismissed');
-      if (dismissed !== 'true') setShowMessage(true);
-    };
-    checkDismissed();
-  }, []);
-
-  const handleDismissTip = async () => {
-    setShowMessage(false);
-    await AsyncStorage.setItem('messageDismissed', 'true');
-  };
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -264,17 +249,6 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {showMessage && itemCount === 0 && (
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageText}>
-              Long press items on the "Items" tab to add them to this collection.
-            </Text>
-            <TouchableOpacity onPress={handleDismissTip}>
-              <Ionicons name="close" size={18} color={colors.gray} />
-            </TouchableOpacity>
-          </View>
-        )}
-
         <Text style={styles.sectionTitle}>Items in this collection</Text>
 
         {itemCount > 0 ? (
@@ -302,12 +276,15 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           />
         ) : (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="shirt-outline" size={28} color={colors.primary} />
-            </View>
+            <Ionicons
+              name="sad-outline"
+              size={34}
+              color={colors.primary}
+              style={styles.emptyIcon}
+            />
             <Text style={styles.emptyTitle}>No items here yet</Text>
             <Text style={styles.emptyText}>
-              Add items from the Items tab to start building this collection.
+              Long press items on the Items tab to add to this collection.
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
@@ -473,21 +450,6 @@ const createStyles = (colors) =>
       color: colors.gray,
       fontSize: 13,
     },
-    messageContainer: {
-      backgroundColor: colors.white,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 2,
-    },
-    messageText: {
-      color: colors.gray,
-      flex: 1,
-      paddingRight: 10,
-      lineHeight: 22,
-    },
     sectionTitle: {
       color: colors.gray,
       fontSize: 12,
@@ -507,12 +469,6 @@ const createStyles = (colors) =>
       paddingBottom: 80,
     },
     emptyIcon: {
-      width: 58,
-      height: 58,
-      borderRadius: 29,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
       marginBottom: 14,
     },
     emptyTitle: {
@@ -525,7 +481,7 @@ const createStyles = (colors) =>
     emptyText: {
       color: colors.gray,
       textAlign: 'center',
-      lineHeight: 21,
+      lineHeight: 26,
       marginBottom: 18,
     },
     emptyButton: {
