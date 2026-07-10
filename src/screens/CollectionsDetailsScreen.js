@@ -452,9 +452,8 @@ const createStyles = (colors) =>
     },
     sectionTitle: {
       color: colors.gray,
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '500',
-      textTransform: 'uppercase',
       paddingHorizontal: 16,
       paddingTop: 6,
       paddingBottom: 8,

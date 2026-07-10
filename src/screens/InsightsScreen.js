@@ -357,10 +357,8 @@ const createStyles = (colors, tabBarHeight) =>
     },
     insightLabel: {
       color: colors.gray,
-      fontSize: 12,
-      fontWeight: '600',
+      fontSize: 13,
       marginBottom: 4,
-      textTransform: 'uppercase',
     },
     highlightValue: {
       color: colors.gray,

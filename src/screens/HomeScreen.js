@@ -94,8 +94,8 @@ const HomeScreen = ({ navigation }) => {
       monthTextColor: colors.black,
       'stylesheet.calendar.main': {
         week: {
-          marginTop: 6,
-          marginBottom: 0,
+          marginTop: 9,
+          marginBottom: 3,
           flexDirection: 'row',
           justifyContent: 'space-around',
         },

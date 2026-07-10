@@ -39,16 +39,13 @@ const CustomCategoriesScreen = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <View style={styles.categoryRow}>
       <View style={styles.categoryInfo}>
-        <View style={styles.categoryIcon}>
-          <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
-        </View>
         <View style={styles.categoryTextBlock}>
           <Text style={styles.categoryName} numberOfLines={1}>
             {item.name}
           </Text>
           {item.category && (
             <Text style={styles.categoryParent} numberOfLines={1}>
-              {item.category}
+              {`•  ${item.category}`}
             </Text>
           )}
         </View>
@@ -85,7 +82,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           hitSlop={8}
           style={styles.topbarIcon}
         >
-          <Ionicons name="add" size={26} color="white" />
+          <Ionicons name="add-circle-outline" size={26} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
@@ -245,38 +242,30 @@ const createStyles = (colors) =>
       alignItems: 'center',
       backgroundColor: colors.white,
       paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginBottom: 2,
+      paddingHorizontal: 18,
+      marginBottom: 1,
       justifyContent: 'space-between',
-      elevation: 1,
     },
     categoryInfo: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
       marginRight: 12,
     },
     categoryTextBlock: {
       flex: 1,
-      gap: 2,
-    },
-    categoryIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
+      gap: 8,
     },
     categoryName: {
+      flexShrink: 1,
       color: colors.black,
       fontSize: 15,
       fontWeight: '500',
     },
     categoryParent: {
       color: colors.gray,
-      fontSize: 13,
     },
     iconButton: {
       width: 32,

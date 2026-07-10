@@ -44,6 +44,7 @@ const ProfileScreen = ({ navigation }) => {
   const purchaseData = useSelector((state) => state.purchase.purchases);
   const user = useSelector((state) => state.user.user);
   const isGuestAccount = user?.isGuest || auth().currentUser?.isAnonymous;
+  const profileHeaderTitle = isGuestAccount ? 'Guest account' : user?.email || 'Profile';
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -252,12 +253,7 @@ const ProfileScreen = ({ navigation }) => {
         onCancel={() => setShowLogoutWarning(false)}
       />
 
-      <Header
-        title="Profile"
-        subtitle={isGuestAccount ? 'Guest account' : user?.email || ' '}
-        rounded
-        padding
-      />
+      <Header title={profileHeaderTitle} titleStyle={styles.headerTitle} />
 
       <View style={styles.innerContainer}>
         <View style={styles.cardContainer}>
@@ -424,6 +420,9 @@ const createStyles = (colors, insets) =>
       textAlign: 'center',
       zIndex: 1,
     },
+    headerTitle: {
+      textAlign: 'center',
+    },
     section: {
       marginTop: 12,
       gap: 6,
@@ -431,11 +430,10 @@ const createStyles = (colors, insets) =>
     },
     sectionTitle: {
       color: colors.gray,
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '500',
-      marginBottom: 2,
+      marginBottom: 4,
       paddingHorizontal: 16,
-      textTransform: 'uppercase',
     },
     sectionGroup: {
       backgroundColor: colors.white,

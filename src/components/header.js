@@ -3,7 +3,7 @@ import { Text, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/themeContext';
 
-const Header = ({ title, subtitle, rounded, padding, style, rightComponent }) => {
+const Header = ({ title, subtitle, rounded, padding, style, titleStyle, rightComponent }) => {
   const colors = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets.top);
@@ -12,7 +12,9 @@ const Header = ({ title, subtitle, rounded, padding, style, rightComponent }) =>
     <View style={[styles.container, rounded && styles.rounded, padding && styles.padding, style]}>
       <View>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={[styles.title, titleStyle]} numberOfLines={1}>
+            {title}
+          </Text>
           {rightComponent}
         </View>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}

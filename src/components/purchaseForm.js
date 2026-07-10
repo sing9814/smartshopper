@@ -333,7 +333,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         >
           <View style={styles.formCard}>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Item details</Text>
               <View style={styles.categoryColorRow}>
                 <TouchableOpacity
                   style={styles.categorySelector}
@@ -470,7 +469,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Other details (optional)</Text>
+              <Text style={styles.sectionTitle}>Optional</Text>
               <CustomInput
                 placeholder="Price"
                 value={paidPrice}
@@ -596,10 +595,9 @@ const createStyles = (colors) =>
     },
     sectionTitle: {
       color: colors.gray,
-      fontSize: 12,
-      fontWeight: '500',
-      marginBottom: 2,
-      textTransform: 'uppercase',
+      fontSize: 13,
+      marginBottom: 4,
+      marginTop: -4,
     },
     categoryColorRow: {
       width: '100%',
