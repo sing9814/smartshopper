@@ -14,6 +14,11 @@ import CustomButton from '../components/button';
 import Banner from '../components/banner';
 import { setCollections } from '../redux/actions/purchaseActions';
 import { generateFirestoreTimestamp } from '../utils/date';
+import {
+  DEFAULT_FOLDER_COLOR,
+  getCollectionFolderBackground,
+  getCollectionFolderColor,
+} from '../utils/collectionColor';
 
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -25,8 +30,12 @@ const CollectionsScreen = ({ navigation }) => {
   const purchases = useSelector((state) => state.purchase.purchases);
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
   const [collectionName, setCollectionName] = useState('');
+  const [selectedFolderColorName, setSelectedFolderColorName] = useState(DEFAULT_FOLDER_COLOR);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [banner, setBanner] = useState(null);
+  const selectedFolderColor =
+    colors.itemColorOptions.find((option) => option.name === selectedFolderColorName) ||
+    colors.itemColorOptions[0];
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -40,6 +49,7 @@ const CollectionsScreen = ({ navigation }) => {
 
     setCreateSheetVisible(false);
     setCollectionName('');
+    setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
   };
 
   const createCollection = async () => {
@@ -59,12 +69,14 @@ const CollectionsScreen = ({ navigation }) => {
         id,
         name: trimmedName,
         items: [],
+        folderColor: selectedFolderColor,
         dateCreated: generateFirestoreTimestamp(),
       };
 
       await userRef.collection('Collections').doc(id).set(newCollection);
       dispatch(setCollections([newCollection, ...collections]));
       setCollectionName('');
+      setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
       setCreateSheetVisible(false);
       showBanner('Collection created!', 'success');
     } catch (error) {
@@ -81,6 +93,7 @@ const CollectionsScreen = ({ navigation }) => {
       .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
       .filter(Boolean);
     const itemCount = itemNames.length;
+    const folderColor = getCollectionFolderColor(item.folderColor, colors);
     const previewText =
       itemCount > 0
         ? `${itemNames.slice(0, 3).join(', ')}${itemCount > 3 ? ` + ${itemCount - 3} more` : ''}`
@@ -96,8 +109,13 @@ const CollectionsScreen = ({ navigation }) => {
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
       >
-        <View style={styles.iconContainer}>
-          <Ionicons name="folder-outline" size={23} color={colors.primary} />
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: getCollectionFolderBackground(item.folderColor, colors) },
+          ]}
+        >
+          <Ionicons name="folder-outline" size={23} color={folderColor} />
         </View>
 
         <View style={styles.cardBody}>
@@ -152,7 +170,7 @@ const CollectionsScreen = ({ navigation }) => {
         visible={createSheetVisible}
         onClose={closeCreateSheet}
         title="Create collection"
-        height={310}
+        height={350}
       >
         <View style={styles.sheetContent}>
           <CustomInput
@@ -160,6 +178,54 @@ const CollectionsScreen = ({ navigation }) => {
             value={collectionName}
             onChangeText={setCollectionName}
           />
+
+          <View>
+            <View style={styles.colorSelectionRow}>
+              <View style={styles.folderPreview}>
+                <View
+                  style={[
+                    styles.previewIconContainer,
+                    {
+                      backgroundColor: getCollectionFolderBackground(selectedFolderColor, colors),
+                    },
+                  ]}
+                >
+                  <Ionicons name="folder-outline" size={27} color={selectedFolderColor.hex} />
+                </View>
+              </View>
+
+              <View style={styles.colorOptions}>
+                {colors.itemColorOptions.map((option) => {
+                  const isSelected = option.name === selectedFolderColorName;
+
+                  return (
+                    <TouchableOpacity
+                      key={option.name}
+                      style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
+                      onPress={() => setSelectedFolderColorName(option.name)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${option.name} folder color`}
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <View
+                        style={[
+                          styles.colorSwatch,
+                          {
+                            backgroundColor: option.hex,
+                            borderColor:
+                              option.name === 'White' || option.name === 'Black'
+                                ? colors.lightGrey
+                                : option.hex,
+                          },
+                        ]}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+
           <CustomButton
             title={isCreatingCollection ? 'Creating...' : 'Create'}
             onPress={createCollection}
@@ -193,7 +259,6 @@ const createStyles = (colors) =>
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
     },
     cardBody: {
       flex: 1,
@@ -262,9 +327,52 @@ const createStyles = (colors) =>
     sheetContent: {
       width: '100%',
       flex: 1,
-      justifyContent: 'space-between',
+      gap: 16,
       paddingTop: 8,
-      paddingBottom: 120,
+      paddingBottom: 64,
+    },
+    folderPreview: {
+      width: 66,
+      minHeight: 66,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    colorSelectionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 20,
+    },
+    colorOptions: {
+      width: 212,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 4,
+    },
+    colorOption: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    colorOptionSelected: {
+      borderColor: colors.primary,
+    },
+    colorSwatch: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1,
     },
     createButton: {
       backgroundColor: colors.primaryDark,
