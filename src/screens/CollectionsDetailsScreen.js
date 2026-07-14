@@ -199,7 +199,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
         <Text style={styles.topbarTitle} numberOfLines={1}>
-          {currentCollection.name}
+          Collection
         </Text>
         <TouchableOpacity
           onPress={() => setActionSheetVisible(true)}
@@ -210,38 +210,34 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        {(itemCount > 0 || isRemovingItems) && (
-          <View style={styles.actionBar}>
-            <Text style={styles.itemCountText}>
-              {isRemovingItems
-                ? 'Remove items'
-                : `${itemCount} ${itemCount !== 1 ? 'items' : 'item'}`}
-            </Text>
-            {isRemovingItems ? (
-              <TouchableOpacity
-                style={styles.doneButton}
-                onPress={() => setIsRemovingItems(false)}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel="Done removing items"
-              >
-                <Text style={styles.doneButtonText}>Done</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
-                onPress={handleWearCollectionToday}
-                activeOpacity={0.8}
-                disabled={isAddingWears}
-                accessibilityRole="button"
-                accessibilityLabel={`Wear ${currentCollection.name} today`}
-              >
-                <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
-                <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+        <View style={styles.actionBar}>
+          <Text style={styles.collectionName} numberOfLines={1}>
+            {currentCollection.name}
+          </Text>
+          {isRemovingItems ? (
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => setIsRemovingItems(false)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Done removing items"
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          ) : itemCount > 0 ? (
+            <TouchableOpacity
+              style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
+              onPress={handleWearCollectionToday}
+              activeOpacity={0.8}
+              disabled={isAddingWears}
+              accessibilityRole="button"
+              accessibilityLabel={`Wear ${currentCollection.name} today`}
+            >
+              <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+              <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
 
         {createdDate && (
           <View style={styles.metaPanel}>
@@ -249,7 +245,12 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>Items in this collection</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>In this collection</Text>
+          <Text style={styles.sectionTitle}>
+            {itemCount} {itemCount !== 1 ? 'items' : 'item'}
+          </Text>
+        </View>
 
         {itemCount > 0 ? (
           <PurchaseList
@@ -382,7 +383,6 @@ const createStyles = (colors) =>
       flex: 1,
       color: 'white',
       fontSize: 18,
-      fontWeight: '600',
       textAlign: 'center',
       marginHorizontal: 12,
     },
@@ -395,10 +395,10 @@ const createStyles = (colors) =>
       paddingVertical: 12,
       marginBottom: 2,
     },
-    itemCountText: {
-      color: colors.gray,
-      fontSize: 14,
-      fontWeight: '500',
+    collectionName: {
+      color: colors.black,
+      fontSize: 17,
+      fontWeight: '600',
     },
     wearButton: {
       minWidth: 70,
@@ -450,14 +450,18 @@ const createStyles = (colors) =>
       color: colors.gray,
       fontSize: 13,
     },
-    sectionTitle: {
-      color: colors.gray,
-      fontSize: 13,
-      fontWeight: '500',
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingTop: 6,
       paddingBottom: 8,
       marginBottom: 2,
+    },
+    sectionTitle: {
+      color: colors.gray,
+      fontSize: 13,
     },
     emptyState: {
       flex: 1,

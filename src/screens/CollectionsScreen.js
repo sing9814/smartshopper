@@ -80,12 +80,11 @@ const CollectionsScreen = ({ navigation }) => {
     const itemNames = collectionItems
       .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
       .filter(Boolean);
+    const itemCount = itemNames.length;
     const previewText =
-      itemNames.length > 0
-        ? `${itemNames.slice(0, 3).join(', ')}${
-            itemNames.length > 3 ? ` + ${itemNames.length - 3} more` : ''
-          }`
-        : 'No items added yet';
+      itemCount > 0
+        ? `${itemNames.slice(0, 3).join(', ')}${itemCount > 3 ? ` + ${itemCount - 3} more` : ''}`
+        : 'No items yet';
 
     return (
       <TouchableOpacity
@@ -93,18 +92,31 @@ const CollectionsScreen = ({ navigation }) => {
         onPress={() =>
           navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
         }
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.name}, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
       >
-        <View style={styles.cardBody}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.name}
-          </Text>
+        <View style={styles.iconContainer}>
+          <Ionicons name="folder-outline" size={23} color={colors.primary} />
+        </View>
 
-          <Text style={styles.description} numberOfLines={2}>
+        <View style={styles.cardBody}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text style={styles.itemCount}>
+              {itemCount} {itemCount === 1 ? 'item' : 'items'}
+            </Text>
+          </View>
+
+          <Text
+            style={[styles.description, itemCount > 0 && styles.populatedDescription]}
+            numberOfLines={1}
+          >
             {previewText}
           </Text>
         </View>
-
-        <Ionicons name="chevron-forward" size={20} color={colors.gray} />
       </TouchableOpacity>
     );
   };
@@ -163,29 +175,52 @@ const CollectionsScreen = ({ navigation }) => {
 const createStyles = (colors) =>
   StyleSheet.create({
     card: {
-      minHeight: 82,
+      minHeight: 88,
       backgroundColor: colors.white,
-      marginBottom: 1,
-      paddingVertical: 14,
-      paddingHorizontal: 22,
+      marginHorizontal: 12,
+      marginBottom: 10,
+      paddingVertical: 15,
+      paddingHorizontal: 14,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
+      borderRadius: 12,
+      elevation: 1,
+    },
+    iconContainer: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryLight,
     },
     cardBody: {
       flex: 1,
-      gap: 5,
+      gap: 7,
+      marginRight: 10,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     title: {
-      flex: 1,
       fontSize: 16,
       fontWeight: '600',
       color: colors.black,
     },
-    description: {
-      fontSize: 14,
+    itemCount: {
       color: colors.gray,
-      lineHeight: 24,
+      fontSize: 13,
+    },
+    description: {
+      fontSize: 13,
+      color: colors.placeholder,
+      lineHeight: 18,
+    },
+    populatedDescription: {
+      color: colors.black,
+      opacity: 0.8,
     },
     container: {
       flex: 1,
@@ -193,6 +228,7 @@ const createStyles = (colors) =>
       paddingTop: 2,
     },
     flatlist: {
+      paddingTop: 12,
       paddingBottom: 140,
     },
     emptyList: {
