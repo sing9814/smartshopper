@@ -237,11 +237,16 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             />
             <Text style={styles.emptyTitle}>No items here yet</Text>
             <Text style={styles.emptyText}>
-              Long press items on the Items tab to add to this collection.
+              Choose one or more items to add to this collection.
             </Text>
             <CustomButton
               title="Browse items"
-              onPress={() => navigation.navigate('ItemTabs', { screen: 'Items' })}
+              onPress={() =>
+                navigation.navigate('AddItemsToCollection', {
+                  addToCollectionId: currentCollection.id,
+                  addToCollectionName: currentCollection.name,
+                })
+              }
             />
           </View>
         )}
@@ -257,7 +262,10 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           style={styles.sheetRow}
           onPress={() => {
             setActionSheetVisible(false);
-            navigation.navigate('ItemTabs', { screen: 'Items' });
+            navigation.navigate('AddItemsToCollection', {
+              addToCollectionId: currentCollection.id,
+              addToCollectionName: currentCollection.name,
+            });
           }}
         >
           <Ionicons

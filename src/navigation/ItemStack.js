@@ -3,6 +3,7 @@ import ItemTabs from './ItemTabs';
 import CollectionDetailScreen from '../screens/CollectionsDetailsScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import EditScreen from '../screens/EditScreen';
+import AddItemsToCollectionScreen from '../screens/AddItemsToCollectionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +14,11 @@ const ItemStack = () => (
       name="CollectionDetail"
       component={CollectionDetailScreen}
       options={{ headerShown: false, animation: 'slide_from_right' }}
+    />
+    <Stack.Screen
+      name="AddItemsToCollection"
+      component={AddItemsToCollectionScreen}
+      options={{ headerShown: false, animation: 'fade' }}
     />
     <Stack.Screen
       name="Details"

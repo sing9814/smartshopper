@@ -115,7 +115,7 @@ const CollectionsScreen = ({ navigation }) => {
     const itemNames = purchasesInCollection.map((purchase) => purchase.name);
     const itemCount = purchasesInCollection.length;
     const folderColor = getCollectionFolderColor(item.folderColor, colors);
-    const previewText = itemCount > 0 ? itemNames.join(', ') : 'No items yet';
+    const previewText = itemCount > 0 ? itemNames.join(', ') : '';
 
     const isAddingWear = addingWearCollectionId === item.id;
     const isWornToday = isCollectionWornToday({ collection: item, purchases, timeZone });
@@ -166,7 +166,12 @@ const CollectionsScreen = ({ navigation }) => {
         <CustomButton
           title={actionTitle}
           onPress={() =>
-            itemCount === 0 ? navigation.navigate('Items') : handleWearCollectionToday(item)
+            itemCount === 0
+              ? navigation.navigate('AddItemsToCollection', {
+                  addToCollectionId: item.id,
+                  addToCollectionName: item.name,
+                })
+              : handleWearCollectionToday(item)
           }
           disabled={itemCount > 0 && (isWornToday || !!addingWearCollectionId)}
         />
@@ -323,8 +328,7 @@ const createStyles = (colors) =>
       lineHeight: 25,
     },
     populatedDescription: {
-      color: colors.black,
-      opacity: 0.9,
+      color: colors.gray,
     },
     container: {
       flex: 1,

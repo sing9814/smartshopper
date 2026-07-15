@@ -32,6 +32,7 @@ const PurchaseList = ({
   isWearLoggedToday,
   renderEndAction,
   disableItemPress = false,
+  selectionMode = false,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -47,7 +48,7 @@ const PurchaseList = ({
   const onPress = (item) => {
     if (disableItemPress) return;
 
-    const isSelectionMode = selectedItems.length > 0;
+    const isSelectionMode = selectionMode || selectedItems.length > 0;
 
     if (isSelectionMode) {
       onItemLongPress?.(item);
@@ -92,7 +93,7 @@ const PurchaseList = ({
     const wearGoal = item.wearGoal ?? DEFAULT_WEAR_GOAL;
     const wearProgress = getWearGoalProgress(wearCount, wearGoal);
     const wearProgressColors = getWearGoalProgressColors(wearProgress.visualPercentage, colors);
-    const showWearAction = !overlay && selectedItems.length === 0 && onAddWear;
+    const showWearAction = !overlay && !selectionMode && selectedItems.length === 0 && onAddWear;
     const isAddingWear = addingWearItemId === item.key;
     const hasWearLoggedToday = isWearLoggedToday?.(item);
     const isWearButtonDisabled = isAddingWear || hasWearLoggedToday;
@@ -118,6 +119,8 @@ const PurchaseList = ({
             borderLeftColor: colors.primary,
           },
         ]}
+        accessibilityRole={selectionMode ? 'checkbox' : 'button'}
+        accessibilityState={selectionMode ? { checked: isSelected } : undefined}
       >
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>

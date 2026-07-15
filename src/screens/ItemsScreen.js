@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
-import PurchaseList from '../components/purchaseList';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -11,15 +10,13 @@ import Banner from '../components/banner';
 import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
-import SearchBar from '../components/searchBar';
-import MultiSelectFilterSheet from '../components/multiSelectFilterSheet';
+import ItemsBrowser from '../components/itemsBrowser';
 import {
   generateFirestoreTimestampFromDate,
   getDateKeyInTimeZone,
   getDeviceTimeZone,
   timestampToDate,
 } from '../utils/date';
-import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 
 const sortWearsByDate = (wears) => {
   return [...wears].sort((a, b) => {
@@ -44,41 +41,16 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCollections, setSelectedCollections] = useState([]);
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const collections = useSelector((state) => state.purchase.collections);
-  const categories = useSelector((state) => state.user.categories);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState('');
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
-  const [sortSheetVisible, setSortSheetVisible] = useState(false);
-  const [categorySheetVisible, setCategorySheetVisible] = useState(false);
-  const [colorSheetVisible, setColorSheetVisible] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedColors, setSelectedColors] = useState([]);
   const [addingWearItemId, setAddingWearItemId] = useState(null);
-
-  const [sortField, setSortField] = useState('dateAdded');
-  const [sortDirection, setSortDirection] = useState('desc');
-
-  const getLastWearTime = (purchase) => {
-    const lastWear = purchase.wears?.[purchase.wears.length - 1];
-    return timestampToDate(lastWear)?.getTime() || 0;
-  };
-
-  const getDateCreatedTime = (purchase) => {
-    return timestampToDate(purchase.dateCreated)?.getTime() || 0;
-  };
-
-  const getWearProgressPercentage = (purchase) => {
-    const wearCount = purchase.wears?.length || 0;
-    const wearGoal = purchase.wearGoal ?? DEFAULT_WEAR_GOAL;
-    return getWearGoalProgress(wearCount, wearGoal).percentage;
-  };
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -86,53 +58,6 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       setBanner({ message, type });
     }, 10);
   };
-
-  const getCategoryName = (purchase) =>
-    typeof purchase.category === 'string' ? purchase.category : purchase.category?.category;
-
-  const categoryOptions = Array.from(
-    new Set(categories.filter((category) => !category.custom).map((category) => category.name))
-  ).filter(Boolean);
-
-  const filteredPurchases = purchases
-    .filter(
-      (purchase) =>
-        purchase.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (selectedCategories.length === 0 ||
-          selectedCategories.includes(getCategoryName(purchase))) &&
-        (selectedColors.length === 0 || selectedColors.includes(purchase.itemColor?.name))
-    )
-    .sort((a, b) => {
-      let aValue, bValue;
-
-      if (sortField === 'lastWorn') {
-        aValue = getLastWearTime(a);
-        bValue = getLastWearTime(b);
-      } else if (sortField === 'wears') {
-        aValue = a.wears?.length || 0;
-        bValue = b.wears?.length || 0;
-      } else if (sortField === 'progress') {
-        aValue = getWearProgressPercentage(a);
-        bValue = getWearProgressPercentage(b);
-      } else if (sortField === 'dateAdded') {
-        aValue = getDateCreatedTime(a);
-        bValue = getDateCreatedTime(b);
-      } else if (sortField === 'name') {
-        const aName = a.name || '';
-        const bName = b.name || '';
-        return sortDirection === 'asc' ? aName.localeCompare(bName) : bName.localeCompare(aName);
-      }
-
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    });
-
-  const sortOptions = [
-    { label: 'Last worn', value: 'lastWorn' },
-    { label: 'Date added', value: 'dateAdded' },
-    { label: 'Wear count', value: 'wears' },
-    { label: 'Goal progress', value: 'progress' },
-    { label: 'A-Z', value: 'name' },
-  ];
 
   const fetchData = async () => {
     setLoading(false);
@@ -253,7 +178,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   return (
     <View style={styles.container}>
-      {selectedItems.length > 0 && (
+      {selectedItems.length > 0 ? (
         <View style={styles.selectionHeader}>
           <View style={styles.selectionClose}>
             <TouchableOpacity onPress={clearSelection}>
@@ -270,7 +195,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      ) : null}
 
       {banner && (
         <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
@@ -282,106 +207,18 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         onConfirm={handleDelete}
         onCancel={() => setModalVisible(false)}
       />
-
-      <View style={styles.searchRow}>
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search items"
-          style={styles.searchBar}
-        />
-        <TouchableOpacity
-          onPress={() => setCategorySheetVisible(true)}
-          style={[styles.sortButton, selectedCategories.length > 0 && styles.filterButtonActive]}
-          accessibilityRole="button"
-          accessibilityLabel="Filter items by category"
-        >
-          <Ionicons
-            name="pricetags-outline"
-            size={22}
-            color={selectedCategories.length > 0 ? colors.primary : colors.gray}
-          />
-          {selectedCategories.length > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{selectedCategories.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setColorSheetVisible(true)}
-          style={[styles.sortButton, selectedColors.length > 0 && styles.filterButtonActive]}
-          accessibilityRole="button"
-          accessibilityLabel="Filter items by color"
-        >
-          <Ionicons
-            name="color-palette-outline"
-            size={22}
-            color={selectedColors.length > 0 ? colors.primary : colors.gray}
-          />
-          {selectedColors.length > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{selectedColors.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.countContainer}>
-        <View style={styles.resultsLeft}>
-          <Text style={styles.count}>Sorted by</Text>
-          <TouchableOpacity
-            style={styles.sortControl}
-            onPress={() => setSortSheetVisible(true)}
-            accessibilityRole="button"
-            accessibilityLabel={`Change sort. Currently sorted by ${
-              sortOptions.find((opt) => opt.value === sortField)?.label
-            } ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
-            hitSlop={8}
-          >
-            <Text style={styles.sortValue}>
-              {sortOptions.find((opt) => opt.value === sortField)?.label}
-            </Text>
-            <Ionicons
-              name={sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
-              size={14}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.resultCount}>{filteredPurchases.length} found</Text>
-      </View>
-
-      {!loading && filteredPurchases.length === 0 ? (
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <Ionicons name="search-outline" size={28} color={colors.gray} />
-          <Text style={styles.emptyText}>
-            {searchQuery
-              ? `No items match "${searchQuery}"`
-              : selectedCategories.length > 0
-              ? 'No items match the selected categories'
-              : selectedColors.length > 0
-              ? 'No items match the selected colors'
-              : 'No items found'}
-          </Text>
-          <Text style={styles.emptyHint}>Pull down to refresh</Text>
-        </ScrollView>
-      ) : (
-        <PurchaseList
-          purchases={filteredPurchases}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          loading={loading}
-          navigation={navigation}
-          onItemLongPress={handleItemLongPress}
-          selectedItems={selectedItems}
-          onAddWear={handleAddWear}
-          addingWearItemId={addingWearItemId}
-          isWearLoggedToday={isWearLoggedToday}
-        />
-      )}
+      <ItemsBrowser
+        purchases={purchases}
+        navigation={navigation}
+        loading={loading}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        selectedItems={selectedItems}
+        onItemToggle={handleItemLongPress}
+        onAddWear={handleAddWear}
+        addingWearItemId={addingWearItemId}
+        isWearLoggedToday={isWearLoggedToday}
+      />
       <BottomSheet
         visible={collectionSheetVisible}
         onClose={() => setCollectionSheetVisible(false)}
@@ -427,68 +264,6 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           buttonStyle={styles.sheetButton}
         />
       </BottomSheet>
-      <BottomSheet
-        visible={sortSheetVisible}
-        onClose={() => setSortSheetVisible(false)}
-        title="Sort by"
-        height={360}
-      >
-        {sortOptions.map((option, index) => {
-          const isActive = sortField === option.value;
-          const arrow = isActive ? (sortDirection === 'asc' ? 'arrow-up' : 'arrow-down') : null;
-          const isLast = index === sortOptions.length - 1;
-
-          return (
-            <TouchableOpacity
-              key={option.value}
-              onPress={() => {
-                if (isActive) {
-                  setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                } else {
-                  setSortField(option.value);
-                  setSortDirection(option.value === 'name' ? 'asc' : 'desc');
-                }
-              }}
-              style={[styles.sortContainer, { borderBottomWidth: isLast ? 0 : 1 }]}
-            >
-              <Text style={styles.sortLabel}>{option.label}</Text>
-              {arrow && <Ionicons name={arrow} size={18} color={colors.gray} />}
-            </TouchableOpacity>
-          );
-        })}
-      </BottomSheet>
-      <MultiSelectFilterSheet
-        visible={categorySheetVisible}
-        onClose={() => setCategorySheetVisible(false)}
-        title="Filter by category"
-        allLabel="All categories"
-        options={categoryOptions}
-        selectedValues={selectedCategories}
-        onChange={setSelectedCategories}
-      />
-      <MultiSelectFilterSheet
-        visible={colorSheetVisible}
-        onClose={() => setColorSheetVisible(false)}
-        title="Filter by color"
-        allLabel="All colors"
-        options={colors.itemColorOptions}
-        selectedValues={selectedColors}
-        onChange={setSelectedColors}
-        getLabel={(option) => option.name}
-        getValue={(option) => option.name}
-        renderLeading={(option) => (
-          <View
-            style={[
-              styles.colorSwatch,
-              {
-                backgroundColor: option.hex,
-                borderColor:
-                  option.name === 'White' || option.name === 'Black' ? colors.gray : option.hex,
-              },
-            ]}
-          />
-        )}
-      />
     </View>
   );
 };
@@ -521,118 +296,6 @@ const createStyles = (colors) =>
     headerTitle: {
       fontSize: 18,
       color: 'white',
-    },
-    clearText: {
-      color: 'white',
-      fontSize: 14,
-      textDecorationLine: 'underline',
-    },
-    searchRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.white,
-      paddingHorizontal: 14,
-      paddingTop: 12,
-      paddingBottom: 8,
-      gap: 10,
-    },
-    searchBar: {
-      flex: 1,
-    },
-    sortButton: {
-      width: 46,
-      height: 46,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: colors.lightGrey,
-      backgroundColor: colors.white,
-    },
-    filterButtonActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primaryLight,
-    },
-    filterBadge: {
-      position: 'absolute',
-      top: 4,
-      right: 4,
-      minWidth: 16,
-      height: 16,
-      borderRadius: 8,
-      paddingHorizontal: 4,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primary,
-    },
-    filterBadgeText: {
-      color: 'white',
-      fontSize: 10,
-      fontWeight: '700',
-    },
-    sortContainer: {
-      width: '100%',
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      borderBottomColor: colors.bg,
-    },
-    sortLabel: {
-      fontSize: 15,
-      color: colors.black,
-    },
-    countContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: colors.white,
-      paddingHorizontal: 14,
-      paddingBottom: 10,
-      marginBottom: 1,
-    },
-    resultsLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    count: {
-      color: colors.gray,
-      fontSize: 13,
-    },
-    sortValue: {
-      color: colors.primary,
-      fontSize: 13,
-      fontWeight: '700',
-    },
-    sortControl: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    resultCount: {
-      color: colors.black,
-      fontSize: 13,
-      fontWeight: '500',
-    },
-    scrollView: {
-      flexGrow: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 24,
-      paddingBottom: 100,
-    },
-    emptyText: {
-      fontSize: 15,
-      color: colors.black,
-      fontWeight: '500',
-      textAlign: 'center',
-    },
-    emptyHint: {
-      color: colors.gray,
-      textAlign: 'center',
     },
     scrollList: {
       maxHeight: 200,
@@ -668,12 +331,6 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
       position: 'absolute',
       bottom: 110,
-    },
-    colorSwatch: {
-      width: 18,
-      height: 18,
-      borderRadius: 12,
-      borderWidth: 1,
     },
   });
 
