@@ -6,30 +6,14 @@ import PurchaseList from '../components/purchaseList';
 import { useStatusBar } from '../hooks/useStatusBar';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
-import {
-  deleteDoc,
-  removeItemsFromCollection,
-  updateMultiplePurchaseWears,
-} from '../utils/firebase';
+import { deleteDoc, removeItemsFromCollection } from '../utils/firebase';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import BottomSheet from '../components/bottomSheet';
-import {
-  formatTimeStampNoTime,
-  generateFirestoreTimestampFromDate,
-  getDateKeyInTimeZone,
-  getDeviceTimeZone,
-  timestampToDate,
-} from '../utils/date';
-
-const sortWearsByDate = (wears) =>
-  [...wears].sort((a, b) => {
-    const aTime = timestampToDate(a)?.getTime() || 0;
-    const bTime = timestampToDate(b)?.getTime() || 0;
-
-    return aTime - bTime;
-  });
+import CustomButton from '../components/button';
+import { formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
+import { addWearToCollectionToday } from '../utils/collectionWears';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -67,48 +51,16 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const handleWearCollectionToday = async () => {
     if (isAddingWears || itemCount === 0) return;
 
-    const wearDate = new Date();
-    const todayKey = getDateKeyInTimeZone(wearDate, timeZone);
-    const newWear = generateFirestoreTimestampFromDate(wearDate);
-    const updates = itemsInCollection
-      .filter(
-        (item) =>
-          !(item.wears || []).some((wear) => getDateKeyInTimeZone(wear, timeZone) === todayKey)
-      )
-      .map((item) => ({
-        purchaseId: item.key,
-        updatedItem: {
-          ...item,
-          wears: sortWearsByDate([...(item.wears || []), newWear]),
-        },
-      }));
-
-    if (updates.length === 0) {
-      showBanner('Every item in this collection is already worn today', 'success');
-      return;
-    }
-
     setIsAddingWears(true);
 
     try {
-      await updateMultiplePurchaseWears(
-        updates.map(({ purchaseId, updatedItem }) => ({
-          purchaseId,
-          wears: updatedItem.wears,
-        }))
-      );
-
-      const updatesById = new Map(
-        updates.map(({ purchaseId, updatedItem }) => [purchaseId, updatedItem])
-      );
-      dispatch(
-        setPurchases(purchases.map((purchase) => updatesById.get(purchase.key) || purchase))
-      );
-
-      const skippedCount = itemCount - updates.length;
-      const addedText = `${updates.length} wear${updates.length === 1 ? '' : 's'} added`;
-      const skippedText = skippedCount > 0 ? `, ${skippedCount} already worn today` : '';
-      showBanner(`${addedText}${skippedText}`, 'success');
+      const result = await addWearToCollectionToday({
+        collection: currentCollection,
+        purchases,
+        timeZone,
+      });
+      if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
+      if (result.message) showBanner(result.message, 'success');
     } catch (error) {
       console.error('Failed to wear collection:', error);
       showBanner('Failed to add wears for this collection');
@@ -287,13 +239,10 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             <Text style={styles.emptyText}>
               Long press items on the Items tab to add to this collection.
             </Text>
-            <TouchableOpacity
-              style={styles.emptyButton}
-              activeOpacity={0.8}
+            <CustomButton
+              title="Browse items"
               onPress={() => navigation.navigate('ItemTabs', { screen: 'Items' })}
-            >
-              <Text style={styles.emptyButtonText}>Browse items</Text>
-            </TouchableOpacity>
+            />
           </View>
         )}
       </View>
@@ -486,17 +435,6 @@ const createStyles = (colors) =>
       textAlign: 'center',
       lineHeight: 26,
       marginBottom: 18,
-    },
-    emptyButton: {
-      minHeight: 42,
-      borderRadius: 21,
-      paddingHorizontal: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryDark,
-    },
-    emptyButtonText: {
-      color: 'white',
     },
     sheetRow: {
       width: '100%',

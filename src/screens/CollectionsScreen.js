@@ -12,13 +12,14 @@ import BottomSheet from '../components/bottomSheet';
 import CustomInput from '../components/customInput';
 import CustomButton from '../components/button';
 import Banner from '../components/banner';
-import { setCollections } from '../redux/actions/purchaseActions';
-import { generateFirestoreTimestamp } from '../utils/date';
+import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
+import { generateFirestoreTimestamp, getDeviceTimeZone } from '../utils/date';
 import {
   DEFAULT_FOLDER_COLOR,
   getCollectionFolderBackground,
   getCollectionFolderColor,
 } from '../utils/collectionColor';
+import { addWearToCollectionToday, isCollectionWornToday } from '../utils/collectionWears';
 
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -32,7 +33,9 @@ const CollectionsScreen = ({ navigation }) => {
   const [collectionName, setCollectionName] = useState('');
   const [selectedFolderColorName, setSelectedFolderColorName] = useState(DEFAULT_FOLDER_COLOR);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [addingWearCollectionId, setAddingWearCollectionId] = useState(null);
   const [banner, setBanner] = useState(null);
+  const timeZone = getDeviceTimeZone();
   const selectedFolderColor =
     colors.itemColorOptions.find((option) => option.name === selectedFolderColorName) ||
     colors.itemColorOptions[0];
@@ -87,55 +90,87 @@ const CollectionsScreen = ({ navigation }) => {
     }
   };
 
+  const handleWearCollectionToday = async (collection) => {
+    if (addingWearCollectionId) return;
+
+    setAddingWearCollectionId(collection.id);
+
+    try {
+      const result = await addWearToCollectionToday({ collection, purchases, timeZone });
+      if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
+      if (result.message) showBanner(result.message, 'success');
+    } catch (error) {
+      console.error('Failed to wear collection:', error);
+      showBanner('Failed to add wears for this collection');
+    } finally {
+      setAddingWearCollectionId(null);
+    }
+  };
+
   const renderItem = ({ item }) => {
     const collectionItems = item.items || [];
-    const itemNames = collectionItems
-      .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
+    const purchasesInCollection = collectionItems
+      .map((itemId) => purchases.find((purchase) => purchase.key === itemId))
       .filter(Boolean);
-    const itemCount = itemNames.length;
+    const itemNames = purchasesInCollection.map((purchase) => purchase.name);
+    const itemCount = purchasesInCollection.length;
     const folderColor = getCollectionFolderColor(item.folderColor, colors);
-    const previewText =
-      itemCount > 0
-        ? `${itemNames.slice(0, 3).join(', ')}${itemCount > 3 ? ` + ${itemCount - 3} more` : ''}`
-        : 'No items yet';
+    const previewText = itemCount > 0 ? itemNames.join(', ') : 'No items yet';
+
+    const isAddingWear = addingWearCollectionId === item.id;
+    const isWornToday = isCollectionWornToday({ collection: item, purchases, timeZone });
+    let actionTitle = 'Add wear';
+    if (itemCount === 0) actionTitle = 'Add items';
+    else if (isAddingWear) actionTitle = 'Adding';
+    else if (isWornToday) actionTitle = 'Already worn';
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() =>
-          navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
-        }
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={`${item.name}, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
-      >
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: getCollectionFolderBackground(item.folderColor, colors) },
-          ]}
+      <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.cardNavigation}
+          onPress={() =>
+            navigation.navigate('CollectionDetail', { collection: item, animationEnabled: false })
+          }
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`${item.name}, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
         >
-          <Ionicons name="folder-outline" size={23} color={folderColor} />
-        </View>
-
-        <View style={styles.cardBody}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.itemCount}>
-              {itemCount} {itemCount === 1 ? 'item' : 'items'}
-            </Text>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: getCollectionFolderBackground(item.folderColor, colors) },
+            ]}
+          >
+            <Ionicons name="folder-outline" size={23} color={folderColor} />
           </View>
 
-          <Text
-            style={[styles.description, itemCount > 0 && styles.populatedDescription]}
-            numberOfLines={1}
-          >
-            {previewText}
-          </Text>
-        </View>
-      </TouchableOpacity>
+          <View style={styles.cardBody}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.itemCount}>
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </Text>
+            </View>
+
+            <Text
+              style={[styles.description, itemCount > 0 && styles.populatedDescription]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {previewText}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <CustomButton
+          title={actionTitle}
+          onPress={() =>
+            itemCount === 0 ? navigation.navigate('Items') : handleWearCollectionToday(item)
+          }
+          disabled={itemCount > 0 && (isWornToday || !!addingWearCollectionId)}
+        />
+      </View>
     );
   };
 
@@ -241,17 +276,21 @@ const CollectionsScreen = ({ navigation }) => {
 const createStyles = (colors) =>
   StyleSheet.create({
     card: {
-      minHeight: 88,
+      minHeight: 106,
       backgroundColor: colors.white,
       marginHorizontal: 12,
       marginBottom: 10,
       paddingVertical: 15,
       paddingHorizontal: 14,
-      flexDirection: 'row',
-      alignItems: 'center',
       gap: 12,
       borderRadius: 12,
       elevation: 1,
+    },
+    cardNavigation: {
+      flex: 1,
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      gap: 12,
     },
     iconContainer: {
       width: 42,
@@ -267,6 +306,7 @@ const createStyles = (colors) =>
     },
     titleRow: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
     },
     title: {
@@ -279,13 +319,12 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     description: {
-      fontSize: 13,
       color: colors.placeholder,
-      lineHeight: 18,
+      lineHeight: 25,
     },
     populatedDescription: {
       color: colors.black,
-      opacity: 0.8,
+      opacity: 0.9,
     },
     container: {
       flex: 1,

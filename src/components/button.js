@@ -2,7 +2,15 @@ import React from 'react';
 import { TouchableHighlight, Text, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 
-const CustomButton = ({ onPress, title, buttonStyle, textStyle, underlayColor, icon, disabled }) => {
+const CustomButton = ({
+  onPress,
+  title,
+  buttonStyle,
+  textStyle,
+  underlayColor,
+  icon,
+  disabled,
+}) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -26,7 +34,7 @@ const createStyles = (colors) =>
     button: {
       width: '100%',
       backgroundColor: colors.primary,
-      padding: 16,
+      padding: 14,
       borderRadius: 10,
       alignItems: 'center',
     },
