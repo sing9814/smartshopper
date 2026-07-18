@@ -153,10 +153,24 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingHorizontal: 12,
     },
-    headerTitle: { fontSize: 18, color: 'white' },
-    selectionCount: { color: 'white', fontSize: 12, opacity: 0.8, marginTop: 2 },
-    headerAction: { color: 'white', fontSize: 15, fontWeight: '600' },
-    headerActionDisabled: { opacity: 0.45 },
+    headerTitle: {
+      fontSize: 18,
+      color: 'white',
+    },
+    selectionCount: {
+      color: 'white',
+      fontSize: 12,
+      opacity: 0.8,
+      marginTop: 2,
+    },
+    headerAction: {
+      color: 'white',
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    headerActionDisabled: {
+      opacity: 0.45,
+    },
   });
 
 export default AddItemsToCollectionScreen;

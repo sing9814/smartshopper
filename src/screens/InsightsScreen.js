@@ -49,23 +49,11 @@ const getColorDistribution = (purchases, colors) => {
   return [...paletteDistribution, ...extraDistribution];
 };
 
-const sortByLeastWorn = (a, b) => {
-  const wearDifference = getWearCount(a) - getWearCount(b);
-  if (wearDifference !== 0) return wearDifference;
-
-  return getLastWearTime(a) - getLastWearTime(b);
-};
-
 const InsightsScreen = () => {
   const colors = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const styles = createStyles(colors, tabBarHeight);
   const purchases = useSelector((state) => state.purchase.purchases || []);
-  const mostWorn = [...purchases].sort((a, b) => getWearCount(b) - getWearCount(a))[0] || null;
-  const leastWorn =
-    purchases.length > 1
-      ? [...purchases].filter((item) => item.key !== mostWorn?.key).sort(sortByLeastWorn)[0]
-      : null;
   const colorDistribution = getColorDistribution(purchases, colors);
   const activeColors = colorDistribution
     .filter((item) => item.count > 0)
@@ -73,6 +61,24 @@ const InsightsScreen = () => {
   const unusedColors = colorDistribution
     .filter((item) => item.count === 0)
     .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER));
+  const wearStats = purchases.reduce(
+    (stats, item) => {
+      const wearCount = getWearCount(item);
+      const progress = getWearGoalProgress(wearCount, item.wearGoal ?? DEFAULT_WEAR_GOAL);
+
+      if (wearCount === 0) stats.unworn += 1;
+      else if (progress.code === 'complete') stats.goalComplete += 1;
+      else stats.inProgress += 1;
+
+      return stats;
+    },
+    { unworn: 0, inProgress: 0, goalComplete: 0 }
+  );
+  const progressStats = [
+    { label: 'Unworn', value: wearStats.unworn },
+    { label: 'In progress', value: wearStats.inProgress },
+    { label: 'Complete', value: wearStats.goalComplete },
+  ];
 
   useStatusBar(colors.primary);
 
@@ -86,17 +92,49 @@ const InsightsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.summaryRow}>
-          <MetricCard label="Total items" value={purchases.length} styles={styles} />
-          <MetricCard
-            label="Total wears"
-            value={purchases.reduce((total, item) => total + getWearCount(item), 0)}
-            styles={styles}
-          />
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{purchases.length}</Text>
+            <Text style={styles.metricLabel}>Total items</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>
+              {purchases.reduce((total, item) => total + getWearCount(item), 0)}
+            </Text>
+            <Text style={styles.metricLabel}>Total wears</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Goal progress</Text>
+            <Ionicons name="trending-up-outline" size={20} color={colors.primary} />
+          </View>
+          <View style={styles.progressStatsRow}>
+            {progressStats.map((stat, index) => (
+              <View
+                key={stat.label}
+                style={[
+                  styles.progressStat,
+                  index < progressStats.length - 1 && styles.progressStatBorder,
+                ]}
+              >
+                <Text style={styles.progressStatValue}>{stat.value}</Text>
+                <Text
+                  style={styles.progressStatLabel}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                >
+                  {stat.label}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.analyticsCard}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Item insights</Text>
+            <Text style={styles.cardTitle}>Wear insights</Text>
             <Ionicons name="bulb-outline" size={20} color={colors.primary} />
           </View>
 
@@ -113,26 +151,52 @@ const InsightsScreen = () => {
             </Text>
           </View>
 
-          {mostWorn ? (
-            <>
-              <ItemInsight
-                title="Most worn"
-                icon="trending-up-outline"
-                item={mostWorn}
-                wearCount={getWearCount(mostWorn)}
-                colors={colors}
-                styles={styles}
-              />
-              <View style={styles.divider} />
-              <ItemInsight
-                title="Least worn"
-                icon="trending-down-outline"
-                item={leastWorn}
-                wearCount={getWearCount(leastWorn)}
-                colors={colors}
-                styles={styles}
-              />
-            </>
+          {purchases.some((item) => getWearCount(item) > 0) ? (
+            <View style={styles.topWornList}>
+              <Text style={styles.insightLabel}>Most worn</Text>
+              {[...purchases]
+                .filter((item) => getWearCount(item) > 0)
+                .sort(
+                  (a, b) =>
+                    getWearCount(b) - getWearCount(a) || getLastWearTime(b) - getLastWearTime(a)
+                )
+                .slice(0, 3)
+                .map((item, index) => {
+                  const wearCount = getWearCount(item);
+                  const wearProgress = getWearGoalProgress(
+                    wearCount,
+                    item.wearGoal ?? DEFAULT_WEAR_GOAL
+                  );
+
+                  return (
+                    <View
+                      key={item.key || item.id || `${item.name}-${index}`}
+                      style={styles.highlightRow}
+                    >
+                      <Text
+                        style={[
+                          styles.rankText,
+                          { fontSize: index === 0 ? 18 : index === 1 ? 16 : 14 },
+                        ]}
+                      >
+                        {index + 1}
+                      </Text>
+                      <View style={styles.highlightText}>
+                        <View style={styles.highlightDetailRow}>
+                          <Text style={styles.highlightTitle} numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          <Text style={styles.highlightValue}>
+                            {wearCount} wears ({wearProgress.displayPercentage}%)
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+            </View>
+          ) : purchases.length ? (
+            <Text style={styles.mutedText}>Wear items to see your top worn pieces.</Text>
           ) : (
             <Text style={styles.mutedText}>No items yet.</Text>
           )}
@@ -240,43 +304,6 @@ const InsightsScreen = () => {
   );
 };
 
-const MetricCard = ({ label, value, styles }) => (
-  <View style={styles.metricCard}>
-    <Text style={styles.metricValue}>{value}</Text>
-    <Text style={styles.metricLabel}>{label}</Text>
-  </View>
-);
-
-const ItemInsight = ({ title, icon, item, wearCount, colors, styles }) => {
-  const wearGoal = item?.wearGoal ?? DEFAULT_WEAR_GOAL;
-  const wearProgress = getWearGoalProgress(wearCount, wearGoal);
-
-  if (!item) {
-    return (
-      <View>
-        <Text style={styles.insightLabel}>{title}</Text>
-        <Text style={styles.mutedText}>Not enough items yet.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.highlightRow}>
-      <View style={styles.insightIcon}>
-        <Ionicons name={icon} size={18} color={colors.primary} />
-      </View>
-      <View style={styles.highlightText}>
-        <Text style={styles.insightLabel}>{title}</Text>
-        <Text style={styles.highlightTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.mutedText}>{wearProgress.detailLabel}</Text>
-      </View>
-      <Text style={styles.highlightValue}>{wearCount} wears</Text>
-    </View>
-  );
-};
-
 const createStyles = (colors, tabBarHeight) =>
   StyleSheet.create({
     container: {
@@ -299,6 +326,42 @@ const createStyles = (colors, tabBarHeight) =>
       padding: 16,
       gap: 12,
       elevation: 1,
+    },
+    progressCard: {
+      backgroundColor: colors.white,
+      borderRadius: 10,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      elevation: 1,
+    },
+    progressStatsRow: {
+      flexDirection: 'row',
+      marginTop: 12,
+      paddingBottom: 16,
+    },
+    progressStat: {
+      flex: 1,
+      height: 58,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    progressStatBorder: {
+      borderRightWidth: 1,
+      borderRightColor: colors.bg,
+    },
+    progressStatValue: {
+      color: colors.black,
+      fontSize: 22,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    progressStatLabel: {
+      width: '100%',
+      color: colors.gray,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
+      includeFontPadding: false,
     },
     cardHeader: {
       flexDirection: 'row',
@@ -337,35 +400,40 @@ const createStyles = (colors, tabBarHeight) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 6,
+      marginRight: 10,
+    },
+    topWornList: {
       gap: 12,
     },
-    insightIcon: {
+    rankText: {
       width: 34,
       height: 34,
-      borderRadius: 17,
-      alignItems: 'center',
-      justifyContent: 'center',
+      color: colors.primary,
+      fontWeight: '700',
+      lineHeight: 34,
+      textAlign: 'center',
     },
     highlightText: {
       flex: 1,
     },
+    highlightDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
     highlightTitle: {
+      flex: 1,
       color: colors.black,
       fontSize: 16,
       fontWeight: '600',
-      marginBottom: 4,
     },
     insightLabel: {
       color: colors.gray,
       fontSize: 13,
-      marginBottom: 4,
     },
     highlightValue: {
       color: colors.gray,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: colors.bg,
     },
     mutedText: {
       color: colors.gray,
@@ -429,7 +497,7 @@ const createStyles = (colors, tabBarHeight) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       columnGap: 22,
-      rowGap: 16,
+      rowGap: 18,
     },
     unusedLegendList: {
       paddingBottom: 8,
@@ -444,13 +512,10 @@ const createStyles = (colors, tabBarHeight) =>
     legendLabel: {
       flexShrink: 1,
       color: colors.black,
-      fontSize: 13,
       fontWeight: '600',
     },
     legendValue: {
       color: colors.gray,
-      fontSize: 12,
-      fontWeight: '600',
     },
     summaryRow: {
       flexDirection: 'row',
@@ -458,11 +523,13 @@ const createStyles = (colors, tabBarHeight) =>
     },
     metricCard: {
       flex: 1,
-      minHeight: 108,
+      // minHeight: 108,
       backgroundColor: colors.white,
       borderRadius: 10,
-      padding: 16,
+      padding: 18,
+      paddingTop: 16,
       elevation: 1,
+      gap: 4,
     },
     metricValue: {
       color: colors.black,
@@ -472,7 +539,7 @@ const createStyles = (colors, tabBarHeight) =>
     metricLabel: {
       color: colors.gray,
       fontSize: 13,
-      marginTop: 4,
+      // marginTop: 4,
     },
   });
 

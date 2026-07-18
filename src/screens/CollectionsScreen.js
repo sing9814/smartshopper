@@ -174,6 +174,9 @@ const CollectionsScreen = ({ navigation }) => {
               : handleWearCollectionToday(item)
           }
           disabled={itemCount > 0 && (isWornToday || !!addingWearCollectionId)}
+          buttonStyle={itemCount === 0 ? styles.addItemsButton : undefined}
+          textStyle={itemCount === 0 ? styles.addItemsButtonText : undefined}
+          underlayColor={itemCount === 0 ? colors.lightGrey : undefined}
         />
       </View>
     );
@@ -419,6 +422,13 @@ const createStyles = (colors) =>
     },
     createButton: {
       backgroundColor: colors.primaryDark,
+    },
+    addItemsButton: {
+      backgroundColor: colors.primaryLight,
+    },
+    addItemsButtonText: {
+      color: colors.primary,
+      fontWeight: '600',
     },
   });
 
