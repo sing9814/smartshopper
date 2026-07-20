@@ -44,6 +44,7 @@ import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
 dayjs.extend(utc);
 
 const DEFAULT_WEAR_GOAL = 10;
+const WEAR_GOAL_PRESETS = [10, 30, 50, 100];
 
 const titleCaseName = (value) => value.replace(/\b\w/g, (char) => char.toUpperCase());
 
@@ -74,7 +75,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [open, setOpen] = useState(false);
   const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
-  const [wearGoal, setWearGoal] = useState('');
+  const [wearGoal, setWearGoal] = useState(String(DEFAULT_WEAR_GOAL));
+  const [customWearGoal, setCustomWearGoal] = useState(false);
   const [itemColor, setItemColor] = useState(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [note, setNote] = useState(null);
@@ -115,7 +117,9 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
       );
       setPaidPrice(purchase.paidPrice != null ? convertCentsToDollars(purchase.paidPrice) : null);
-      setWearGoal(purchase.wearGoal != null ? String(purchase.wearGoal) : '');
+      const purchaseWearGoal = Number(purchase.wearGoal ?? DEFAULT_WEAR_GOAL);
+      setWearGoal(String(purchaseWearGoal));
+      setCustomWearGoal(!WEAR_GOAL_PRESETS.includes(purchaseWearGoal));
       setItemColor(purchase.itemColor || null);
       setNote(purchase.note);
       setDisabled(purchase.regularPrice != null);
@@ -147,7 +151,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         category !== null ||
         regularPrice !== null ||
         paidPrice !== null ||
-        wearGoal !== '' ||
+        wearGoal !== String(DEFAULT_WEAR_GOAL) ||
         itemColor !== null ||
         note !== null
       );
@@ -193,7 +197,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       showBanner('Paid price must be less than regular price');
       return false;
     }
-    if (wearGoal && !validateWearGoal(wearGoal)) {
+    if ((customWearGoal && !wearGoal) || (wearGoal && !validateWearGoal(wearGoal))) {
       showBanner('Wear goal must be a whole number greater than 0');
       return false;
     }
@@ -306,7 +310,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     setNote(null);
     setRegularPrice(null);
     setPaidPrice(null);
-    setWearGoal('');
+    setWearGoal(String(DEFAULT_WEAR_GOAL));
+    setCustomWearGoal(false);
     setItemColor(null);
     setColorPickerOpen(false);
     setSelectedDate(null);
@@ -352,7 +357,11 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                       {selectedCategoryText}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-down" size={18} color={colors.gray} />
+                  <Ionicons
+                    name={showCategorySheet ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color={colors.gray}
+                  />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -460,18 +469,68 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 }
               />
 
-              <CustomInput
-                placeholder={`Wear goal (default ${DEFAULT_WEAR_GOAL})`}
-                value={wearGoal}
-                onChangeText={setWearGoal}
-                type="numeric"
-              />
+              <View style={styles.wearGoalField}>
+                <Text style={styles.sectionTitle}>Wear goal</Text>
+                <View style={styles.wearGoalOptions}>
+                  {WEAR_GOAL_PRESETS.map((goal) => {
+                    const selected = !customWearGoal && wearGoal === String(goal);
+
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[styles.wearGoalOption, selected && styles.wearGoalOptionSelected]}
+                        onPress={() => {
+                          setWearGoal(String(goal));
+                          setCustomWearGoal(false);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                      >
+                        <Text
+                          style={[
+                            styles.wearGoalOptionText,
+                            selected && styles.wearGoalOptionTextSelected,
+                          ]}
+                        >
+                          {goal}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <TouchableOpacity
+                    style={[styles.wearGoalOption, customWearGoal && styles.wearGoalOptionSelected]}
+                    onPress={() => {
+                      if (!customWearGoal) setWearGoal('');
+                      setCustomWearGoal(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: customWearGoal }}
+                  >
+                    <Text
+                      style={[
+                        styles.wearGoalOptionText,
+                        customWearGoal && styles.wearGoalOptionTextSelected,
+                      ]}
+                    >
+                      Custom
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {customWearGoal && (
+                  <CustomInput
+                    placeholder="Custom wear goal"
+                    value={wearGoal}
+                    onChangeText={setWearGoal}
+                    type="numeric"
+                  />
+                )}
+              </View>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Optional</Text>
+              <Text style={styles.sectionTitle}>Optional details</Text>
               <CustomInput
-                placeholder="Price"
+                placeholder="Price (for cost per wear)"
                 value={paidPrice}
                 onChangeText={setPaidPrice}
                 type="numeric"
@@ -528,7 +587,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         <View style={[styles.actionArea, { paddingBottom: tabBarHeight + 12 }]}>
           {showClearButton && !edit && (
             <TouchableOpacity style={styles.clearBtn} onPress={resetFields}>
-              <Text style={styles.clear}>Clear all</Text>
+              <Text style={styles.clear}>Reset form</Text>
             </TouchableOpacity>
           )}
 
@@ -596,8 +655,8 @@ const createStyles = (colors) =>
     sectionTitle: {
       color: colors.gray,
       fontSize: 13,
-      marginBottom: 4,
-      marginTop: -4,
+      marginBottom: 2,
+      marginTop: -6,
     },
     categoryColorRow: {
       width: '100%',
@@ -701,6 +760,39 @@ const createStyles = (colors) =>
       borderRadius: 10,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    wearGoalField: {
+      gap: 10,
+      paddingTop: 8,
+    },
+    wearGoalOptions: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    wearGoalOption: {
+      flex: 1,
+      minWidth: 0,
+      minHeight: 40,
+      paddingHorizontal: 4,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.lightGrey,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.white,
+    },
+    wearGoalOptionSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primaryLight,
+    },
+    wearGoalOptionText: {
+      color: colors.black,
+      fontSize: 13,
+      fontWeight: '500',
+      textAlign: 'center',
+    },
+    wearGoalOptionTextSelected: {
+      color: colors.primary,
     },
     submitBtn: {
       borderRadius: 10,
