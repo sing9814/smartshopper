@@ -3,7 +3,15 @@ import BottomSheet from './bottomSheet';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useTheme } from '../theme/themeContext';
 
-const DetailsSheet = ({ visible, onClose, navigation, currentPurchase, setModalVisible }) => {
+const DetailsSheet = ({
+  visible,
+  onClose,
+  navigation,
+  currentPurchase,
+  setModalVisible,
+  isEditingWearHistory,
+  onToggleWearHistoryEditing,
+}) => {
   const colors = useTheme();
   const styles = createStyles(colors);
 
@@ -19,26 +27,38 @@ const DetailsSheet = ({ visible, onClose, navigation, currentPurchase, setModalV
     });
   };
 
+  const handleEditWearHistory = () => {
+    onClose();
+    onToggleWearHistoryEditing();
+  };
+
   const handleDelete = () => {
     onClose();
     setModalVisible(true);
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Options" height={250}>
+    <BottomSheet visible={visible} onClose={onClose} title="Options" height={320}>
       <Pressable style={styles.row} onPress={handleEdit}>
         <FontAwesome name="pencil" size={20} color={colors.black} style={styles.icon} />
-        <Text style={styles.text}>Edit</Text>
+        <Text style={styles.text}>Edit item details</Text>
+      </Pressable>
+
+      <Pressable style={styles.row} onPress={handleEditWearHistory}>
+        <FontAwesome name="history" size={20} color={colors.black} style={styles.icon} />
+        <Text style={styles.text}>
+          {isEditingWearHistory ? 'Done editing wear history' : 'Edit wear history'}
+        </Text>
       </Pressable>
 
       <Pressable style={styles.row} onPress={handleDuplicate}>
         <FontAwesome name="copy" size={20} color={colors.black} style={styles.icon} />
-        <Text style={styles.text}>Duplicate</Text>
+        <Text style={styles.text}>Duplicate item</Text>
       </Pressable>
 
       <Pressable style={styles.row} onPress={handleDelete}>
         <FontAwesome name="trash" size={20} color={colors.red} style={styles.icon} />
-        <Text style={styles.deleteText}>Delete</Text>
+        <Text style={styles.deleteText}>Delete item</Text>
       </Pressable>
     </BottomSheet>
   );
@@ -47,13 +67,15 @@ const DetailsSheet = ({ visible, onClose, navigation, currentPurchase, setModalV
 const createStyles = (colors) =>
   StyleSheet.create({
     row: {
-      paddingVertical: 12,
+      paddingVertical: 15,
       flexDirection: 'row',
       alignItems: 'center',
       width: '100%',
     },
     icon: {
-      marginRight: 10,
+      width: 24,
+      marginRight: 14,
+      textAlign: 'center',
     },
     text: {
       fontSize: 15,

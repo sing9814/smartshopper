@@ -63,6 +63,7 @@ const DetailsScreen = ({ navigation }) => {
   const [isAddingWear, setIsAddingWear] = useState(false);
   const [wearToDelete, setWearToDelete] = useState(null);
   const [isDeletingWear, setIsDeletingWear] = useState(false);
+  const [isEditingWearHistory, setIsEditingWearHistory] = useState(false);
   const [isWearDatePickerOpen, setIsWearDatePickerOpen] = useState(false);
   const [selectedWearDate, setSelectedWearDate] = useState(new Date());
   const [wearProgressTrackWidth, setWearProgressTrackWidth] = useState(0);
@@ -230,13 +231,27 @@ const DetailsScreen = ({ navigation }) => {
           {currentPurchase.name}
         </Text>
         <View style={styles.topbarActions}>
-          <TouchableOpacity
-            onPress={() => setIsSheetVisible(true)}
-            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            style={styles.topbarAction}
-          >
-            <FontAwesome6 name="ellipsis" size={26} color="white" />
-          </TouchableOpacity>
+          {isEditingWearHistory ? (
+            <TouchableOpacity
+              onPress={() => setIsEditingWearHistory(false)}
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              style={[styles.topbarAction, styles.topbarDoneAction]}
+              accessibilityRole="button"
+              accessibilityLabel="Done editing wear history"
+            >
+              <Text style={styles.topbarDone}>Done</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setIsSheetVisible(true)}
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              style={styles.topbarAction}
+              accessibilityRole="button"
+              accessibilityLabel="Item options"
+            >
+              <FontAwesome6 name="ellipsis" size={26} color="white" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -447,13 +462,20 @@ const DetailsScreen = ({ navigation }) => {
                       <Text style={styles.wearRowDate}>{formatWearDate(wear)}</Text>
                       <TouchableOpacity
                         onPress={() => setWearToDelete(wear)}
-                        disabled={isDeletingWear}
+                        disabled={!isEditingWearHistory || isDeletingWear}
                         hitSlop={{ top: 10, right: 8, bottom: 10, left: 8 }}
                         style={styles.deleteWearButton}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Delete wear from ${formatWearDate(wear)}`}
+                        accessibilityRole={isEditingWearHistory ? 'button' : undefined}
+                        accessibilityLabel={
+                          isEditingWearHistory
+                            ? `Delete wear from ${formatWearDate(wear)}`
+                            : undefined
+                        }
+                        accessible={isEditingWearHistory}
                       >
-                        <FontAwesome6 name="trash-can" size={15} color={colors.red} />
+                        {isEditingWearHistory && (
+                          <FontAwesome6 name="xmark" size={17} color={colors.red} />
+                        )}
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -519,6 +541,8 @@ const DetailsScreen = ({ navigation }) => {
         dispatch={dispatch}
         setPurchases={setPurchases}
         setModalVisible={setModalVisible}
+        isEditingWearHistory={isEditingWearHistory}
+        onToggleWearHistoryEditing={() => setIsEditingWearHistory((isEditing) => !isEditing)}
       />
     </View>
   );
@@ -562,6 +586,15 @@ const createStyles = (colors, insets) =>
       height: 28,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    topbarDoneAction: {
+      width: 48,
+      marginLeft: -20,
+    },
+    topbarDone: {
+      color: 'white',
+      fontSize: 15,
+      fontWeight: '500',
     },
     tabNavigator: {
       flex: 1,
@@ -818,7 +851,6 @@ const createStyles = (colors, insets) =>
     },
     wearRowNumber: {
       color: colors.gray,
-      fontWeight: '500',
       marginRight: 8,
     },
     deleteWearButton: {
