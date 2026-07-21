@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Linking,
   Modal,
@@ -13,8 +13,6 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { useTheme, useToggleTheme, useIsDark } from '../theme/themeContext';
 import WomanSVG from '../../assets/womanSVG';
-import PigSVG from '../../assets/pigSVG';
-import MoneySVG from '../../assets/moneySVG';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,7 +21,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
 import { setUser } from '../redux/actions/userActions';
-import { formatCentsAsCurrency } from '../utils/price';
+import { timestampToDate } from '../utils/date';
 
 const FEEDBACK_FORM_URL =
   'https://docs.google.com/forms/d/1BWQtUvXFn9GeCFqAAg4uTJHN6H-54EXAnHxqzphthRg/viewform';
@@ -41,46 +39,31 @@ const ProfileScreen = ({ navigation }) => {
   const toggleTheme = useToggleTheme();
   const isDark = useIsDark();
   const dispatch = useDispatch();
-  const purchaseData = useSelector((state) => state.purchase.purchases);
+  const purchases = useSelector((state) => state.purchase.purchases || []);
   const user = useSelector((state) => state.user.user);
   const isGuestAccount = user?.isGuest || auth().currentUser?.isAnonymous;
   const profileHeaderTitle = isGuestAccount ? 'Guest account' : user?.email || 'Profile';
+  const registrationDate =
+    timestampToDate(user?.registrationDate) ||
+    timestampToDate(auth().currentUser?.metadata?.creationTime);
+  const memberSince = registrationDate
+    ? new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(
+        registrationDate
+      )
+    : 'Recently';
+  const mostWornItem = purchases.reduce((mostWorn, item) => {
+    const wearCount = item?.wears?.length || 0;
+    const mostWornCount = mostWorn?.wears?.length || 0;
 
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [totalSaved, setTotalSaved] = useState(0);
+    return wearCount > mostWornCount ? item : mostWorn;
+  }, null);
+
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeEmail, setUpgradeEmail] = useState('');
   const [upgradePassword, setUpgradePassword] = useState('');
   const [upgradeError, setUpgradeError] = useState(null);
   const [isUpgrading, setIsUpgrading] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-
-    let spent = 0;
-    let saved = 0;
-
-    purchaseData.forEach((purchase) => {
-      const regularPrice = parseInt(purchase.regularPrice, 10) || 0;
-      const paidPrice = purchase.paidPrice != null ? parseInt(purchase.paidPrice, 10) : null;
-
-      if (paidPrice == null) return;
-
-      spent += paidPrice;
-
-      if (paidPrice < regularPrice) {
-        saved += regularPrice - paidPrice;
-      }
-    });
-
-    setTotalSpent(formatCentsAsCurrency(spent));
-    setTotalSaved(formatCentsAsCurrency(saved));
-
-    setLoading(false);
-  };
 
   const handleSignOut = async () => {
     if (isGuestAccount) {
@@ -188,15 +171,6 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchData().then(() => setRefreshing(false));
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [purchaseData]);
-
   return (
     <View style={styles.container}>
       <Modal transparent={true} visible={showUpgradeModal} onRequestClose={closeUpgradeModal}>
@@ -259,17 +233,19 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.cardContainer}>
           <View style={styles.card}>
             <View style={styles.statIcon}>
-              <MoneySVG color={colors.secondary} size={44} />
+              <Ionicons name="calendar-outline" size={30} color={colors.primary} />
             </View>
-            <Text style={styles.statLabel}>Spent</Text>
-            <Text style={[styles.amount, styles.spentAmount]}>{totalSpent}</Text>
+            <Text style={styles.statLabel}>Member since</Text>
+            <Text style={styles.amount}>{memberSince}</Text>
           </View>
           <View style={styles.card}>
             <View style={styles.statIcon}>
-              <PigSVG color={colors.green} size={44} />
+              <Ionicons name="shirt-outline" size={30} color={colors.primary} />
             </View>
-            <Text style={styles.statLabel}>Saved</Text>
-            <Text style={[styles.amount, styles.savedAmount]}>{totalSaved}</Text>
+            <Text style={styles.statLabel}>Most worn</Text>
+            <Text style={styles.amount} numberOfLines={1}>
+              {mostWornItem?.name || 'No wears yet'}
+            </Text>
           </View>
         </View>
 
@@ -424,7 +400,7 @@ const createStyles = (colors, insets) =>
       textAlign: 'center',
     },
     section: {
-      marginTop: 12,
+      marginTop: 10,
       gap: 6,
       marginHorizontal: -16,
     },
@@ -432,7 +408,7 @@ const createStyles = (colors, insets) =>
       color: colors.gray,
       fontSize: 13,
       marginBottom: 4,
-      paddingHorizontal: 18,
+      paddingHorizontal: 22,
     },
     sectionGroup: {
       backgroundColor: colors.white,
@@ -520,27 +496,22 @@ const createStyles = (colors, insets) =>
       elevation: 1,
     },
     amount: {
+      maxWidth: '100%',
       color: colors.black,
-      fontSize: 20,
-      fontWeight: '700',
+      fontSize: 18,
+      fontWeight: '600',
       marginTop: 2,
-    },
-    spentAmount: {
-      color: colors.secondary,
-    },
-    savedAmount: {
-      color: colors.green,
+      textAlign: 'center',
     },
     statIcon: {
       width: 54,
-      height: 54,
+      height: 40,
       justifyContent: 'center',
       alignItems: 'center',
     },
     statLabel: {
       color: colors.gray,
       fontSize: 13,
-      fontWeight: '500',
     },
     title: {
       color: colors.black,
