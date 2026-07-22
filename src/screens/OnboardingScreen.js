@@ -13,8 +13,6 @@ import auth from '@react-native-firebase/auth';
 import { useDispatch } from 'react-redux';
 import { setUserOnboarded } from '../redux/actions/userActions';
 import Logo from '../../assets/logo';
-import Form from '../../assets/onboarding/form';
-import WomanSVG from '../../assets/womanSVG';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -80,34 +78,33 @@ const OnboardingScreen = ({ route, navigation }) => {
       svg: Logo,
       svgProps: { height: 110, width: 110 },
       title: 'Smart Shopper',
-      description: 'Track your wardrobe spending and see what your clothes are really worth',
+      description: 'Build a more sustainable wardrobe by wearing more of what you already own',
     },
     {
       colors: [lightTheme.primary, lightTheme.primaryDark],
       diagonal: true,
-      svg: Form,
-      title: 'Track items',
-      description: 'Quickly add and edit your clothing items using our simple form',
+      icon: 'shirt-outline',
+      title: 'Set an intention',
+      description: 'Add your clothes and give each item a personal wear goal to work toward',
     },
     {
       colors: [lightTheme.primaryDark, lightTheme.secondary],
-      svg: WomanSVG,
-      svgProps: { color: lightTheme.white, height: 150, opacity: 1 },
-      title: 'Track your wears',
-      description: "Log each wear to see what gets worn and what doesn't",
+      icon: 'calendar-outline',
+      title: 'Count every wear',
+      description: 'Log what you wear and see each item move closer to its goal',
     },
     {
       colors: [lightTheme.secondary, lightTheme.primary],
-      icon: 'calendar-outline',
-      title: 'Look back anytime',
-      description: 'Use your calendar and item history to see what you actually wear most',
+      icon: 'layers-outline',
+      title: 'Wear more together',
+      description: 'Create collections from items you wear together and log them all in one tap',
     },
     {
       colors: [lightTheme.primary, lightTheme.primaryDark],
       diagonal: true,
-      icon: 'bag-add-outline',
-      title: 'Get started',
-      description: 'Add your first item and start seeing what you actually wear',
+      icon: 'analytics-outline',
+      title: 'Know what needs a wear',
+      description: "See what's unworn, in progress, and which items have reached their goal",
     },
   ];
 
