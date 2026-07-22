@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Text,
   ScrollView,
   KeyboardAvoidingView,
@@ -13,7 +12,6 @@ import firestore from '@react-native-firebase/firestore';
 import DatePicker from 'react-native-date-picker';
 import CustomButton from './button';
 import { useTheme } from '../theme/themeContext';
-import AddButton from './addButton';
 import CustomInput from './customInput';
 import CategoryPickerSheet from './categoryPickerSheet';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -73,14 +71,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const formattedDate = selectedDate ? dayjs.utc(selectedDate).format('ddd, MMM D') : null;
   const [open, setOpen] = useState(false);
-  const [regularPrice, setRegularPrice] = useState(null);
   const [paidPrice, setPaidPrice] = useState(null);
   const [wearGoal, setWearGoal] = useState(String(DEFAULT_WEAR_GOAL));
   const [customWearGoal, setCustomWearGoal] = useState(false);
   const [itemColor, setItemColor] = useState(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [note, setNote] = useState(null);
-  const [disabled, setDisabled] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
 
   const [showCustomSheet, setShowCustomSheet] = useState(false);
@@ -113,16 +109,12 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       setItemName(purchase.name);
       setCategory(purchase.category);
       setSelectedDate(timestampToDate(purchase.datePurchased));
-      setRegularPrice(
-        purchase.regularPrice != null ? convertCentsToDollars(purchase.regularPrice) : null
-      );
       setPaidPrice(purchase.paidPrice != null ? convertCentsToDollars(purchase.paidPrice) : null);
       const purchaseWearGoal = Number(purchase.wearGoal ?? DEFAULT_WEAR_GOAL);
       setWearGoal(String(purchaseWearGoal));
       setCustomWearGoal(!WEAR_GOAL_PRESETS.includes(purchaseWearGoal));
       setItemColor(purchase.itemColor || null);
       setNote(purchase.note);
-      setDisabled(purchase.regularPrice != null);
     }
     if (name) {
       setItemName(name);
@@ -149,7 +141,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       return (
         itemName !== '' ||
         category !== null ||
-        regularPrice !== null ||
         paidPrice !== null ||
         wearGoal !== String(DEFAULT_WEAR_GOAL) ||
         itemColor !== null ||
@@ -157,15 +148,10 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       );
     };
     setShowClearButton(checkFields());
-  }, [itemName, category, regularPrice, paidPrice, wearGoal, itemColor, note]);
+  }, [itemName, category, paidPrice, wearGoal, itemColor, note]);
 
   const handleSelect = (selectedValue) => {
     setCategory(selectedValue);
-  };
-
-  const removeRegularPrice = () => {
-    setDisabled(false);
-    setRegularPrice(null);
   };
 
   const validatePrice = (price) => /^\d+(\.\d{1,2})?$/.test(price);
@@ -186,15 +172,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       showBanner('Please enter an item name');
       return false;
     }
-    if (
-      (paidPrice && !validatePrice(paidPrice)) ||
-      (regularPrice && !validatePrice(regularPrice))
-    ) {
-      showBanner('Prices must be a valid number with up to 2 decimal places');
-      return false;
-    }
-    if (paidPrice && regularPrice && parseFloat(paidPrice) >= parseFloat(regularPrice)) {
-      showBanner('Paid price must be less than regular price');
+    if (paidPrice && !validatePrice(paidPrice)) {
+      showBanner('Price must be a valid number with up to 2 decimal places');
       return false;
     }
     if ((customWearGoal && !wearGoal) || (wearGoal && !validateWearGoal(wearGoal))) {
@@ -237,7 +216,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         category: category || null,
         note: note,
         edited: generateFirestoreTimestamp(),
-        regularPrice: regularPrice ? Math.round(parseFloat(regularPrice) * 100) : null,
+        regularPrice: purchase.regularPrice ?? null,
         paidPrice: paidPrice ? Math.round(parseFloat(paidPrice) * 100) : null,
         wearGoal: savedWearGoal,
         itemColor,
@@ -267,7 +246,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         category: category || null,
         note: note,
         wears: [],
-        regularPrice: regularPrice ? convertDollarsToCents(regularPrice) : null,
+        regularPrice: null,
         paidPrice: paidPrice ? convertDollarsToCents(paidPrice) : null,
         wearGoal: savedWearGoal,
         itemColor,
@@ -308,7 +287,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     setAppliedSuggestedName('');
     setCategory(null);
     setNote(null);
-    setRegularPrice(null);
     setPaidPrice(null);
     setWearGoal(String(DEFAULT_WEAR_GOAL));
     setCustomWearGoal(false);
@@ -535,28 +513,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 onChangeText={setPaidPrice}
                 type="numeric"
                 prefix={currencySymbol}
-                component={<AddButton onPress={() => setDisabled(true)} disabled={disabled} />}
               />
-
-              {disabled && (
-                <CustomInput
-                  placeholder="Regular price"
-                  value={regularPrice}
-                  onChangeText={setRegularPrice}
-                  type="numeric"
-                  prefix={currencySymbol}
-                  component={
-                    <TouchableWithoutFeedback onPress={removeRegularPrice}>
-                      <Ionicons
-                        style={styles.icon}
-                        name="remove-outline"
-                        size={16}
-                        color={colors.gray}
-                      />
-                    </TouchableWithoutFeedback>
-                  }
-                />
-              )}
               <View>
                 <TouchableOpacity onPress={() => setOpen(true)} style={styles.dateBtn}>
                   <View style={styles.dateContent}>
@@ -796,10 +753,6 @@ const createStyles = (colors) =>
     },
     submitBtn: {
       borderRadius: 10,
-    },
-    icon: {
-      padding: 8,
-      borderRadius: 50,
     },
     actionArea: {
       width: '100%',
