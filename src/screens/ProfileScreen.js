@@ -45,7 +45,7 @@ const ProfileScreen = ({ navigation }) => {
   const customCategories = useSelector((state) => state.user.customCategories || []);
   const user = useSelector((state) => state.user.user);
   const isGuestAccount = user?.isGuest === true;
-  const profileHeaderTitle = isGuestAccount ? 'Guest account' : user?.email || 'Profile';
+  const profileHeaderTitle = isGuestAccount ? 'Local profile' : user?.email || 'Profile';
   const registrationDate =
     timestampToDate(user?.registrationDate) ||
     timestampToDate(auth().currentUser?.metadata?.creationTime);
@@ -117,7 +117,7 @@ const ProfileScreen = ({ navigation }) => {
       return 'Use a stronger password.';
     }
     if (error?.code === 'auth/provider-already-linked') {
-      return 'This guest account is already linked to an email.';
+      return 'This profile is already linked to an email.';
     }
     if (error?.code === 'auth/credential-already-in-use') {
       return 'That email is already linked to another account.';
@@ -200,7 +200,7 @@ const ProfileScreen = ({ navigation }) => {
       <Modal transparent={true} visible={showUpgradeModal} onRequestClose={closeUpgradeModal}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Create account</Text>
+            <Text style={styles.modalTitle}>Back up your profile</Text>
 
             {upgradeError && <Text style={styles.errorText}>{upgradeError}</Text>}
 
@@ -234,7 +234,7 @@ const ProfileScreen = ({ navigation }) => {
               <CustomButton
                 buttonStyle={styles.modalConfirmButton}
                 onPress={handleCreateAccount}
-                title={isUpgrading ? 'Saving...' : 'Save'}
+                title={isUpgrading ? 'Creating...' : 'Create account'}
                 disabled={isUpgrading}
               />
             </View>
@@ -244,10 +244,9 @@ const ProfileScreen = ({ navigation }) => {
 
       <ConfirmationModal
         visible={showLogoutWarning}
-        title="Leave guest account?"
-        message="Your guest data will stay on this device, but it is not backed up. Create an account to keep it safe across devices."
+        title="Leave local profile?"
+        message="Your local data will stay on this device, but it is not backed up. Create an account to keep it safe across devices."
         confirmText="Leave"
-        confirmButtonStyle={styles.logoutConfirmButton}
         onConfirm={confirmGuestSignOut}
         onCancel={() => setShowLogoutWarning(false)}
       />
@@ -263,13 +262,18 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.statLabel}>Member since</Text>
             <Text style={styles.amount}>{memberSince}</Text>
           </View>
-          <View style={styles.card}>
+          <View style={[styles.card, styles.mostWornCard]}>
             <View style={styles.statIcon}>
               <Ionicons name="shirt-outline" size={30} color={colors.primary} />
             </View>
             <Text style={styles.statLabel}>Most worn</Text>
-            <Text style={styles.amount} numberOfLines={1}>
-              {mostWornItem?.name || 'No wears yet'}
+            <Text
+              style={[styles.amount, styles.mostWornAmount]}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
+              {mostWornItem?.name || 'N/A'}
             </Text>
           </View>
         </View>
@@ -288,7 +292,7 @@ const ProfileScreen = ({ navigation }) => {
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
-                <Text style={styles.title}>Custom subcategories</Text>
+                <Text style={styles.title}>Custom subcategories ({customCategories.length})</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </TouchableOpacity>
@@ -367,7 +371,7 @@ const ProfileScreen = ({ navigation }) => {
                     color={colors.primary}
                     style={styles.rowIcon}
                   />
-                  <Text style={styles.title}>Save this account</Text>
+                  <Text style={styles.title}>Back up this profile</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.gray} />
               </TouchableOpacity>
@@ -378,11 +382,11 @@ const ProfileScreen = ({ navigation }) => {
                 <Ionicons
                   name="log-out-outline"
                   size={22}
-                  color={isGuestAccount ? colors.red : colors.primary}
+                  color={colors.primary}
                   style={styles.rowIcon}
                 />
-                <Text style={[styles.title, isGuestAccount && styles.dangerText]}>
-                  {isGuestAccount ? 'Leave guest session' : 'Log out'}
+                <Text style={styles.title}>
+                  {isGuestAccount ? 'Leave local profile' : 'Log out'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray} />
@@ -452,13 +456,6 @@ const createStyles = (colors, insets) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
     },
-    logoutConfirmButton: {
-      backgroundColor: colors.red,
-    },
-    dangerText: {
-      color: colors.red,
-      fontWeight: '600',
-    },
     modalBackground: {
       flex: 1,
       justifyContent: 'center',
@@ -517,10 +514,16 @@ const createStyles = (colors, insets) =>
     amount: {
       maxWidth: '100%',
       color: colors.black,
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '600',
       marginTop: 2,
       textAlign: 'center',
+    },
+    mostWornCard: {
+      paddingHorizontal: 6,
+    },
+    mostWornAmount: {
+      width: '100%',
     },
     statIcon: {
       width: 54,

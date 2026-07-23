@@ -87,7 +87,6 @@ const CollectionsScreen = ({ navigation }) => {
       setCollectionName('');
       setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
       setCreateSheetVisible(false);
-      showBanner('Collection created!', 'success');
     } catch (error) {
       console.error('Error adding collection:', error);
       showBanner('An error occurred while creating the collection.');
@@ -201,12 +200,6 @@ const CollectionsScreen = ({ navigation }) => {
         contentContainerStyle={[styles.flatlist, collections.length === 0 && styles.emptyList]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons
-              name="sad-outline"
-              size={34}
-              color={colors.primary}
-              style={styles.emptyIcon}
-            />
             <Text style={styles.emptyTitle}>No collections yet</Text>
             <Text style={styles.emptyText}>Create collections to organize your items</Text>
           </View>

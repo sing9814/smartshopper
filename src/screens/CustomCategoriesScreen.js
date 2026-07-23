@@ -11,6 +11,7 @@ import { deleteDoc } from '../utils/firebase';
 import { setCustomCategories, setCategories } from '../redux/actions/userActions';
 import { useDispatch } from 'react-redux';
 import BottomSheet from '../components/bottomSheet';
+import CustomButton from '../components/button';
 
 const CustomCategoriesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -96,20 +97,15 @@ const CustomCategoriesScreen = ({ navigation }) => {
           ]}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="pricetag-outline" size={26} color={colors.primary} />
-              </View>
-              <Text style={styles.emptyTitle}>No custom subcategories yet</Text>
+              <Text style={styles.emptyTitle}>Nothing here yet</Text>
               <Text style={styles.emptyText}>Create your own subcategories under a category.</Text>
-              <TouchableOpacity
-                style={styles.emptyButton}
+              <CustomButton
+                title="Add subcategory"
                 onPress={() => {
                   setEditingCategory(null);
                   setShowEditSheet(true);
                 }}
-              >
-                <Text style={styles.emptyButtonText}>Add subcategory</Text>
-              </TouchableOpacity>
+              />
             </View>
           }
         />
@@ -276,15 +272,7 @@ const createStyles = (colors) =>
     emptyState: {
       alignItems: 'center',
       paddingHorizontal: 28,
-    },
-    emptyIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primaryLight,
-      marginBottom: 14,
+      gap: 6,
     },
     emptyTitle: {
       color: colors.black,
@@ -297,19 +285,7 @@ const createStyles = (colors) =>
       color: colors.gray,
       textAlign: 'center',
       lineHeight: 21,
-      marginBottom: 16,
-    },
-    emptyButton: {
-      minHeight: 42,
-      borderRadius: 10,
-      paddingHorizontal: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primary,
-    },
-    emptyButtonText: {
-      color: 'white',
-      fontWeight: '600',
+      marginBottom: 10,
     },
     sheetRow: {
       width: '100%',

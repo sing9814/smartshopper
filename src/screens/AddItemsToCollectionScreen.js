@@ -130,7 +130,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
         selectionMode
         renderEndAction={renderSelectionIndicator}
         emptyMessage={allItemsAdded ? 'All items are already in this collection' : 'No items found'}
-        emptyHint={allItemsAdded ? 'There are no more items to add' : 'Pull down to refresh'}
+        emptyHint={allItemsAdded ? 'There are no more items to add' : undefined}
       />
     </View>
   );

@@ -218,6 +218,9 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         onAddWear={handleAddWear}
         addingWearItemId={addingWearItemId}
         isWearLoggedToday={isWearLoggedToday}
+        emptyHint="Try changing your search or filters."
+        emptyActionTitle="Add an item"
+        onEmptyAction={() => navigation.navigate('Add')}
       />
       <BottomSheet
         visible={collectionSheetVisible}

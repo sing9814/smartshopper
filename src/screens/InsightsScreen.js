@@ -512,7 +512,6 @@ const createStyles = (colors, tabBarHeight) =>
     legendLabel: {
       flexShrink: 1,
       color: colors.black,
-      fontWeight: '600',
     },
     legendValue: {
       color: colors.gray,

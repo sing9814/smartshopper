@@ -7,11 +7,7 @@ import CustomInput from '../components/customInput';
 import Logo from '../../assets/logo';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
-import {
-  setCustomCategories,
-  setUser,
-  setUserOnboarded,
-} from '../redux/actions/userActions';
+import { setCustomCategories, setUser, setUserOnboarded } from '../redux/actions/userActions';
 import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
 import { userExists } from '../utils/firebase';
 import { createLocalGuest, getGuestData } from '../utils/guestStorage';
@@ -115,10 +111,16 @@ const LoginScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        <CustomInput label="Email" value={email} onChangeText={setEmail} />
+        <CustomInput
+          label="Email"
+          placeholder="example@gmail.com"
+          value={email}
+          onChangeText={setEmail}
+        />
 
         <CustomInput
           label="Password"
+          placeholder="minimum 6 characters"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={!isPasswordVisible}
@@ -148,9 +150,14 @@ const LoginScreen = ({ navigation }) => {
             textStyle={styles.guestButtonText}
             underlayColor={colors.lightGrey}
             onPress={handleGuestLogin}
-            title={isGuestLoading ? 'Starting...' : 'Explore as Guest'}
+            title={isGuestLoading ? 'Starting...' : 'Continue without an account'}
             disabled={isGuestLoading}
           />
+        )}
+        {isSignUp && (
+          <Text style={styles.localProfileNote}>
+            Your data will stay on this device until you create an account.
+          </Text>
         )}
         {/* <CustomButton onPress={() => navigation.navigate('Onboarding')} title={'ob'} /> */}
         {!isSignUp && (
@@ -230,6 +237,13 @@ const createStyles = (colors) =>
     guestButtonText: {
       color: colors.primary,
       fontWeight: '500',
+    },
+    localProfileNote: {
+      color: colors.gray,
+      fontSize: 12,
+      lineHeight: 17,
+      textAlign: 'center',
+      paddingHorizontal: 12,
     },
     bottomText: {
       color: colors.gray,

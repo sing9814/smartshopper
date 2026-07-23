@@ -12,11 +12,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { getUserOnboardingStatus } from './src/utils/firebase';
 import { getGuestData } from './src/utils/guestStorage';
 import { setCollections, setPurchases } from './src/redux/actions/purchaseActions';
-import {
-  setCustomCategories,
-  setUser,
-  setUserOnboarded,
-} from './src/redux/actions/userActions';
+import { setCustomCategories, setUser, setUserOnboarded } from './src/redux/actions/userActions';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from './src/theme/themeContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

@@ -115,7 +115,7 @@ const CustomCategorySheet = ({
 
   return (
     <BottomSheet
-      title={editingCategory ? 'Edit Subcategory' : 'Create Subcategory'}
+      title={editingCategory ? 'Edit Subcategory' : 'Add subcategory'}
       visible={visible}
       onClose={onClose}
       height={420}
@@ -160,10 +160,7 @@ const CustomCategorySheet = ({
             </ScrollView>
           </View>
 
-          <CustomButton
-            title={editingCategory ? 'Save changes' : 'Add subcategory'}
-            onPress={handleSave}
-          />
+          <CustomButton title={editingCategory ? 'Save changes' : 'Create'} onPress={handleSave} />
         </View>
       </TouchableWithoutFeedback>
     </BottomSheet>

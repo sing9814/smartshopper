@@ -7,6 +7,7 @@ import PurchaseList from './purchaseList';
 import SearchBar from './searchBar';
 import BottomSheet from './bottomSheet';
 import MultiSelectFilterSheet from './multiSelectFilterSheet';
+import CustomButton from './button';
 import { timestampToDate } from '../utils/date';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress } from '../utils/wears';
 
@@ -52,7 +53,9 @@ const ItemsBrowser = ({
   selectionMode = false,
   renderEndAction,
   emptyMessage = 'No items found',
-  emptyHint = 'Pull down to refresh',
+  emptyHint,
+  emptyActionTitle,
+  onEmptyAction,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -90,13 +93,11 @@ const ItemsBrowser = ({
     });
 
   const activeSortLabel = sortOptions.find((option) => option.value === sortField)?.label;
-
-  const getEmptyMessage = () => {
-    if (searchQuery) return `No items match "${searchQuery}"`;
-    if (selectedCategories.length > 0) return 'No items match the selected categories';
-    if (selectedColors.length > 0) return 'No items match the selected colors';
-    return emptyMessage;
-  };
+  const isUnfilteredAccountEmpty =
+    purchases.length === 0 &&
+    !searchQuery &&
+    selectedCategories.length === 0 &&
+    selectedColors.length === 0;
 
   return (
     <View style={styles.container}>
@@ -171,9 +172,25 @@ const ItemsBrowser = ({
           contentContainerStyle={styles.emptyState}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <Ionicons name="search-outline" size={28} color={colors.gray} />
-          <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
-          <Text style={styles.emptyHint}>{emptyHint}</Text>
+          {!isUnfilteredAccountEmpty && (
+            <Ionicons
+              name="search-outline"
+              size={28}
+              color={colors.gray}
+              style={styles.emptyIcon}
+            />
+          )}
+          <Text style={styles.emptyText}>{emptyMessage}</Text>
+          {!isUnfilteredAccountEmpty && emptyHint && (
+            <Text style={styles.emptyHint}>{emptyHint}</Text>
+          )}
+          {isUnfilteredAccountEmpty && emptyActionTitle && onEmptyAction && (
+            <CustomButton
+              title={emptyActionTitle}
+              onPress={onEmptyAction}
+              buttonStyle={styles.emptyAction}
+            />
+          )}
         </ScrollView>
       ) : (
         <PurchaseList
@@ -328,7 +345,14 @@ const createStyles = (colors) =>
       fontWeight: '500',
       textAlign: 'center',
     },
+    emptyIcon: {
+      marginBottom: 2,
+    },
     emptyHint: { color: colors.gray, textAlign: 'center' },
+    emptyAction: {
+      marginTop: 12,
+      maxWidth: 320,
+    },
     sortOption: {
       width: '100%',
       paddingHorizontal: 12,

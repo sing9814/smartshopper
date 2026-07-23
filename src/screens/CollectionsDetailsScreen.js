@@ -229,16 +229,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons
-              name="sad-outline"
-              size={34}
-              color={colors.primary}
-              style={styles.emptyIcon}
-            />
             <Text style={styles.emptyTitle}>No items here yet</Text>
-            <Text style={styles.emptyText}>
-              Choose one or more items to add to this collection.
-            </Text>
+            <Text style={styles.emptyText}>Choose items to add to this collection.</Text>
             <CustomButton
               title="Browse items"
               onPress={() =>
@@ -442,7 +434,7 @@ const createStyles = (colors) =>
       color: colors.gray,
       textAlign: 'center',
       lineHeight: 26,
-      marginBottom: 18,
+      marginBottom: 12,
     },
     sheetRow: {
       width: '100%',

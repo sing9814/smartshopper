@@ -164,10 +164,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       showBanner('Please choose a category');
       return false;
     }
-    if (!itemColor) {
-      showBanner('Please choose a color');
-      return false;
-    }
     if (!validateName(itemName)) {
       showBanner('Please enter an item name');
       return false;
@@ -385,6 +381,27 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
               {colorPickerOpen && (
                 <View style={styles.colorOptions}>
+                  <TouchableOpacity
+                    style={[styles.colorOption, !itemColor && styles.colorOptionSelected]}
+                    onPress={() => {
+                      setItemColor(null);
+                      setColorPickerOpen(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="No color"
+                  >
+                    <View style={[styles.noColorSwatch, styles.noColorOptionSwatch]}>
+                      <View style={styles.noColorSlash} />
+                    </View>
+                    <Text
+                      style={[
+                        styles.colorOptionText,
+                        !itemColor && styles.colorOptionTextSelected,
+                      ]}
+                    >
+                      No color
+                    </Text>
+                  </TouchableOpacity>
                   {colors.itemColorOptions.map((option) => {
                     const isSelected = itemColor?.name === option.name;
 
@@ -667,6 +684,10 @@ const createStyles = (colors) =>
       height: 1,
       backgroundColor: colors.gray,
       transform: [{ rotate: '-45deg' }],
+    },
+    noColorOptionSwatch: {
+      width: 14,
+      height: 14,
     },
     colorOptions: {
       flexDirection: 'row',

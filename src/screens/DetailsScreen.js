@@ -574,7 +574,7 @@ const createStyles = (colors, insets) =>
       color: 'white',
       flex: 1,
       fontSize: 17,
-      fontWeight: '700',
+      fontWeight: '500',
       textAlign: 'center',
     },
     topbarActions: {
