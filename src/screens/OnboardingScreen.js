@@ -16,6 +16,7 @@ import Logo from '../../assets/logo';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { setLocalGuestOnboarded } from '../utils/guestStorage';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -141,8 +142,8 @@ const OnboardingScreen = ({ route, navigation }) => {
       const currentUser = auth().currentUser;
 
       if (!currentUser) {
-        console.log('Unable to complete onboarding: missing user id');
-        isCompletingRef.current = false;
+        await setLocalGuestOnboarded(true);
+        dispatch(setUserOnboarded(true));
         return;
       }
 

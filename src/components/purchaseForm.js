@@ -208,7 +208,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     if (!validateFields()) return;
 
     try {
-      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
       const updatedPurchase = {
         key: purchase.key,
         name: itemName,
@@ -223,7 +222,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: purchase.dateCreated,
       };
-      await userRef.collection('Purchases').doc(purchase.key).update(updatedPurchase);
+      if (auth().currentUser) {
+        await firestore()
+          .collection('users')
+          .doc(auth().currentUser.uid)
+          .collection('Purchases')
+          .doc(purchase.key)
+          .update(updatedPurchase);
+      }
       dispatch(setCurrentPurchase(updatedPurchase));
       dispatch(setPurchases(updatePurchaseInArray(updatedPurchase)));
       showBanner('Item updated successfully!', 'success');
@@ -238,7 +244,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     if (!validateFields()) return;
 
     try {
-      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
       const id = uuid.v4();
       const newPurchase = {
         key: id,
@@ -253,7 +258,14 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
         datePurchased: selectedDate ? generateFirestoreTimestampFromDate(selectedDate) : null,
         dateCreated: generateFirestoreTimestamp(),
       };
-      await userRef.collection('Purchases').doc(id).set(newPurchase);
+      if (auth().currentUser) {
+        await firestore()
+          .collection('users')
+          .doc(auth().currentUser.uid)
+          .collection('Purchases')
+          .doc(id)
+          .set(newPurchase);
+      }
       dispatch(setPurchases([newPurchase, ...purchases]));
       resetFields();
 

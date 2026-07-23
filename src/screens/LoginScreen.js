@@ -7,8 +7,14 @@ import CustomInput from '../components/customInput';
 import Logo from '../../assets/logo';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch } from 'react-redux';
-import { setUserOnboarded } from '../redux/actions/userActions';
+import {
+  setCustomCategories,
+  setUser,
+  setUserOnboarded,
+} from '../redux/actions/userActions';
+import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
 import { userExists } from '../utils/firebase';
+import { createLocalGuest, getGuestData } from '../utils/guestStorage';
 import Banner from '../components/banner';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -78,16 +84,13 @@ const LoginScreen = ({ navigation }) => {
     setBannerMessage(null);
 
     try {
-      const userCredential = await auth().signInAnonymously();
-
-      await firestore().collection('users').doc(userCredential.user.uid).set({
-        email: null,
-        isGuest: true,
-        onboarded: false,
-        registrationDate: firestore.FieldValue.serverTimestamp(),
-      });
-
-      dispatch(setUserOnboarded(false));
+      await createLocalGuest();
+      const guestData = await getGuestData();
+      dispatch(setUser(guestData.userData));
+      dispatch(setPurchases(guestData.purchases));
+      dispatch(setCollections(guestData.collections));
+      dispatch(setCustomCategories(guestData.customCategories));
+      dispatch(setUserOnboarded(guestData.userData?.onboarded === true));
     } catch (error) {
       setBannerMessage(error.message);
     } finally {

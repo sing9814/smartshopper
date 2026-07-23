@@ -1,6 +1,8 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
+const isLocalGuest = () => !auth().currentUser;
+
 export const fetchUserPurchases = async () => {
   const user = auth().currentUser;
   if (user) {
@@ -243,6 +245,7 @@ export const migrateCurrentUserTimestamps = async () => {
 };
 
 export const updatePurchaseWears = async (purchaseId, newWears) => {
+  if (isLocalGuest()) return;
   const user = auth().currentUser;
   if (user) {
     try {
@@ -262,6 +265,7 @@ export const updatePurchaseWears = async (purchaseId, newWears) => {
 };
 
 export const updateMultiplePurchaseWears = async (wearUpdates) => {
+  if (isLocalGuest()) return;
   const user = auth().currentUser;
   if (!user) throw new Error('User not authenticated');
   if (wearUpdates.length === 0) return;
@@ -277,6 +281,7 @@ export const updateMultiplePurchaseWears = async (wearUpdates) => {
 };
 
 export const deleteDoc = async (subcollection, id) => {
+  if (isLocalGuest()) return;
   const user = auth().currentUser;
   if (user) {
     try {
@@ -379,6 +384,7 @@ export const fetchMergedCategories = async (defaultCategories) => {
 };
 
 export const saveCustomCategory = async ({ id, category, subCategory = null }) => {
+  if (isLocalGuest()) return true;
   try {
     const userID = auth().currentUser.uid;
 
@@ -397,6 +403,7 @@ export const saveCustomCategory = async ({ id, category, subCategory = null }) =
 };
 
 export const updateCustomCategory = async ({ id, category, subCategory = null }) => {
+  if (isLocalGuest()) return true;
   const userID = auth().currentUser.uid;
   try {
     await firestore()
@@ -417,6 +424,7 @@ export const updateCustomCategory = async ({ id, category, subCategory = null })
 };
 
 export const addItemsToCollections = async (itemIDs, collectionIDs) => {
+  if (isLocalGuest()) return;
   const user = auth().currentUser.uid;
   if (!user) throw new Error('User not authenticated');
 
@@ -436,6 +444,7 @@ export const addItemsToCollections = async (itemIDs, collectionIDs) => {
 };
 
 export const removeItemsFromCollection = async (itemIDs, collectionID) => {
+  if (isLocalGuest()) return;
   const user = auth().currentUser.uid;
   if (!user) throw new Error('User not authenticated');
 

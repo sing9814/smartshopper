@@ -28,6 +28,20 @@ import { useTheme } from '../theme/themeContext';
 import { useStatusBar } from '../hooks/useStatusBar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { USE_FAKE_DATA, createMockCategories, selectedMockProfile } from '../utils/mockData';
+import auth from '@react-native-firebase/auth';
+import { getGuestData } from '../utils/guestStorage';
+
+const mergeLocalCategories = (categories, customCategories) => {
+  const merged = createMockCategories(categories, []);
+
+  customCategories.forEach(({ id, category, name }) => {
+    const parent = merged.find((item) => item.name === category);
+    if (!parent) return;
+    parent.subCategories.push({ id, name, custom: true });
+  });
+
+  return merged;
+};
 
 const itemWasWornOnDate = (item, dateKey, timeZone) => {
   return (item.wears || []).some((wear) => {
@@ -147,6 +161,22 @@ const HomeScreen = ({ navigation }) => {
         setCategories(createMockCategories(defaultCategories, selectedMockProfile.customCategories))
       );
       dispatch(setCustomCategories(selectedMockProfile.customCategories));
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    const guestData = await getGuestData();
+    const hasLocalGuest = !auth().currentUser && guestData.active && guestData.userData?.isGuest;
+
+    if (hasLocalGuest) {
+      dispatch(setUser(guestData.userData));
+      dispatch(setPurchases(guestData.purchases));
+      dispatch(setCollections(guestData.collections));
+      dispatch(
+        setCategories(mergeLocalCategories(defaultCategories, guestData.customCategories))
+      );
+      dispatch(setCustomCategories(guestData.customCategories));
       setLoading(false);
       setRefreshing(false);
       return;

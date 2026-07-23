@@ -20,8 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
-import { setUser } from '../redux/actions/userActions';
+import { setUser, setUserOnboarded } from '../redux/actions/userActions';
 import { timestampToDate } from '../utils/date';
+import { clearGuestData, setGuestActive, setGuestPendingAuthUid } from '../utils/guestStorage';
 
 const FEEDBACK_FORM_URL =
   'https://docs.google.com/forms/d/1BWQtUvXFn9GeCFqAAg4uTJHN6H-54EXAnHxqzphthRg/viewform';
@@ -40,8 +41,10 @@ const ProfileScreen = ({ navigation }) => {
   const isDark = useIsDark();
   const dispatch = useDispatch();
   const purchases = useSelector((state) => state.purchase.purchases || []);
+  const collections = useSelector((state) => state.purchase.collections || []);
+  const customCategories = useSelector((state) => state.user.customCategories || []);
   const user = useSelector((state) => state.user.user);
-  const isGuestAccount = user?.isGuest || auth().currentUser?.isAnonymous;
+  const isGuestAccount = user?.isGuest === true;
   const profileHeaderTitle = isGuestAccount ? 'Guest account' : user?.email || 'Profile';
   const registrationDate =
     timestampToDate(user?.registrationDate) ||
@@ -78,9 +81,11 @@ const ProfileScreen = ({ navigation }) => {
     Linking.openURL(FEEDBACK_FORM_URL);
   };
 
-  const confirmGuestSignOut = () => {
+  const confirmGuestSignOut = async () => {
     setShowLogoutWarning(false);
-    auth().signOut();
+    await setGuestActive(false);
+    dispatch(setUser(null));
+    dispatch(setUserOnboarded(false));
   };
 
   const resetUpgradeForm = () => {
@@ -137,13 +142,10 @@ const ProfileScreen = ({ navigation }) => {
 
     try {
       const currentUser = auth().currentUser;
-      if (!currentUser) {
-        setUpgradeError('Please sign in again before creating an account.');
-        return;
-      }
-
-      const credential = auth.EmailAuthProvider.credential(trimmedEmail, upgradePassword);
-      const userCredential = await currentUser.linkWithCredential(credential);
+      const savedUser =
+        currentUser ||
+        (await auth().createUserWithEmailAndPassword(trimmedEmail, upgradePassword)).user;
+      await setGuestPendingAuthUid(savedUser.uid);
       const userWithoutName = { ...user };
       delete userWithoutName.name;
 
@@ -151,17 +153,39 @@ const ProfileScreen = ({ navigation }) => {
         ...userWithoutName,
         email: trimmedEmail,
         isGuest: false,
+        onboarded: true,
         upgradedAt: firestore.FieldValue.serverTimestamp(),
       };
 
-      await firestore()
-        .collection('users')
-        .doc(userCredential.user.uid)
-        .update({
+      const userRef = firestore().collection('users').doc(savedUser.uid);
+      const batch = firestore().batch();
+
+      batch.set(
+        userRef,
+        {
           ...updatedUser,
+          registrationDate: user?.registrationDate || firestore.FieldValue.serverTimestamp(),
           name: firestore.FieldValue.delete(),
+        },
+        { merge: true }
+      );
+
+      purchases.forEach((purchase) => {
+        batch.set(userRef.collection('Purchases').doc(purchase.key), purchase);
+      });
+      collections.forEach((collection) => {
+        batch.set(userRef.collection('Collections').doc(collection.id), collection);
+      });
+      customCategories.forEach((category) => {
+        batch.set(userRef.collection('customCategories').doc(category.id), {
+          category: category.category,
+          subCategory: category.name,
         });
+      });
+
+      await batch.commit();
       dispatch(setUser({ ...updatedUser, upgradedAt: new Date().toISOString() }));
+      await clearGuestData();
       setShowUpgradeModal(false);
       resetUpgradeForm();
     } catch (error) {
@@ -177,13 +201,13 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Create account</Text>
-            <Text style={styles.modalText}>Add an email and password to keep your items safe.</Text>
 
             {upgradeError && <Text style={styles.errorText}>{upgradeError}</Text>}
 
             <View style={styles.form}>
               <CustomInput
                 label="Email"
+                placeholder="example@gmail.com"
                 value={upgradeEmail}
                 onChangeText={setUpgradeEmail}
                 type="email-address"
@@ -191,6 +215,7 @@ const ProfileScreen = ({ navigation }) => {
               />
               <CustomInput
                 label="Password"
+                placeholder="minimum 6 characters"
                 value={upgradePassword}
                 onChangeText={setUpgradePassword}
                 secureTextEntry
@@ -220,7 +245,7 @@ const ProfileScreen = ({ navigation }) => {
       <ConfirmationModal
         visible={showLogoutWarning}
         title="Leave guest account?"
-        message="If you leave, you will not be able to return to this guest account later. Create an account first if you want to keep your data."
+        message="Your guest data will stay on this device, but it is not backed up. Create an account to keep it safe across devices."
         confirmText="Leave"
         confirmButtonStyle={styles.logoutConfirmButton}
         onConfirm={confirmGuestSignOut}
@@ -454,12 +479,6 @@ const createStyles = (colors, insets) =>
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 8,
-    },
-    modalText: {
-      color: colors.gray,
-      lineHeight: 22,
-      textAlign: 'center',
-      marginBottom: 14,
     },
     form: {
       gap: 10,

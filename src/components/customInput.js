@@ -70,7 +70,6 @@ const createStyles = (colors) =>
     label: {
       fontSize: 13,
       color: colors.gray,
-      fontWeight: '600',
       marginBottom: 6,
       marginLeft: 2,
     },

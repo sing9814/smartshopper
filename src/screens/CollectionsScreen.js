@@ -66,7 +66,6 @@ const CollectionsScreen = ({ navigation }) => {
     setIsCreatingCollection(true);
 
     try {
-      const userRef = firestore().collection('users').doc(auth().currentUser.uid);
       const id = uuid.v4();
       const newCollection = {
         id,
@@ -76,7 +75,14 @@ const CollectionsScreen = ({ navigation }) => {
         dateCreated: generateFirestoreTimestamp(),
       };
 
-      await userRef.collection('Collections').doc(id).set(newCollection);
+      if (auth().currentUser) {
+        await firestore()
+          .collection('users')
+          .doc(auth().currentUser.uid)
+          .collection('Collections')
+          .doc(id)
+          .set(newCollection);
+      }
       dispatch(setCollections([newCollection, ...collections]));
       setCollectionName('');
       setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
