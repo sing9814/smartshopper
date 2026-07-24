@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -54,6 +55,7 @@ const InsightsScreen = () => {
   const tabBarHeight = useBottomTabBarHeight();
   const styles = createStyles(colors, tabBarHeight);
   const purchases = useSelector((state) => state.purchase.purchases || []);
+  const [showUnusedColors, setShowUnusedColors] = useState(false);
   const colorDistribution = getColorDistribution(purchases, colors);
   const activeColors = colorDistribution
     .filter((item) => item.count > 0)
@@ -268,29 +270,45 @@ const InsightsScreen = () => {
 
                 {unusedColors.length > 0 && (
                   <View style={styles.legendGroup}>
-                    <Text style={styles.legendGroupTitle}>Not logged yet</Text>
-                    <View style={[styles.legendList, styles.unusedLegendList]}>
-                      {unusedColors.map((item) => (
-                        <View key={item.label} style={styles.legendItem}>
-                          <View
-                            style={[
-                              styles.chartSwatch,
-                              styles.legendSwatch,
-                              {
-                                backgroundColor: item.color,
-                                borderColor: getItemColorBorder(
-                                  { name: item.label, hex: item.color },
-                                  colors
-                                ),
-                              },
-                            ]}
-                          />
-                          <Text style={styles.legendLabel} numberOfLines={1}>
-                            {item.label}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
+                    <TouchableOpacity
+                      style={styles.unusedColorsToggle}
+                      onPress={() => setShowUnusedColors((current) => !current)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: showUnusedColors }}
+                    >
+                      <Text style={styles.legendGroupTitle}>
+                        {showUnusedColors ? 'Hide' : 'View'} unused colors ({unusedColors.length})
+                      </Text>
+                      <Ionicons
+                        name={showUnusedColors ? 'chevron-up' : 'chevron-down'}
+                        size={16}
+                        color={colors.gray}
+                      />
+                    </TouchableOpacity>
+                    {showUnusedColors && (
+                      <View style={[styles.legendList, styles.unusedLegendList]}>
+                        {unusedColors.map((item) => (
+                          <View key={item.label} style={styles.legendItem}>
+                            <View
+                              style={[
+                                styles.chartSwatch,
+                                styles.legendSwatch,
+                                {
+                                  backgroundColor: item.color,
+                                  borderColor: getItemColorBorder(
+                                    { name: item.label, hex: item.color },
+                                    colors
+                                  ),
+                                },
+                              ]}
+                            />
+                            <Text style={styles.legendLabel} numberOfLines={1}>
+                              {item.label}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -376,7 +394,7 @@ const createStyles = (colors, tabBarHeight) =>
     coverageRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: 6,
       padding: 10,
       borderRadius: 8,
       backgroundColor: colors.white,
@@ -450,27 +468,27 @@ const createStyles = (colors, tabBarHeight) =>
       gap: 12,
     },
     paletteStrip: {
-      height: 20,
+      height: 16,
       flexDirection: 'row',
       overflow: 'hidden',
-      borderRadius: 10,
+      borderRadius: 7,
       backgroundColor: colors.bg,
     },
     paletteStripWithLegend: {
       marginBottom: 8,
     },
     paletteSegment: {
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 10,
-      borderWidth: 0.5,
+      borderTopRightRadius: 7,
+      borderBottomRightRadius: 7,
+      // borderWidth: 0.5,
     },
     paletteSegmentFirst: {
-      borderTopLeftRadius: 10,
-      borderBottomLeftRadius: 10,
+      borderTopLeftRadius: 7,
+      borderBottomLeftRadius: 7,
     },
     paletteSegmentLast: {
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 10,
+      borderTopRightRadius: 7,
+      borderBottomRightRadius: 7,
     },
     chartSwatch: {
       width: 12,
@@ -502,6 +520,12 @@ const createStyles = (colors, tabBarHeight) =>
     unusedLegendList: {
       paddingBottom: 8,
     },
+    unusedColorsToggle: {
+      minHeight: 32,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
     legendItem: {
       minWidth: '44%',
       maxWidth: '100%',
@@ -515,6 +539,7 @@ const createStyles = (colors, tabBarHeight) =>
     },
     legendValue: {
       color: colors.gray,
+      fontSize: 12,
     },
     summaryRow: {
       flexDirection: 'row',
