@@ -173,9 +173,7 @@ const HomeScreen = ({ navigation }) => {
       dispatch(setUser(guestData.userData));
       dispatch(setPurchases(guestData.purchases));
       dispatch(setCollections(guestData.collections));
-      dispatch(
-        setCategories(mergeLocalCategories(defaultCategories, guestData.customCategories))
-      );
+      dispatch(setCategories(mergeLocalCategories(defaultCategories, guestData.customCategories)));
       dispatch(setCustomCategories(guestData.customCategories));
       setLoading(false);
       setRefreshing(false);

@@ -74,10 +74,6 @@ const PurchaseList = ({
     return item.category?.category || '';
   };
 
-  const isMostRecentOverlay = (item) => {
-    return overlay && getLastWornText(item).toLowerCase().includes('most recent');
-  };
-
   const renderPlaceholder = () => (
     <View>
       <View style={[styles.placeholder, { opacity: 1 }]} />
@@ -96,15 +92,9 @@ const PurchaseList = ({
     const showWearAction = !overlay && !selectionMode && selectedItems.length === 0 && onAddWear;
     const isAddingWear = addingWearItemId === item.key;
     const hasWearLoggedToday = isWearLoggedToday?.(item);
-    const isWearButtonDisabled = isAddingWear || hasWearLoggedToday;
     const itemColor = getCurrentItemColor(item.itemColor, colors);
     const categoryLabel = getCategoryLabel(item);
-    let addWearButtonLabel = 'Wear';
-    if (hasWearLoggedToday) {
-      addWearButtonLabel = 'Worn today';
-    } else if (isAddingWear) {
-      addWearButtonLabel = 'Adding';
-    }
+    const addWearButtonLabel = isAddingWear ? 'Adding' : 'Wear';
 
     return (
       <TouchableOpacity
@@ -168,35 +158,36 @@ const PurchaseList = ({
                   <Text style={styles.detailSeparator}>•</Text>
                 </>
               )}
+              {(overlay || hasWearLoggedToday) && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={16}
+                  color={colors.green}
+                  accessibilityElementsHidden
+                />
+              )}
               <Text
                 numberOfLines={1}
-                style={[styles.lastWorn, isMostRecentOverlay(item) && styles.mostRecentWear]}
+                style={[
+                  styles.lastWorn,
+                  overlay && styles.calendarWear,
+                  hasWearLoggedToday && styles.wornTodayText,
+                ]}
               >
-                {getLastWornText(item)}
+                {hasWearLoggedToday ? 'Worn today' : getLastWornText(item)}
               </Text>
             </View>
             {showWearAction && (
               <TouchableOpacity
                 onPress={() => onAddWear(item)}
-                disabled={isWearButtonDisabled}
-                style={[
-                  styles.addWearButton,
-                  hasWearLoggedToday && styles.addWearButtonLogged,
-                  isWearButtonDisabled && styles.addWearButtonDisabled,
-                ]}
+                disabled={isAddingWear}
+                style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
                 accessibilityRole="button"
-                accessibilityLabel={
-                  hasWearLoggedToday ? `${item.name} worn today` : `Add wear for ${item.name}`
-                }
+                accessibilityLabel={`Add wear for ${item.name}`}
+                accessibilityState={{ disabled: isAddingWear }}
               >
-                <Ionicons
-                  name={hasWearLoggedToday ? 'checkmark-circle-outline' : 'add-circle-outline'}
-                  size={17}
-                  color={hasWearLoggedToday ? colors.gray : colors.primary}
-                />
-                <Text style={[styles.addWearText, hasWearLoggedToday && styles.addWearTextLogged]}>
-                  {addWearButtonLabel}
-                </Text>
+                <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+                <Text style={styles.addWearText}>{addWearButtonLabel}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -308,8 +299,8 @@ const createStyles = (colors) =>
       backgroundColor: colors.gray,
       transform: [{ rotate: '-45deg' }],
     },
-    mostRecentWear: {
-      color: colors.secondary,
+    calendarWear: {
+      color: colors.green,
       fontWeight: '500',
     },
     row: {
@@ -346,9 +337,9 @@ const createStyles = (colors) =>
       gap: 4,
       backgroundColor: colors.primaryLight,
     },
-    addWearButtonLogged: {
-      minWidth: 104,
-      backgroundColor: colors.bg,
+    wornTodayText: {
+      color: colors.green,
+      fontWeight: '500',
     },
     addWearButtonDisabled: {
       opacity: 0.6,
@@ -357,9 +348,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       fontWeight: '500',
       color: colors.primary,
-    },
-    addWearTextLogged: {
-      color: colors.gray,
     },
     date: {
       fontSize: 14,

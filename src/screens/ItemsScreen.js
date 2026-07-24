@@ -11,6 +11,7 @@ import Banner from '../components/banner';
 import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
 import ItemsBrowser from '../components/itemsBrowser';
+import DatePicker from 'react-native-date-picker';
 import {
   generateFirestoreTimestampFromDate,
   getDateKeyInTimeZone,
@@ -52,6 +53,8 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const [banner, setBanner] = useState(null);
   const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
   const [addingWearItemId, setAddingWearItemId] = useState(null);
+  const [wearDatePickerItem, setWearDatePickerItem] = useState(null);
+  const [selectedWearDate, setSelectedWearDate] = useState(new Date());
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
@@ -138,14 +141,21 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     }
   };
 
-  const handleAddWear = async (item) => {
+  const handleAddWear = (item) => {
     if (addingWearItemId) return;
 
-    const wearDate = new Date();
+    setWearDatePickerItem(item);
+    setSelectedWearDate(new Date());
+  };
+
+  const addWearForDate = async (item, wearDate) => {
+    if (!item || addingWearItemId) return;
+
     const wearDateKey = getDateKeyInTimeZone(wearDate, timeZone);
     const wearUpdate = getWearUpdateForItem(item, wearDate, wearDateKey);
 
     if (!wearUpdate) {
+      showBanner('This item already has a wear logged for that day');
       return;
     }
 
@@ -160,7 +170,8 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
     try {
       await updatePurchaseWears(item.key, wearUpdate.wears);
-      showBanner('Wear added for today', 'success');
+      const todayKey = getDateKeyInTimeZone(new Date(), timeZone);
+      showBanner(wearDateKey === todayKey ? 'Wear added for today' : 'Past wear added', 'success');
     } finally {
       setAddingWearItemId(null);
     }
@@ -212,6 +223,22 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
         visible={modalVisible}
         onConfirm={handleDelete}
         onCancel={() => setModalVisible(false)}
+      />
+      <DatePicker
+        modal
+        open={!!wearDatePickerItem}
+        date={selectedWearDate}
+        maximumDate={new Date()}
+        mode="date"
+        title="When did you wear it?"
+        confirmText="Add wear"
+        onConfirm={(date) => {
+          const item = wearDatePickerItem;
+          setWearDatePickerItem(null);
+          setSelectedWearDate(date);
+          addWearForDate(item, date);
+        }}
+        onCancel={() => setWearDatePickerItem(null)}
       />
       <ItemsBrowser
         purchases={purchases}
