@@ -3,13 +3,13 @@ import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-nati
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../theme/themeContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ConfirmationModal from '../components/confirmationModal';
 import { addItemsToCollections, deleteDoc, updatePurchaseWears } from '../utils/firebase';
 import { setCollections, setCurrentPurchase, setPurchases } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 import { useStatusBar } from '../hooks/useStatusBar';
 import BottomSheet from '../components/bottomSheet';
-import CustomButton from '../components/button';
 import ItemsBrowser from '../components/itemsBrowser';
 import {
   generateFirestoreTimestampFromDate,
@@ -17,6 +17,7 @@ import {
   getDeviceTimeZone,
   timestampToDate,
 } from '../utils/date';
+import { getCollectionFolderBackground, getCollectionFolderColor } from '../utils/collectionColor';
 
 const sortWearsByDate = (wears) => {
   return [...wears].sort((a, b) => {
@@ -41,7 +42,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCollections, setSelectedCollections] = useState([]);
+  const [isAddingToCollection, setIsAddingToCollection] = useState(false);
 
   const purchases = useSelector((state) => state.purchase.purchases);
   const collections = useSelector((state) => state.purchase.collections);
@@ -108,12 +109,16 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
     return hasWearLoggedOnDate(item, todayKey, timeZone);
   };
 
-  const handleAddToCollections = async () => {
+  const handleAddToCollection = async (collectionId) => {
+    if (isAddingToCollection) return;
+
+    setIsAddingToCollection(true);
+
     try {
-      await addItemsToCollections(selectedItems, selectedCollections);
+      await addItemsToCollections(selectedItems, [collectionId]);
 
       const updatedCollections = collections.map((collection) => {
-        if (selectedCollections.includes(collection.id)) {
+        if (collection.id === collectionId) {
           const newItemIds = Array.from(new Set([...(collection.items || []), ...selectedItems]));
           return { ...collection, items: newItemIds };
         }
@@ -122,13 +127,14 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
 
       dispatch(setCollections(updatedCollections));
 
-      showBanner('Added items to collections', 'success');
+      showBanner('Added items to collection', 'success');
       setCollectionSheetVisible(false);
-      setSelectedCollections([]);
       setSelectedItems([]);
     } catch (err) {
       console.error(err);
-      showBanner('Failed to add items to collections');
+      showBanner('Failed to add items to collection');
+    } finally {
+      setIsAddingToCollection(false);
     }
   };
 
@@ -188,7 +194,7 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
           </View>
           <View style={styles.selectionActions}>
             <TouchableOpacity onPress={() => setCollectionSheetVisible(true)}>
-              <Ionicons name="add-circle-outline" size={22} color="white" />
+              <MaterialCommunityIcons name="folder-plus-outline" size={23} color="white" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleTrashPress}>
               <Ionicons name="trash-outline" size={22} color="white" />
@@ -225,47 +231,55 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
       <BottomSheet
         visible={collectionSheetVisible}
         onClose={() => setCollectionSheetVisible(false)}
-        title="Add to Collections"
+        title="Add selected to collection"
         height="50%"
       >
         <ScrollView style={styles.scrollList}>
           {collections.map((collection) => {
-            const isSelected = selectedCollections.includes(collection.id);
+            const itemNames = (collection.items || [])
+              .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
+              .filter(Boolean);
+            const folderColor = getCollectionFolderColor(collection.folderColor, colors);
+
             return (
               <TouchableOpacity
                 key={collection.id}
                 style={styles.sheetRow}
-                onPress={() => {
-                  setSelectedCollections((prev) =>
-                    isSelected
-                      ? prev.filter((id) => id !== collection.id)
-                      : [...prev, collection.id]
-                  );
-                }}
+                onPress={() => handleAddToCollection(collection.id)}
+                disabled={isAddingToCollection}
               >
+                <View
+                  style={[
+                    styles.collectionIcon,
+                    {
+                      backgroundColor: getCollectionFolderBackground(
+                        collection.folderColor,
+                        colors
+                      ),
+                    },
+                  ]}
+                >
+                  <Ionicons name="folder-outline" size={22} color={folderColor} />
+                </View>
                 <View style={styles.collection}>
-                  <View style={styles.row}>
-                    <Text style={styles.sheetRowName}>{collection.name}</Text>
-                    <Text style={styles.sheetRowDesc}>
-                      ({collection.items.length} {collection.items.length !== 1 ? 'items' : 'item'})
+                  <View style={styles.collectionTitleRow}>
+                    <Text style={styles.sheetRowName} numberOfLines={1}>
+                      {collection.name}
+                    </Text>
+                    <Text style={styles.sheetItemCount}>
+                      {itemNames.length} {itemNames.length === 1 ? 'item' : 'items'}
                     </Text>
                   </View>
+                  {itemNames.length > 0 && (
+                    <Text style={styles.sheetRowDesc} numberOfLines={1}>
+                      {itemNames.join(', ')}
+                    </Text>
+                  )}
                 </View>
-                <Ionicons
-                  name={isSelected ? 'checkmark-circle-outline' : 'ellipse-outline'}
-                  size={22}
-                  color={isSelected ? colors.primary : colors.gray}
-                />
               </TouchableOpacity>
             );
           })}
         </ScrollView>
-
-        <CustomButton
-          title="Add selected items"
-          onPress={handleAddToCollections}
-          buttonStyle={styles.sheetButton}
-        />
       </BottomSheet>
     </View>
   );
@@ -280,7 +294,7 @@ const createStyles = (colors) =>
     selectionActions: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      gap: 18,
     },
     selectionHeader: {
       backgroundColor: colors.primary,
@@ -302,38 +316,50 @@ const createStyles = (colors) =>
     },
     scrollList: {
       maxHeight: 200,
-      width: '100%',
+      alignSelf: 'stretch',
+      marginHorizontal: -8,
       flex: 1,
     },
     sheetRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 8,
-      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      minHeight: 74,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      gap: 12,
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
+      paddingRight: 20,
     },
     collection: {
-      gap: 6,
+      flex: 1,
+      gap: 4,
     },
-    row: {
+    collectionTitleRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    collectionIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     sheetRowName: {
-      fontSize: 15,
+      flex: 1,
+      fontSize: 17,
       color: colors.black,
       fontWeight: '500',
-      marginRight: 6,
     },
     sheetRowDesc: {
       color: colors.gray,
     },
-    sheetButton: {
-      marginHorizontal: 12,
-      position: 'absolute',
-      bottom: 110,
+    sheetItemCount: {
+      color: colors.gray,
+      fontSize: 13,
     },
   });
 
