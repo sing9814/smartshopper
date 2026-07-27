@@ -280,6 +280,27 @@ export const updateMultiplePurchaseWears = async (wearUpdates) => {
   await batch.commit();
 };
 
+export const updateCollectionWearHistory = async ({
+  collectionId,
+  wearHistory,
+  purchaseWearUpdates,
+}) => {
+  if (isLocalGuest()) return;
+  const user = auth().currentUser;
+  if (!user) throw new Error('User not authenticated');
+
+  const batch = firestore().batch();
+  const userRef = firestore().collection('users').doc(user.uid);
+  const purchasesRef = userRef.collection('Purchases');
+
+  purchaseWearUpdates.forEach(({ purchaseId, wears }) => {
+    batch.update(purchasesRef.doc(purchaseId), { wears });
+  });
+  batch.update(userRef.collection('Collections').doc(collectionId), { wearHistory });
+
+  await batch.commit();
+};
+
 export const deleteDoc = async (subcollection, id) => {
   if (isLocalGuest()) return;
   const user = auth().currentUser;

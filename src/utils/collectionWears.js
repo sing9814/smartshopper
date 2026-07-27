@@ -1,5 +1,5 @@
 import { generateFirestoreTimestampFromDate, getDateKeyInTimeZone, timestampToDate } from './date';
-import { updateMultiplePurchaseWears } from './firebase';
+import { updateCollectionWearHistory } from './firebase';
 
 const sortWearsByDate = (wears) =>
   [...wears].sort((a, b) => {
@@ -12,6 +12,29 @@ const sortWearsByDate = (wears) =>
 const getCollectionPurchases = (collection, purchases) => {
   const collectionItemIds = collection.items || [];
   return purchases.filter((purchase) => collectionItemIds.includes(purchase.key));
+};
+
+const updateWearHistoryForDate = ({ collection, wearDate, wearDateKey, itemIds, timeZone }) => {
+  const wearHistory = collection.wearHistory || [];
+  const existingEvent = wearHistory.find(
+    (event) => getDateKeyInTimeZone(event.date, timeZone) === wearDateKey
+  );
+
+  if (existingEvent) {
+    return wearHistory.map((event) =>
+      event === existingEvent
+        ? { ...event, itemIds: Array.from(new Set([...(event.itemIds || []), ...itemIds])) }
+        : event
+    );
+  }
+
+  return [...wearHistory, { date: generateFirestoreTimestampFromDate(wearDate), itemIds }].sort(
+    (a, b) => {
+      const aTime = timestampToDate(a.date)?.getTime() || 0;
+      const bTime = timestampToDate(b.date)?.getTime() || 0;
+      return aTime - bTime;
+    }
+  );
 };
 
 export const isCollectionWornToday = ({ collection, purchases, timeZone }) => {
@@ -69,12 +92,23 @@ export const addWearToCollectionDate = async ({
     };
   }
 
-  await updateMultiplePurchaseWears(
-    updates.map(({ purchaseId, updatedItem }) => ({
-      purchaseId,
-      wears: updatedItem.wears,
-    }))
-  );
+  const purchaseWearUpdates = updates.map(({ purchaseId, updatedItem }) => ({
+    purchaseId,
+    wears: updatedItem.wears,
+  }));
+  const wearHistory = updateWearHistoryForDate({
+    collection,
+    wearDate,
+    wearDateKey,
+    itemIds: updates.map(({ purchaseId }) => purchaseId),
+    timeZone,
+  });
+
+  await updateCollectionWearHistory({
+    collectionId: collection.id,
+    wearHistory,
+    purchaseWearUpdates,
+  });
 
   const updatesById = new Map(
     updates.map(({ purchaseId, updatedItem }) => [purchaseId, updatedItem])
@@ -89,6 +123,7 @@ export const addWearToCollectionDate = async ({
 
   return {
     updatedPurchases,
+    updatedCollection: { ...collection, wearHistory },
     didUpdate: true,
     message: `${addedText}${skippedText}`,
   };

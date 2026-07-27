@@ -1,6 +1,7 @@
 export const lightTheme = {
   mode: 'light',
   primaryLight: '#E8EBFF',
+  primaryLightPressed: '#D8DEFF',
   primary: '#536DFE',
   primaryDark: '#3756FF',
   secondary: '#ff6f00',
@@ -107,6 +108,7 @@ export const lightTheme = {
 export const darkTheme = {
   mode: 'dark',
   primaryLight: '#2c2f45',
+  primaryLightPressed: '#24273A',
   primary: '#536DFE',
   primaryDark: '#4763fd',
   secondary: '#FF8F33',

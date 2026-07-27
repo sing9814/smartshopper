@@ -4,6 +4,7 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  TouchableHighlight,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
@@ -183,17 +184,20 @@ const PurchaseList = ({
               </Text>
             </View>
             {showWearAction && (
-              <TouchableOpacity
+              <TouchableHighlight
                 onPress={() => onAddWear(item)}
                 disabled={isAddingWear}
+                underlayColor={colors.primaryLightPressed}
                 style={[styles.addWearButton, isAddingWear && styles.addWearButtonDisabled]}
                 accessibilityRole="button"
                 accessibilityLabel={`Add wear for ${item.name}`}
                 accessibilityState={{ disabled: isAddingWear }}
               >
-                <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
-                <Text style={styles.addWearText}>{addWearButtonLabel}</Text>
-              </TouchableOpacity>
+                <View style={styles.addWearButtonContent}>
+                  <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
+                  <Text style={styles.addWearText}>{addWearButtonLabel}</Text>
+                </View>
+              </TouchableHighlight>
             )}
           </View>
         </View>
@@ -345,9 +349,12 @@ const createStyles = (colors) =>
       paddingHorizontal: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 4,
       backgroundColor: colors.primaryLight,
+    },
+    addWearButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     wornTodayText: {
       color: colors.green,

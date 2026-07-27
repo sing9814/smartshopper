@@ -15,6 +15,10 @@ import CustomButton from '../components/button';
 import DatePicker from 'react-native-date-picker';
 import { formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
 import { addWearToCollectionDate } from '../utils/collectionWears';
+import {
+  getCollectionFolderBackground,
+  getCollectionFolderColor,
+} from '../utils/collectionColor';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -48,8 +52,10 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const collectionItemIds = currentCollection.items || [];
   const itemsInCollection = purchases.filter((item) => collectionItemIds.includes(item.key));
   const itemCount = itemsInCollection.length;
-  const createdDate = formatTimeStampNoTime(currentCollection.dateCreated);
   const timeZone = getDeviceTimeZone();
+  const wearHistory = currentCollection.wearHistory || [];
+  const lastWear = wearHistory[wearHistory.length - 1];
+  const folderColor = getCollectionFolderColor(currentCollection.folderColor, colors);
 
   const handleWearCollection = async (wearDate) => {
     if (isAddingWears || itemCount === 0) return;
@@ -64,6 +70,17 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         wearDate,
       });
       if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
+      if (result.updatedCollection) {
+        dispatch(
+          setCollections(
+            collections.map((savedCollection) =>
+              savedCollection.id === result.updatedCollection.id
+                ? result.updatedCollection
+                : savedCollection
+            )
+          )
+        );
+      }
       if (result.message) showBanner(result.message, 'success');
     } catch (error) {
       console.error('Failed to wear collection:', error);
@@ -193,9 +210,29 @@ const CollectionDetailScreen = ({ route, navigation }) => {
               !isRemovingItems && itemCount > 0 && styles.actionBarWithDivider,
             ]}
           >
-            <Text style={styles.collectionName} numberOfLines={1}>
-              {currentCollection.name}
-            </Text>
+            <View
+              style={[
+                styles.folderIcon,
+                {
+                  backgroundColor: getCollectionFolderBackground(
+                    currentCollection.folderColor,
+                    colors
+                  ),
+                },
+              ]}
+            >
+              <Ionicons name="folder-outline" size={23} color={folderColor} />
+            </View>
+            <View style={styles.collectionInfo}>
+              <Text style={styles.collectionName} numberOfLines={1}>
+                {currentCollection.name}
+              </Text>
+              {!isRemovingItems && (
+                <Text style={styles.lastWornText}>
+                  {lastWear ? `Last worn ${formatTimeStampNoTime(lastWear.date)}` : 'Never worn'}
+                </Text>
+              )}
+            </View>
             {isRemovingItems ? (
               <TouchableOpacity
                 style={styles.doneButton}
@@ -206,9 +243,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
               >
                 <Text style={styles.doneButtonText}>Done</Text>
               </TouchableOpacity>
-            ) : (
-              createdDate && <Text style={styles.createdText}>Created {createdDate}</Text>
-            )}
+            ) : null}
           </View>
           {!isRemovingItems && itemCount > 0 && (
             <CustomButton
@@ -382,10 +417,25 @@ const createStyles = (colors) =>
       paddingBottom: 0,
     },
     collectionName: {
-      flex: 1,
       color: colors.black,
       fontSize: 20,
       fontWeight: '600',
+    },
+    collectionInfo: {
+      flex: 1,
+      gap: 3,
+    },
+    lastWornText: {
+      color: colors.gray,
+      fontSize: 13,
+    },
+    folderIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
     },
     doneButton: {
       minWidth: 70,
@@ -407,11 +457,6 @@ const createStyles = (colors) =>
       marginLeft: 8,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    createdText: {
-      color: colors.gray,
-      fontSize: 13,
-      flexShrink: 0,
     },
     sectionHeader: {
       flexDirection: 'row',

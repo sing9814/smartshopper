@@ -111,6 +111,17 @@ const CollectionsScreen = ({ navigation }) => {
         wearDate,
       });
       if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
+      if (result.updatedCollection) {
+        dispatch(
+          setCollections(
+            collections.map((savedCollection) =>
+              savedCollection.id === result.updatedCollection.id
+                ? result.updatedCollection
+                : savedCollection
+            )
+          )
+        );
+      }
       if (result.message) showBanner(result.message, 'success');
     } catch (error) {
       console.error('Failed to wear collection:', error);
@@ -192,7 +203,7 @@ const CollectionsScreen = ({ navigation }) => {
           disabled={itemCount > 0 && !!addingWearCollectionId}
           buttonStyle={itemCount === 0 ? styles.addItemsButton : undefined}
           textStyle={itemCount === 0 ? styles.addItemsButtonText : undefined}
-          underlayColor={itemCount === 0 ? colors.lightGrey : undefined}
+          underlayColor={itemCount === 0 ? colors.primaryLightPressed : undefined}
         />
       </View>
     );
