@@ -12,8 +12,9 @@ import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
+import DatePicker from 'react-native-date-picker';
 import { formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
-import { addWearToCollectionToday } from '../utils/collectionWears';
+import { addWearToCollectionDate } from '../utils/collectionWears';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -24,6 +25,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [isAddingWears, setIsAddingWears] = useState(false);
+  const [isWearDatePickerOpen, setIsWearDatePickerOpen] = useState(false);
+  const [selectedWearDate, setSelectedWearDate] = useState(new Date());
   const [isRemovingItems, setIsRemovingItems] = useState(false);
   const [removingItemId, setRemovingItemId] = useState(null);
   const [itemToRemove, setItemToRemove] = useState(null);
@@ -48,16 +51,17 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const createdDate = formatTimeStampNoTime(currentCollection.dateCreated);
   const timeZone = getDeviceTimeZone();
 
-  const handleWearCollectionToday = async () => {
+  const handleWearCollection = async (wearDate) => {
     if (isAddingWears || itemCount === 0) return;
 
     setIsAddingWears(true);
 
     try {
-      const result = await addWearToCollectionToday({
+      const result = await addWearToCollectionDate({
         collection: currentCollection,
         purchases,
         timeZone,
+        wearDate,
       });
       if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
       if (result.message) showBanner(result.message, 'success');
@@ -142,6 +146,21 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           if (!removingItemId) setItemToRemove(null);
         }}
       />
+      <DatePicker
+        modal
+        open={isWearDatePickerOpen}
+        date={selectedWearDate}
+        maximumDate={new Date()}
+        mode="date"
+        title={`When did you wear ${currentCollection.name}?`}
+        confirmText="Add wears"
+        onConfirm={(date) => {
+          setIsWearDatePickerOpen(false);
+          setSelectedWearDate(date);
+          handleWearCollection(date);
+        }}
+        onCancel={() => setIsWearDatePickerOpen(false)}
+      />
       <View style={styles.topbar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -162,40 +181,46 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        <View style={styles.actionBar}>
-          <Text style={styles.collectionName} numberOfLines={1}>
-            {currentCollection.name}
-          </Text>
-          {isRemovingItems ? (
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={() => setIsRemovingItems(false)}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Done removing items"
-            >
-              <Text style={styles.doneButtonText}>Done</Text>
-            </TouchableOpacity>
-          ) : itemCount > 0 ? (
-            <TouchableOpacity
-              style={[styles.wearButton, isAddingWears && styles.wearButtonDisabled]}
-              onPress={handleWearCollectionToday}
-              activeOpacity={0.8}
-              disabled={isAddingWears}
-              accessibilityRole="button"
-              accessibilityLabel={`Wear ${currentCollection.name} today`}
-            >
-              <Ionicons name="add-circle-outline" size={17} color={colors.primary} />
-              <Text style={styles.wearButtonText}>{isAddingWears ? 'Adding...' : 'Wear'}</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        {createdDate && (
-          <View style={styles.metaPanel}>
-            <Text style={styles.createdText}>Created {createdDate}</Text>
+        <View
+          style={[
+            styles.collectionHeader,
+            (isRemovingItems || itemCount === 0) && styles.collectionHeaderCompact,
+          ]}
+        >
+          <View
+            style={[
+              styles.actionBar,
+              !isRemovingItems && itemCount > 0 && styles.actionBarWithDivider,
+            ]}
+          >
+            <Text style={styles.collectionName} numberOfLines={1}>
+              {currentCollection.name}
+            </Text>
+            {isRemovingItems ? (
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setIsRemovingItems(false)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Done removing items"
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            ) : (
+              createdDate && <Text style={styles.createdText}>Created {createdDate}</Text>
+            )}
           </View>
-        )}
+          {!isRemovingItems && itemCount > 0 && (
+            <CustomButton
+              title={isAddingWears ? 'Adding...' : 'Add wears'}
+              onPress={() => {
+                setSelectedWearDate(new Date());
+                setIsWearDatePickerOpen(true);
+              }}
+              disabled={isAddingWears}
+            />
+          )}
+        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>In this collection</Text>
@@ -336,37 +361,31 @@ const createStyles = (colors) =>
       marginHorizontal: 12,
     },
     actionBar: {
-      backgroundColor: colors.white,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
       paddingVertical: 12,
+      gap: 12,
+    },
+    actionBarWithDivider: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+      marginBottom: 12,
+    },
+    collectionHeader: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      paddingBottom: 12,
       marginBottom: 2,
     },
+    collectionHeaderCompact: {
+      paddingBottom: 0,
+    },
     collectionName: {
+      flex: 1,
       color: colors.black,
-      fontSize: 17,
+      fontSize: 20,
       fontWeight: '600',
-    },
-    wearButton: {
-      minWidth: 70,
-      height: 32,
-      paddingHorizontal: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 4,
-      borderRadius: 8,
-      backgroundColor: colors.primaryLight,
-    },
-    wearButtonDisabled: {
-      opacity: 0.6,
-    },
-    wearButtonText: {
-      color: colors.primary,
-      fontSize: 14,
-      fontWeight: '500',
     },
     doneButton: {
       minWidth: 70,
@@ -389,15 +408,10 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    metaPanel: {
-      backgroundColor: colors.white,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginBottom: 2,
-    },
     createdText: {
       color: colors.gray,
       fontSize: 13,
+      flexShrink: 0,
     },
     sectionHeader: {
       flexDirection: 'row',

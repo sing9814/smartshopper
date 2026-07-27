@@ -12,6 +12,7 @@ import BottomSheet from '../components/bottomSheet';
 import CustomInput from '../components/customInput';
 import CustomButton from '../components/button';
 import Banner from '../components/banner';
+import DatePicker from 'react-native-date-picker';
 import { setCollections, setPurchases } from '../redux/actions/purchaseActions';
 import { generateFirestoreTimestamp, getDeviceTimeZone } from '../utils/date';
 import {
@@ -19,7 +20,7 @@ import {
   getCollectionFolderBackground,
   getCollectionFolderColor,
 } from '../utils/collectionColor';
-import { addWearToCollectionToday, isCollectionWornToday } from '../utils/collectionWears';
+import { addWearToCollectionDate } from '../utils/collectionWears';
 
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
@@ -34,6 +35,8 @@ const CollectionsScreen = ({ navigation }) => {
   const [selectedFolderColorName, setSelectedFolderColorName] = useState(DEFAULT_FOLDER_COLOR);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [addingWearCollectionId, setAddingWearCollectionId] = useState(null);
+  const [wearDatePickerCollection, setWearDatePickerCollection] = useState(null);
+  const [selectedWearDate, setSelectedWearDate] = useState(new Date());
   const [banner, setBanner] = useState(null);
   const timeZone = getDeviceTimeZone();
   const selectedFolderColor =
@@ -95,13 +98,18 @@ const CollectionsScreen = ({ navigation }) => {
     }
   };
 
-  const handleWearCollectionToday = async (collection) => {
+  const handleWearCollection = async (collection, wearDate) => {
     if (addingWearCollectionId) return;
 
     setAddingWearCollectionId(collection.id);
 
     try {
-      const result = await addWearToCollectionToday({ collection, purchases, timeZone });
+      const result = await addWearToCollectionDate({
+        collection,
+        purchases,
+        timeZone,
+        wearDate,
+      });
       if (result.didUpdate) dispatch(setPurchases(result.updatedPurchases));
       if (result.message) showBanner(result.message, 'success');
     } catch (error) {
@@ -110,6 +118,11 @@ const CollectionsScreen = ({ navigation }) => {
     } finally {
       setAddingWearCollectionId(null);
     }
+  };
+
+  const openWearDatePicker = (collection) => {
+    setSelectedWearDate(new Date());
+    setWearDatePickerCollection(collection);
   };
 
   const renderItem = ({ item }) => {
@@ -123,11 +136,9 @@ const CollectionsScreen = ({ navigation }) => {
     const previewText = itemCount > 0 ? itemNames.join(', ') : '';
 
     const isAddingWear = addingWearCollectionId === item.id;
-    const isWornToday = isCollectionWornToday({ collection: item, purchases, timeZone });
-    let actionTitle = 'Add wear';
+    let actionTitle = 'Add wears';
     if (itemCount === 0) actionTitle = 'Add items';
     else if (isAddingWear) actionTitle = 'Adding';
-    else if (isWornToday) actionTitle = 'Already worn';
 
     return (
       <View style={styles.card}>
@@ -176,9 +187,9 @@ const CollectionsScreen = ({ navigation }) => {
                   addToCollectionId: item.id,
                   addToCollectionName: item.name,
                 })
-              : handleWearCollectionToday(item)
+              : openWearDatePicker(item)
           }
-          disabled={itemCount > 0 && (isWornToday || !!addingWearCollectionId)}
+          disabled={itemCount > 0 && !!addingWearCollectionId}
           buttonStyle={itemCount === 0 ? styles.addItemsButton : undefined}
           textStyle={itemCount === 0 ? styles.addItemsButtonText : undefined}
           underlayColor={itemCount === 0 ? colors.lightGrey : undefined}
@@ -192,6 +203,26 @@ const CollectionsScreen = ({ navigation }) => {
       {banner && (
         <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
       )}
+      <DatePicker
+        modal
+        open={!!wearDatePickerCollection}
+        date={selectedWearDate}
+        maximumDate={new Date()}
+        mode="date"
+        title={
+          wearDatePickerCollection
+            ? `When did you wear ${wearDatePickerCollection.name}?`
+            : 'When did you wear this collection?'
+        }
+        confirmText="Add wears"
+        onConfirm={(date) => {
+          const collection = wearDatePickerCollection;
+          setWearDatePickerCollection(null);
+          setSelectedWearDate(date);
+          handleWearCollection(collection, date);
+        }}
+        onCancel={() => setWearDatePickerCollection(null)}
+      />
 
       <FlatList
         data={collections}
