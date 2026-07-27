@@ -14,6 +14,7 @@ import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
+import CustomButton from './button';
 
 const PurchaseList = ({
   purchases,
@@ -25,6 +26,9 @@ const PurchaseList = ({
   wornDate,
   getOverlayText,
   emptyText = 'No items yet',
+  emptyActionTitle,
+  onEmptyAction,
+  itemContainerStyle,
   navigation,
   selectedItems = [],
   onAddWear,
@@ -104,6 +108,7 @@ const PurchaseList = ({
         }}
         style={[
           styles.itemContainer,
+          itemContainerStyle,
           isSelected && {
             backgroundColor: colors.primaryLight,
             borderLeftColor: colors.primary,
@@ -212,8 +217,15 @@ const PurchaseList = ({
       );
     }
     return (
-      <View style={styles.footer}>
+      <View style={styles.emptyState}>
         <Text style={styles.footerText}>{emptyText}</Text>
+        {emptyActionTitle && onEmptyAction && (
+          <CustomButton
+            title={emptyActionTitle}
+            onPress={onEmptyAction}
+            buttonStyle={styles.emptyAction}
+          />
+        )}
       </View>
     );
   };
@@ -352,7 +364,6 @@ const createStyles = (colors) =>
     date: {
       fontSize: 14,
       color: colors.gray,
-      marginLeft: 10,
     },
     footer: {
       padding: 8,
@@ -360,6 +371,14 @@ const createStyles = (colors) =>
     },
     footerText: {
       color: colors.gray,
+    },
+    emptyState: {
+      padding: 6,
+      alignItems: 'center',
+      gap: 14,
+    },
+    emptyAction: {
+      width: '100%',
     },
     placeholder: {
       backgroundColor: colors.white,

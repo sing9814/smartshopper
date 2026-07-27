@@ -164,7 +164,7 @@ const createStyles = (colors) =>
     title: {
       alignSelf: 'center',
       color: colors.gray,
-      paddingBottom: 8,
+      paddingBottom: 4,
     },
   });
 

@@ -33,7 +33,7 @@ const hasWearLoggedOnDate = (item, dateKey, timeZone) => {
   return (item.wears || []).some((wear) => getDateKeyInTimeZone(wear, timeZone) === dateKey);
 };
 
-const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
+const ItemsScreen = ({ navigation, route, selectedItems, setSelectedItems }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
   const timeZone = getDeviceTimeZone();
@@ -144,8 +144,12 @@ const ItemsScreen = ({ navigation, selectedItems, setSelectedItems }) => {
   const handleAddWear = (item) => {
     if (addingWearItemId) return;
 
+    const initialWearDate = timestampToDate(route.params?.initialWearDate);
     setWearDatePickerItem(item);
-    setSelectedWearDate(new Date());
+    setSelectedWearDate(initialWearDate || new Date());
+    if (route.params?.initialWearDate) {
+      navigation.setParams({ initialWearDate: undefined });
+    }
   };
 
   const addWearForDate = async (item, wearDate) => {

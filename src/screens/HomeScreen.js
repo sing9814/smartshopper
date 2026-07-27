@@ -108,8 +108,8 @@ const HomeScreen = ({ navigation }) => {
       monthTextColor: colors.black,
       'stylesheet.calendar.main': {
         week: {
-          marginTop: 9,
-          marginBottom: 3,
+          marginTop: 10,
+          marginBottom: 5,
           flexDirection: 'row',
           justifyContent: 'space-around',
         },
@@ -248,6 +248,21 @@ const HomeScreen = ({ navigation }) => {
     () => purchases.reduce((total, item) => total + (item.wears?.length || 0), 0),
     [purchases]
   );
+  const canAddWearForSelectedDate =
+    selectedDate && selectedDate <= getDateKeyInTimeZone(new Date(), timeZone);
+
+  const openItemsForWear = () => {
+    const initialWearDate = selectedDate;
+    setOpen(false);
+    setSelectedDate(null);
+    navigation.navigate('Purchases', {
+      screen: 'ItemTabs',
+      params: {
+        screen: 'Items',
+        params: { initialWearDate },
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -269,7 +284,7 @@ const HomeScreen = ({ navigation }) => {
           <>
             <View style={styles.totalWearsCard}>
               <View style={styles.totalWearsIcon}>
-                <Ionicons name="repeat-outline" size={20} color={colors.primary} />
+                <Ionicons name="shirt-outline" size={20} color={colors.primary} />
               </View>
               <Text style={styles.analyticsValue}>{totalWears}</Text>
               <Text style={styles.analyticsSubtext}>Total wears</Text>
@@ -313,6 +328,9 @@ const HomeScreen = ({ navigation }) => {
               wornDate={selectedDate}
               getOverlayText={(item) => getWearNumberText(item, selectedDate, timeZone)}
               emptyText="Nothing worn on this day"
+              emptyActionTitle={canAddWearForSelectedDate ? 'Add a wear' : undefined}
+              onEmptyAction={canAddWearForSelectedDate ? openItemsForWear : undefined}
+              itemContainerStyle={styles.calendarListItem}
               navigation={navigation}
               onItemLongPress={() => {}}
             />
@@ -366,6 +384,11 @@ const createStyles = (colors, tabBarHeight) =>
       width: '100%',
       paddingBottom: 40,
     },
+    calendarListItem: {
+      marginBottom: 0,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+    },
     container: {
       flex: 1,
       backgroundColor: colors.bg,
@@ -375,14 +398,14 @@ const createStyles = (colors, tabBarHeight) =>
     },
     scrollView: {
       flexGrow: 1,
-      paddingTop: 10,
+      paddingTop: 16,
       paddingBottom: tabBarHeight + 16,
       paddingHorizontal: 16,
     },
     calendar: {
       borderRadius: 10,
       elevation: 1,
-      paddingBottom: 8,
+      paddingBottom: 10,
       marginBottom: 300,
     },
     title: {
