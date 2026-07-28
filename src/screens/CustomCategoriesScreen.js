@@ -20,8 +20,8 @@ const CustomCategoriesScreen = ({ navigation }) => {
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [showActionSheet, setShowActionSheet] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [managementMode, setManagementMode] = useState(null);
+  const [showMenuSheet, setShowMenuSheet] = useState(false);
 
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -52,16 +52,37 @@ const CustomCategoriesScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.iconButton}
-        onPress={() => {
-          setSelectedCategory(item);
-          setShowActionSheet(true);
-        }}
-        hitSlop={8}
-      >
-        <Ionicons name="ellipsis-horizontal" size={22} color={colors.gray} />
-      </TouchableOpacity>
+      {managementMode && (
+        <View style={styles.rowActions}>
+          {managementMode === 'edit' ? (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => {
+                setEditingCategory(item);
+                setShowEditSheet(true);
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${item.name}`}
+            >
+              <FontAwesome name="pencil" size={20} color={colors.black} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => {
+                setPendingDelete(item);
+                setShowDeletePopup(true);
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Delete ${item.name}`}
+            >
+              <Ionicons name="close" size={22} color={colors.red} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 
@@ -71,19 +92,36 @@ const CustomCategoriesScreen = ({ navigation }) => {
         <Banner message={banner.message} type={banner.type} onFinish={() => setBanner(null)} />
       )}
       <View style={styles.topbar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={styles.topbarIcon}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={8}
+          style={styles.topbarAction}
+        >
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Custom subcategories</Text>
+        <Text style={styles.topbarTitle} numberOfLines={1}>
+          Custom subcategories
+        </Text>
         <TouchableOpacity
           onPress={() => {
-            setEditingCategory(null);
-            setShowEditSheet(true);
+            if (managementMode) {
+              setManagementMode(null);
+            } else {
+              setShowMenuSheet(true);
+            }
           }}
           hitSlop={8}
-          style={styles.topbarIcon}
+          style={[styles.topbarAction, managementMode && styles.topbarDoneAction]}
+          accessibilityRole="button"
+          accessibilityLabel={
+            managementMode ? `Done with ${managementMode} mode` : 'Subcategory menu'
+          }
         >
-          <Ionicons name="add-circle-outline" size={26} color="white" />
+          {managementMode ? (
+            <Text style={styles.topbarDone}>Done</Text>
+          ) : (
+            <Ionicons name="ellipsis-horizontal" size={24} color="white" />
+          )}
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
@@ -132,36 +170,48 @@ const CustomCategoriesScreen = ({ navigation }) => {
       />
 
       <BottomSheet
-        visible={showActionSheet}
-        onClose={() => {
-          setShowActionSheet(false);
-          setSelectedCategory(null);
-        }}
-        title="Subcategory options"
-        height={210}
+        visible={showMenuSheet}
+        onClose={() => setShowMenuSheet(false)}
+        title="Custom subcategories"
+        height={260}
       >
         <Pressable
           style={styles.sheetRow}
           onPress={() => {
-            setShowActionSheet(false);
-            setEditingCategory(selectedCategory);
+            setShowMenuSheet(false);
+            setEditingCategory(null);
             setShowEditSheet(true);
           }}
         >
-          <Ionicons name="pencil-outline" size={20} color={colors.black} style={styles.sheetIcon} />
-          <Text style={styles.sheetText}>Edit subcategory</Text>
+          <Ionicons
+            name="add-circle-outline"
+            size={20}
+            color={colors.black}
+            style={styles.sheetIcon}
+          />
+          <Text style={styles.sheetText}>Add subcategory</Text>
         </Pressable>
 
         <Pressable
           style={styles.sheetRow}
           onPress={() => {
-            setShowActionSheet(false);
-            setPendingDelete(selectedCategory);
-            setShowDeletePopup(true);
+            setShowMenuSheet(false);
+            setManagementMode('edit');
+          }}
+        >
+          <FontAwesome name="pencil" size={20} color={colors.black} style={styles.sheetIcon} />
+          <Text style={styles.sheetText}>Edit subcategories</Text>
+        </Pressable>
+
+        <Pressable
+          style={styles.sheetRow}
+          onPress={() => {
+            setShowMenuSheet(false);
+            setManagementMode('delete');
           }}
         >
           <Ionicons name="trash-outline" size={20} color={colors.red} style={styles.sheetIcon} />
-          <Text style={styles.deleteText}>Delete subcategory</Text>
+          <Text style={styles.deleteText}>Delete subcategories</Text>
         </Pressable>
       </BottomSheet>
 
@@ -207,7 +257,7 @@ const createStyles = (colors) =>
     topbar: {
       width: '100%',
       backgroundColor: colors.primary,
-      gap: 6,
+      gap: 12,
       paddingTop: 10,
       paddingBottom: 13,
       paddingHorizontal: 20,
@@ -215,15 +265,26 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    topbarIcon: {
-      width: 32,
-      height: 32,
+    topbarAction: {
+      width: 28,
+      height: 28,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    headerTitle: {
+    topbarDoneAction: {
+      width: 48,
+      marginLeft: -20,
+    },
+    topbarDone: {
       color: 'white',
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    topbarTitle: {
+      color: 'white',
+      flex: 1,
       fontSize: 18,
+      textAlign: 'center',
     },
     listContent: {
       paddingTop: 2,
@@ -236,6 +297,7 @@ const createStyles = (colors) =>
     categoryRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      height: 56,
       backgroundColor: colors.white,
       paddingVertical: 12,
       paddingHorizontal: 18,
@@ -262,6 +324,11 @@ const createStyles = (colors) =>
     },
     categoryParent: {
       color: colors.gray,
+    },
+    rowActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     iconButton: {
       width: 32,
