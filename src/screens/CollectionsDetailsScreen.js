@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useDispatch, useSelector } from 'react-redux';
 import PurchaseList from '../components/purchaseList';
@@ -13,12 +13,9 @@ import ConfirmationModal from '../components/confirmationModal';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import DatePicker from 'react-native-date-picker';
-import { formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
+import { formatDateWithWeekday, formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
 import { addWearToCollectionDate } from '../utils/collectionWears';
-import {
-  getCollectionFolderBackground,
-  getCollectionFolderColor,
-} from '../utils/collectionColor';
+import { getCollectionFolderBackground, getCollectionFolderColor } from '../utils/collectionColor';
 
 const CollectionDetailScreen = ({ route, navigation }) => {
   const { collection } = route.params;
@@ -34,12 +31,17 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const [isRemovingItems, setIsRemovingItems] = useState(false);
   const [removingItemId, setRemovingItemId] = useState(null);
   const [itemToRemove, setItemToRemove] = useState(null);
+  const [activeTab, setActiveTab] = useState('items');
 
   const showBanner = (message, type = 'error') => {
     setBanner(null);
     setTimeout(() => {
       setBanner({ message, type });
     }, 10);
+  };
+
+  const returnToCollections = () => {
+    navigation.navigate('ItemTabs', { screen: 'Collections' });
   };
 
   useStatusBar(colors.primaryDark);
@@ -55,6 +57,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
   const timeZone = getDeviceTimeZone();
   const wearHistory = currentCollection.wearHistory || [];
   const lastWear = wearHistory[wearHistory.length - 1];
+  const wearHistoryNewestFirst = [...wearHistory].reverse();
   const folderColor = getCollectionFolderColor(currentCollection.folderColor, colors);
 
   const handleWearCollection = async (wearDate) => {
@@ -98,7 +101,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       dispatch(setCollections(updated));
 
       setModalVisible(false);
-      navigation.goBack();
+      returnToCollections();
     } catch (error) {
       console.error('Failed to delete collection:', error);
       showBanner('Failed to delete collection');
@@ -180,7 +183,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       />
       <View style={styles.topbar}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={returnToCollections}
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
           style={styles.topbarButton}
         >
@@ -221,7 +224,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
                 },
               ]}
             >
-              <Ionicons name="folder-outline" size={23} color={folderColor} />
+              <Ionicons name="folder-outline" size={27} color={folderColor} />
             </View>
             <View style={styles.collectionInfo}>
               <Text style={styles.collectionName} numberOfLines={1}>
@@ -257,49 +260,84 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>In this collection</Text>
-          <Text style={styles.sectionTitle}>
-            {itemCount} {itemCount !== 1 ? 'items' : 'item'}
-          </Text>
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'items' && styles.activeTab]}
+            onPress={() => setActiveTab('items')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'items' }}
+          >
+            <Text style={[styles.tabText, activeTab === 'items' && styles.activeTabText]}>
+              In this collection ({itemCount})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'history' && styles.activeTab]}
+            onPress={() => setActiveTab('history')}
+            disabled={isRemovingItems}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'history', disabled: isRemovingItems }}
+          >
+            <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>
+              History
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {itemCount > 0 ? (
-          <PurchaseList
-            purchases={itemsInCollection}
-            loading={false}
-            refreshing={false}
-            navigation={navigation}
-            disableItemPress={isRemovingItems}
-            renderEndAction={
-              isRemovingItems
-                ? (item) => (
-                    <TouchableOpacity
-                      style={styles.removeItemButton}
-                      onPress={() => setItemToRemove(item)}
-                      disabled={removingItemId === item.key}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Remove ${item.name} from ${currentCollection.name}`}
-                    >
-                      <Ionicons name="close" size={20} color={colors.red} />
-                    </TouchableOpacity>
-                  )
-                : null
-            }
-          />
+        {activeTab === 'items' ? (
+          <>
+            {itemCount > 0 ? (
+              <PurchaseList
+                purchases={itemsInCollection}
+                loading={false}
+                refreshing={false}
+                navigation={navigation}
+                disableItemPress={isRemovingItems}
+                itemContainerStyle={styles.collectionItemRow}
+                renderEndAction={
+                  isRemovingItems
+                    ? (item) => (
+                        <TouchableOpacity
+                          style={styles.removeItemButton}
+                          onPress={() => setItemToRemove(item)}
+                          disabled={removingItemId === item.key}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Remove ${item.name} from ${currentCollection.name}`}
+                        >
+                          <Ionicons name="close" size={20} color={colors.red} />
+                        </TouchableOpacity>
+                      )
+                    : null
+                }
+              />
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyTitle}>No items here yet</Text>
+                <Text style={styles.emptyText}>Choose items to add to this collection.</Text>
+                <CustomButton
+                  title="Browse items"
+                  onPress={() =>
+                    navigation.navigate('AddItemsToCollection', {
+                      addToCollectionId: currentCollection.id,
+                      addToCollectionName: currentCollection.name,
+                    })
+                  }
+                />
+              </View>
+            )}
+          </>
+        ) : wearHistoryNewestFirst.length > 0 ? (
+          <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
+            {wearHistoryNewestFirst.map((event, index) => (
+              <View key={`${formatTimeStampNoTime(event.date)}-${index}`} style={styles.historyRow}>
+                <Text style={styles.historyDate}>{formatDateWithWeekday(event.date)}</Text>
+              </View>
+            ))}
+          </ScrollView>
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No items here yet</Text>
-            <Text style={styles.emptyText}>Choose items to add to this collection.</Text>
-            <CustomButton
-              title="Browse items"
-              onPress={() =>
-                navigation.navigate('AddItemsToCollection', {
-                  addToCollectionId: currentCollection.id,
-                  addToCollectionName: currentCollection.name,
-                })
-              }
-            />
+            <Text style={styles.emptyTitle}>No wears logged yet</Text>
+            <Text style={styles.emptyText}>Add wears to start tracking this collection.</Text>
           </View>
         )}
       </View>
@@ -333,6 +371,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           disabled={itemCount === 0}
           onPress={() => {
             setActionSheetVisible(false);
+            setActiveTab('items');
             setIsRemovingItems(true);
           }}
         >
@@ -430,12 +469,11 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     folderIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 12,
+      width: 48,
+      height: 48,
+      borderRadius: 14,
       alignItems: 'center',
       justifyContent: 'center',
-      flexShrink: 0,
     },
     doneButton: {
       minWidth: 70,
@@ -458,18 +496,50 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sectionHeader: {
+    tabBar: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingTop: 6,
-      paddingBottom: 8,
-      marginBottom: 2,
+      backgroundColor: colors.white,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
     },
-    sectionTitle: {
+    tab: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 46,
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    activeTab: {
+      borderBottomColor: colors.primary,
+    },
+    tabText: {
       color: colors.gray,
-      fontSize: 13,
+      fontWeight: '500',
+    },
+    activeTabText: {
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    historyList: {
+      flex: 1,
+      backgroundColor: colors.white,
+      paddingHorizontal: 20,
+    },
+    collectionItemRow: {
+      paddingRight: 20,
+      paddingLeft: 16,
+    },
+    historyRow: {
+      height: 60,
+      justifyContent: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+    },
+    historyDate: {
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
     },
     emptyState: {
       flex: 1,

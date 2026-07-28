@@ -21,6 +21,23 @@ export const formatDate = (date) => {
   });
 };
 
+export const formatDateWithWeekday = (date) => {
+  const dateObj = timestampToDate(date);
+  if (!dateObj) return 'N/A';
+
+  const options = {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  };
+
+  if (dateObj.getFullYear() !== new Date().getFullYear()) {
+    options.year = 'numeric';
+  }
+
+  return dateObj.toLocaleDateString('en-US', options);
+};
+
 export const getDeviceTimeZone = () => {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';

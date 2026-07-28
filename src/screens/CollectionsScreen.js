@@ -350,7 +350,7 @@ const createStyles = (colors) =>
     },
     cardBody: {
       flex: 1,
-      gap: 7,
+      gap: 3,
       marginRight: 10,
     },
     titleRow: {

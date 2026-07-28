@@ -13,7 +13,7 @@ const ItemStack = () => (
     <Stack.Screen
       name="CollectionDetail"
       component={CollectionDetailScreen}
-      options={{ headerShown: false, animation: 'slide_from_right' }}
+      options={{ headerShown: false, animation: 'none' }}
     />
     <Stack.Screen
       name="AddItemsToCollection"
@@ -23,7 +23,7 @@ const ItemStack = () => (
     <Stack.Screen
       name="Details"
       component={DetailsScreen}
-      options={{ headerShown: false, animation: 'slide_from_right' }}
+      options={{ headerShown: false, animation: 'none' }}
     />
     <Stack.Screen
       name="Edit"

@@ -458,7 +458,6 @@ const DetailsScreen = ({ navigation }) => {
                       key={`${getDateKeyInTimeZone(wear, timeZone)}-${index}`}
                       style={styles.wearRow}
                     >
-                      <Text style={styles.wearRowNumber}>{wearHistory.length - index}.</Text>
                       <Text style={styles.wearRowDate}>{formatWearDate(wear)}</Text>
                       <TouchableOpacity
                         onPress={() => setWearToDelete(wear)}
@@ -848,10 +847,6 @@ const createStyles = (colors, insets) =>
       fontSize: 15,
       fontWeight: '500',
       flex: 1,
-    },
-    wearRowNumber: {
-      color: colors.gray,
-      marginRight: 8,
     },
     deleteWearButton: {
       width: 32,

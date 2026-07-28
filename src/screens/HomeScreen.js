@@ -5,6 +5,7 @@ import {
   StyleSheet,
   RefreshControl,
   ScrollView,
+  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -30,6 +31,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { USE_FAKE_DATA, createMockCategories, selectedMockProfile } from '../utils/mockData';
 import auth from '@react-native-firebase/auth';
 import { getGuestData } from '../utils/guestStorage';
+import {
+  getCollectionFolderBackground,
+  getCollectionFolderColor,
+} from '../utils/collectionColor';
 
 const mergeLocalCategories = (categories, customCategories) => {
   const merged = createMockCategories(categories, []);
@@ -128,6 +133,7 @@ const HomeScreen = ({ navigation }) => {
   const tabCloseTimeoutRef = useRef(null);
 
   const purchases = useSelector((state) => state.purchase.purchases);
+  const collections = useSelector((state) => state.purchase.collections);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress', () => {
@@ -222,6 +228,19 @@ const HomeScreen = ({ navigation }) => {
       });
     });
 
+    collections.forEach((collection) => {
+      (collection.wearHistory || []).forEach((event) => {
+        const dateKey = getDateKeyInTimeZone(event.date, timeZone);
+        if (!dateKey) return;
+
+        dates[dateKey] = {
+          ...dates[dateKey],
+          marked: true,
+          dotColor: dates[dateKey]?.dotColor || colors.primary,
+        };
+      });
+    });
+
     if (selectedDate) {
       dates[selectedDate] = {
         ...dates[selectedDate],
@@ -238,6 +257,7 @@ const HomeScreen = ({ navigation }) => {
     colors.primaryDark,
     colors.primaryLight,
     colors.secondary,
+    collections,
     loading,
     purchases,
     selectedDate,
@@ -250,6 +270,31 @@ const HomeScreen = ({ navigation }) => {
   );
   const canAddWearForSelectedDate =
     selectedDate && selectedDate <= getDateKeyInTimeZone(new Date(), timeZone);
+  const selectedCollectionWears = useMemo(() => {
+    if (!selectedDate) return [];
+
+    return collections.flatMap((collection) =>
+      (collection.wearHistory || [])
+        .filter((event) => getDateKeyInTimeZone(event.date, timeZone) === selectedDate)
+        .map((event) => ({ collection, event }))
+    );
+  }, [collections, selectedDate, timeZone]);
+  const selectedCollectionItemIds = useMemo(
+    () =>
+      new Set(
+        selectedCollectionWears.flatMap(({ event }) => event.itemIds || [])
+      ),
+    [selectedCollectionWears]
+  );
+  const selectedStandaloneItems = useMemo(() => {
+    if (!selectedDate) return [];
+
+    return purchases.filter(
+      (item) =>
+        itemWasWornOnDate(item, selectedDate, timeZone) &&
+        !selectedCollectionItemIds.has(item.key)
+    );
+  }, [purchases, selectedCollectionItemIds, selectedDate, timeZone]);
 
   const openItemsForWear = () => {
     const initialWearDate = selectedDate;
@@ -316,24 +361,70 @@ const HomeScreen = ({ navigation }) => {
       >
         <View style={styles.sheetContainer}>
           <View style={styles.list}>
-            <PurchaseList
-              purchases={
-                selectedDate
-                  ? purchases.filter((product) =>
-                      itemWasWornOnDate(product, selectedDate, timeZone)
-                    )
-                  : []
-              }
-              overlay
-              wornDate={selectedDate}
-              getOverlayText={(item) => getWearNumberText(item, selectedDate, timeZone)}
-              emptyText="Nothing worn on this day"
-              emptyActionTitle={canAddWearForSelectedDate ? 'Add a wear' : undefined}
-              onEmptyAction={canAddWearForSelectedDate ? openItemsForWear : undefined}
-              itemContainerStyle={styles.calendarListItem}
-              navigation={navigation}
-              onItemLongPress={() => {}}
-            />
+            {selectedCollectionWears.map(({ collection, event }, index) => {
+              const folderColor = getCollectionFolderColor(collection.folderColor, colors);
+              const itemNames = (collection.items || [])
+                .map((itemId) => purchases.find((item) => item.key === itemId)?.name)
+                .filter(Boolean)
+                .join(', ');
+
+              return (
+                <TouchableOpacity
+                  key={`${collection.id}-${getDateKeyInTimeZone(event.date, timeZone)}-${index}`}
+                  style={styles.collectionWearRow}
+                  onPress={() => {
+                    setOpen(false);
+                    setSelectedDate(null);
+                    navigation.navigate('Purchases', {
+                      screen: 'CollectionDetail',
+                      params: { collection, animationEnabled: false },
+                    });
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${collection.name} collection`}
+                >
+                  <View
+                    style={[
+                      styles.collectionWearIcon,
+                      {
+                        backgroundColor: getCollectionFolderBackground(
+                          collection.folderColor,
+                          colors
+                        ),
+                      },
+                    ]}
+                  >
+                    <Ionicons name="folder-outline" size={23} color={folderColor} />
+                  </View>
+                  <View style={styles.collectionWearText}>
+                    <Text style={styles.collectionWearName} numberOfLines={1}>
+                      {collection.name}
+                    </Text>
+                    <Text
+                      style={styles.collectionWearLabel}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {itemNames || 'No items'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            {(selectedStandaloneItems.length > 0 || selectedCollectionWears.length === 0) && (
+              <PurchaseList
+                purchases={selectedStandaloneItems}
+                overlay
+                wornDate={selectedDate}
+                getOverlayText={(item) => getWearNumberText(item, selectedDate, timeZone)}
+                emptyText="Nothing worn on this day"
+                emptyActionTitle={canAddWearForSelectedDate ? 'Add a wear' : undefined}
+                onEmptyAction={canAddWearForSelectedDate ? openItemsForWear : undefined}
+                itemContainerStyle={styles.calendarListItem}
+                navigation={navigation}
+                onItemLongPress={() => {}}
+              />
+            )}
           </View>
         </View>
       </BottomSheet>
@@ -388,6 +479,36 @@ const createStyles = (colors, tabBarHeight) =>
       marginBottom: 0,
       borderBottomWidth: 1,
       borderBottomColor: colors.bg,
+    },
+    collectionWearRow: {
+      minHeight: 70,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 12,
+      backgroundColor: colors.white,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.bg,
+    },
+    collectionWearIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    collectionWearText: {
+      flex: 1,
+      gap: 4,
+    },
+    collectionWearName: {
+      color: colors.black,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    collectionWearLabel: {
+      color: colors.gray,
+      fontSize: 13,
     },
     container: {
       flex: 1,
