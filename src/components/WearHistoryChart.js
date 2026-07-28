@@ -1,17 +1,23 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { getDateKeyInTimeZone } from '../utils/date';
+import {
+  DISPLAY_LOCALE,
+  getDateKeyInTimeZone,
+  getDeviceLocale,
+  getFirstDayOfWeek,
+} from '../utils/date';
 import { useTheme } from '../theme/themeContext';
 
-const getWeekStart = (date) => {
+const getWeekStart = (date, firstDayOfWeek) => {
   const weekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   weekStart.setHours(0, 0, 0, 0);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const daysSinceWeekStart = (weekStart.getDay() - firstDayOfWeek + 7) % 7;
+  weekStart.setDate(weekStart.getDate() - daysSinceWeekStart);
   return weekStart;
 };
 
-const getRecentWeeklyWearHistory = (wears, timeZone) => {
-  const currentWeekStart = getWeekStart(new Date());
+const getRecentWeeklyWearHistory = (wears, timeZone, locale, firstDayOfWeek) => {
+  const currentWeekStart = getWeekStart(new Date(), firstDayOfWeek);
   const weeks = Array.from({ length: 12 }, (_, index) => {
     const weekStart = new Date(currentWeekStart);
     weekStart.setDate(currentWeekStart.getDate() - (11 - index) * 7);
@@ -19,7 +25,7 @@ const getRecentWeeklyWearHistory = (wears, timeZone) => {
 
     return {
       key,
-      label: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      label: weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
       count: 0,
     };
   });
@@ -34,7 +40,7 @@ const getRecentWeeklyWearHistory = (wears, timeZone) => {
     if (!dateKey) return;
 
     const [year, month, day] = dateKey.split('-').map(Number);
-    const wearWeekStart = getWeekStart(new Date(year, month - 1, day));
+    const wearWeekStart = getWeekStart(new Date(year, month - 1, day), firstDayOfWeek);
     const index = weekIndex[wearWeekStart.toISOString().slice(0, 10)];
 
     if (index != null) {
@@ -53,9 +59,11 @@ const getRecentWeeklyWearHistory = (wears, timeZone) => {
 const WearHistoryChart = ({ wears, timeZone }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
+  const deviceLocale = getDeviceLocale();
+  const firstDayOfWeek = getFirstDayOfWeek(deviceLocale);
   const weeklyWearHistory = useMemo(
-    () => getRecentWeeklyWearHistory(wears, timeZone),
-    [wears, timeZone]
+    () => getRecentWeeklyWearHistory(wears, timeZone, DISPLAY_LOCALE, firstDayOfWeek),
+    [wears, timeZone, firstDayOfWeek]
   );
   const recentWearCount = weeklyWearHistory.reduce((total, week) => total + week.count, 0);
   const maxWeeklyWearCount = Math.max(...weeklyWearHistory.map((week) => week.count), 1);

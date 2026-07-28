@@ -6,7 +6,7 @@ import { deleteDoc } from '../utils/firebase';
 import ConfirmationModal from '../components/confirmationModal';
 import {
   formatDate,
-  formatTimeStamp,
+  formatDateWithWeekday,
   generateFirestoreTimestampFromDate,
   getDateKeyInTimeZone,
   getDeviceTimeZone,
@@ -146,27 +146,7 @@ const DetailsScreen = ({ navigation }) => {
     }
   };
 
-  const formatWearDate = (wear) => {
-    const date = timestampToDate(wear);
-    if (!date) return 'N/A';
-
-    const currentYear = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      year: 'numeric',
-    }).format(new Date());
-    const wearYear = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      year: 'numeric',
-    }).format(date);
-
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      timeZone,
-      ...(wearYear !== currentYear ? { year: 'numeric' } : {}),
-    });
-  };
+  const formatWearDate = (wear) => formatDateWithWeekday(wear, timeZone);
 
   const wearCount = currentPurchase.wears?.length || 0;
   const wearGoal = currentPurchase.wearGoal ?? DEFAULT_WEAR_GOAL;
@@ -408,11 +388,11 @@ const DetailsScreen = ({ navigation }) => {
 
               <View style={styles.metaBlock}>
                 <Text style={styles.metaText}>
-                  Created: {formatTimeStamp(currentPurchase.dateCreated)}
+                  Created: {formatDate(currentPurchase.dateCreated)}
                 </Text>
                 {currentPurchase.edited && (
                   <Text style={styles.metaText}>
-                    Last edited: {formatTimeStamp(currentPurchase.edited)}
+                    Last edited: {formatDate(currentPurchase.edited)}
                   </Text>
                 )}
               </View>

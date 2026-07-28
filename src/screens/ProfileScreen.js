@@ -21,7 +21,7 @@ import { useStatusBar } from '../hooks/useStatusBar';
 import ConfirmationModal from '../components/confirmationModal';
 import CustomInput from '../components/customInput';
 import { setUser, setUserOnboarded } from '../redux/actions/userActions';
-import { timestampToDate } from '../utils/date';
+import { DISPLAY_LOCALE, timestampToDate } from '../utils/date';
 import { clearGuestData, setGuestActive, setGuestPendingAuthUid } from '../utils/guestStorage';
 
 const FEEDBACK_FORM_URL =
@@ -46,11 +46,13 @@ const ProfileScreen = ({ navigation }) => {
   const user = useSelector((state) => state.user.user);
   const isGuestAccount = user?.isGuest === true;
   const profileHeaderTitle = isGuestAccount ? 'Local profile' : user?.email || 'Profile';
+  const authCreationTime = auth().currentUser?.metadata?.creationTime;
+  const authCreationDate = authCreationTime ? new Date(authCreationTime) : null;
   const registrationDate =
     timestampToDate(user?.registrationDate) ||
-    timestampToDate(auth().currentUser?.metadata?.creationTime);
+    (authCreationDate && !Number.isNaN(authCreationDate.getTime()) ? authCreationDate : null);
   const memberSince = registrationDate
-    ? new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(
+    ? new Intl.DateTimeFormat(DISPLAY_LOCALE, { month: 'short', year: 'numeric' }).format(
         registrationDate
       )
     : 'Recently';
@@ -146,11 +148,9 @@ const ProfileScreen = ({ navigation }) => {
         currentUser ||
         (await auth().createUserWithEmailAndPassword(trimmedEmail, upgradePassword)).user;
       await setGuestPendingAuthUid(savedUser.uid);
-      const userWithoutName = { ...user };
-      delete userWithoutName.name;
 
       const updatedUser = {
-        ...userWithoutName,
+        ...user,
         email: trimmedEmail,
         isGuest: false,
         onboarded: true,
@@ -159,22 +159,40 @@ const ProfileScreen = ({ navigation }) => {
 
       const userRef = firestore().collection('users').doc(savedUser.uid);
       const batch = firestore().batch();
+      const toFirestoreTimestamp = (value) => {
+        if (value == null || typeof value.toDate === 'function') return value;
+        const date = timestampToDate(value);
+        return date ? firestore.Timestamp.fromDate(date) : null;
+      };
 
       batch.set(
         userRef,
         {
           ...updatedUser,
-          registrationDate: user?.registrationDate || firestore.FieldValue.serverTimestamp(),
-          name: firestore.FieldValue.delete(),
+          registrationDate:
+            toFirestoreTimestamp(user?.registrationDate) || firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
 
       purchases.forEach((purchase) => {
-        batch.set(userRef.collection('Purchases').doc(purchase.key), purchase);
+        batch.set(userRef.collection('Purchases').doc(purchase.key), {
+          ...purchase,
+          datePurchased: toFirestoreTimestamp(purchase.datePurchased),
+          dateCreated: toFirestoreTimestamp(purchase.dateCreated),
+          edited: toFirestoreTimestamp(purchase.edited),
+          wears: (purchase.wears || []).map(toFirestoreTimestamp).filter(Boolean),
+        });
       });
       collections.forEach((collection) => {
-        batch.set(userRef.collection('Collections').doc(collection.id), collection);
+        batch.set(userRef.collection('Collections').doc(collection.id), {
+          ...collection,
+          dateCreated: toFirestoreTimestamp(collection.dateCreated),
+          wearHistory: (collection.wearHistory || []).map((event) => ({
+            ...event,
+            date: toFirestoreTimestamp(event.date),
+          })),
+        });
       });
       customCategories.forEach((category) => {
         batch.set(userRef.collection('customCategories').doc(category.id), {

@@ -1,61 +1,90 @@
 import firestore from '@react-native-firebase/firestore';
-import { I18nManager } from 'react-native';
+import { getLocales, getTimeZone } from 'react-native-localize';
 
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+export const DISPLAY_LOCALE = 'en-US';
 
 const isDateKey = (value) => typeof value === 'string' && DATE_KEY_PATTERN.test(value);
 
 const dateKeyToDate = (dateKey) => {
-  const [year, month, day] = dateKey.split('-');
+  const [year, month, day] = dateKey.split('-').map(Number);
   return new Date(year, month - 1, day);
 };
 
-export const formatDate = (date) => {
-  const dateObj = timestampToDate(date);
-  if (!dateObj) return 'N/A';
-
-  return dateObj.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
-
-export const formatDateWithWeekday = (date) => {
-  const dateObj = timestampToDate(date);
-  if (!dateObj) return 'N/A';
-
-  const options = {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  };
-
-  if (dateObj.getFullYear() !== new Date().getFullYear()) {
-    options.year = 'numeric';
-  }
-
-  return dateObj.toLocaleDateString('en-US', options);
+const dateKeyToUtcDate = (dateKey) => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
 };
 
 export const getDeviceTimeZone = () => {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    return getTimeZone() || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   } catch {
     return 'UTC';
   }
 };
 
 export const getDeviceLocale = () => {
-  const nativeLocale = I18nManager.getConstants?.().localeIdentifier;
-  if (nativeLocale) return nativeLocale.replace('_', '-');
-
   try {
-    return Intl.DateTimeFormat().resolvedOptions().locale || 'en-US';
+    return (
+      getLocales()[0]?.languageTag || Intl.DateTimeFormat().resolvedOptions().locale || 'en-US'
+    );
   } catch {
     return 'en-US';
   }
 };
+
+export const timestampToDate = (timestamp) => {
+  if (timestamp == null) return null;
+  if (isDateKey(timestamp)) return dateKeyToDate(timestamp);
+  if (timestamp instanceof Date) return Number.isNaN(timestamp.getTime()) ? null : timestamp;
+
+  if (typeof timestamp.toDate === 'function') {
+    const date = timestamp.toDate();
+    return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null;
+  }
+
+  return null;
+};
+
+const getFormattingDate = (dateLike, timeZone = getDeviceTimeZone()) =>
+  isDateKey(dateLike)
+    ? { date: dateKeyToUtcDate(dateLike), timeZone: 'UTC' }
+    : { date: timestampToDate(dateLike), timeZone };
+
+const formatDateObject = ({
+  dateLike,
+  includeWeekday = false,
+  timeZone = getDeviceTimeZone(),
+  locale = DISPLAY_LOCALE,
+}) => {
+  const formattingDate = getFormattingDate(dateLike, timeZone);
+  if (!formattingDate.date) return 'N/A';
+
+  const yearFormatter = new Intl.DateTimeFormat(locale, {
+    timeZone: formattingDate.timeZone,
+    year: 'numeric',
+  });
+  const includeYear =
+    yearFormatter.format(formattingDate.date) !== yearFormatter.format(new Date());
+
+  return formattingDate.date.toLocaleDateString(locale, {
+    ...(includeWeekday && { weekday: 'long' }),
+    month: 'long',
+    day: 'numeric',
+    ...(includeYear && { year: 'numeric' }),
+    timeZone: formattingDate.timeZone,
+  });
+};
+
+export const formatDate = (date, timeZone = getDeviceTimeZone(), locale = DISPLAY_LOCALE) =>
+  formatDateObject({ dateLike: date, timeZone, locale });
+
+export const formatDateWithWeekday = (
+  date,
+  timeZone = getDeviceTimeZone(),
+  locale = DISPLAY_LOCALE
+) => formatDateObject({ dateLike: date, includeWeekday: true, timeZone, locale });
 
 export const getFirstDayOfWeek = (locale = getDeviceLocale()) => {
   try {
@@ -73,19 +102,6 @@ export const getFirstDayOfWeek = (locale = getDeviceLocale()) => {
   }
 
   return /(?:^|[-_])US(?:[-_]|$)/i.test(locale) ? 0 : 1;
-};
-
-export const timestampToDate = (timestamp) => {
-  if (!timestamp) return null;
-  if (isDateKey(timestamp)) return dateKeyToDate(timestamp);
-  if (typeof timestamp.toDate === 'function') return timestamp.toDate();
-  if (timestamp.seconds != null || timestamp._seconds != null) {
-    return new Date((timestamp.seconds ?? timestamp._seconds) * 1000);
-  }
-  if (timestamp instanceof Date) return Number.isNaN(timestamp.getTime()) ? null : timestamp;
-
-  const date = new Date(timestamp);
-  return Number.isNaN(date.getTime()) ? null : date;
 };
 
 export const getDateKeyInTimeZone = (dateLike, timeZone = getDeviceTimeZone()) => {
@@ -114,62 +130,6 @@ export const getDateKeyInTimeZone = (dateLike, timeZone = getDeviceTimeZone()) =
   return null;
 };
 
-const formatShortDateObject = (date, timeZone = getDeviceTimeZone()) => {
-  const options = {
-    month: 'short',
-    day: 'numeric',
-    timeZone,
-  };
-  const currentYear = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-  }).format(new Date());
-  const dateYear = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-  }).format(date);
+export const generateFirestoreTimestamp = () => firestore.Timestamp.now();
 
-  if (dateYear !== currentYear) {
-    options.year = 'numeric';
-  }
-
-  return date.toLocaleDateString('en-US', options);
-};
-
-export const formatDateShort = (dateLike, timeZone = getDeviceTimeZone()) => {
-  const date = timestampToDate(dateLike);
-  if (!date) return 'N/A';
-
-  return formatShortDateObject(date, timeZone);
-};
-
-export const formatTimeStamp = (timestamp) => {
-  const date = timestampToDate(timestamp);
-  if (!date) return 'N/A';
-
-  const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-  const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
-
-  const formattedDate = date.toLocaleDateString('en-US', dateOptions);
-  const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
-
-  return `${formattedDate} @ ${formattedTime}`;
-};
-
-export const formatTimeStampNoTime = (timestamp) => {
-  try {
-    const date = timestampToDate(timestamp);
-    if (!date) return 'N/A';
-    return formatShortDateObject(date);
-  } catch {
-    return 'N/A';
-  }
-};
-
-export const generateFirestoreTimestamp = () => {
-  return firestore.Timestamp.now();
-};
-
-export const generateFirestoreTimestampFromDate = (date) => {
-  return firestore.Timestamp.fromDate(date);
-};
+export const generateFirestoreTimestampFromDate = (date) => firestore.Timestamp.fromDate(date);

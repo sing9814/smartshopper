@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { fetchAllUserData, fetchMergedCategories } from '../utils/firebase';
 import Header from '../components/header';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,8 +18,10 @@ import { setUser } from '../redux/actions/userActions';
 import { setCategories, setCustomCategories } from '../redux/actions/userActions';
 import BottomSheet from '../components/bottomSheet';
 import {
+  DISPLAY_LOCALE,
   formatDate,
   getDateKeyInTimeZone,
+  getDeviceLocale,
   getDeviceTimeZone,
   getFirstDayOfWeek,
 } from '../utils/date';
@@ -31,10 +33,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { USE_FAKE_DATA, createMockCategories, selectedMockProfile } from '../utils/mockData';
 import auth from '@react-native-firebase/auth';
 import { getGuestData } from '../utils/guestStorage';
-import {
-  getCollectionFolderBackground,
-  getCollectionFolderColor,
-} from '../utils/collectionColor';
+import { getCollectionFolderBackground, getCollectionFolderColor } from '../utils/collectionColor';
 
 const mergeLocalCategories = (categories, customCategories) => {
   const merged = createMockCategories(categories, []);
@@ -46,6 +45,25 @@ const mergeLocalCategories = (categories, customCategories) => {
   });
 
   return merged;
+};
+
+const configureCalendarLocale = (locale) => {
+  if (!LocaleConfig.locales[locale]) {
+    const format = (date, options) =>
+      new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }).format(date);
+    const months = Array.from({ length: 12 }, (_, month) => new Date(Date.UTC(2020, month, 1)));
+    const sunday = new Date(Date.UTC(2020, 5, 7));
+    const days = Array.from({ length: 7 }, (_, day) => new Date(sunday.getTime() + day * 86400000));
+    LocaleConfig.locales[locale] = {
+      monthNames: months.map((date) => format(date, { month: 'long' })),
+      monthNamesShort: months.map((date) => format(date, { month: 'short' })),
+      dayNames: days.map((date) => format(date, { weekday: 'long' })),
+      dayNamesShort: days.map((date) => format(date, { weekday: 'short' })),
+      today: 'Today',
+    };
+  }
+
+  LocaleConfig.defaultLocale = locale;
 };
 
 const itemWasWornOnDate = (item, dateKey, timeZone) => {
@@ -90,8 +108,10 @@ const HomeScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
   const styles = createStyles(colors, tabBarHeight);
   const { height } = useWindowDimensions();
+  const deviceLocale = getDeviceLocale();
   const timeZone = getDeviceTimeZone();
-  const firstDayOfWeek = getFirstDayOfWeek();
+  const firstDayOfWeek = getFirstDayOfWeek(deviceLocale);
+  configureCalendarLocale(DISPLAY_LOCALE);
   useStatusBar(colors.primary);
 
   const calendarTheme = useMemo(
@@ -280,10 +300,7 @@ const HomeScreen = ({ navigation }) => {
     );
   }, [collections, selectedDate, timeZone]);
   const selectedCollectionItemIds = useMemo(
-    () =>
-      new Set(
-        selectedCollectionWears.flatMap(({ event }) => event.itemIds || [])
-      ),
+    () => new Set(selectedCollectionWears.flatMap(({ event }) => event.itemIds || [])),
     [selectedCollectionWears]
   );
   const selectedStandaloneItems = useMemo(() => {
@@ -291,8 +308,7 @@ const HomeScreen = ({ navigation }) => {
 
     return purchases.filter(
       (item) =>
-        itemWasWornOnDate(item, selectedDate, timeZone) &&
-        !selectedCollectionItemIds.has(item.key)
+        itemWasWornOnDate(item, selectedDate, timeZone) && !selectedCollectionItemIds.has(item.key)
     );
   }, [purchases, selectedCollectionItemIds, selectedDate, timeZone]);
 
@@ -336,7 +352,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <Calendar
-              key={`${colors.mode}-${firstDayOfWeek}`}
+              key={`${colors.mode}-${DISPLAY_LOCALE}-${firstDayOfWeek}`}
               firstDay={firstDayOfWeek}
               theme={calendarTheme}
               style={styles.calendar}
@@ -400,11 +416,7 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.collectionWearName} numberOfLines={1}>
                       {collection.name}
                     </Text>
-                    <Text
-                      style={styles.collectionWearLabel}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
+                    <Text style={styles.collectionWearLabel} numberOfLines={1} ellipsizeMode="tail">
                       {itemNames || 'No items'}
                     </Text>
                   </View>

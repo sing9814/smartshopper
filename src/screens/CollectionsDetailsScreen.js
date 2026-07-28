@@ -13,7 +13,7 @@ import ConfirmationModal from '../components/confirmationModal';
 import BottomSheet from '../components/bottomSheet';
 import CustomButton from '../components/button';
 import DatePicker from 'react-native-date-picker';
-import { formatDateWithWeekday, formatTimeStampNoTime, getDeviceTimeZone } from '../utils/date';
+import { formatDate, formatDateWithWeekday, getDeviceTimeZone } from '../utils/date';
 import { addWearToCollectionDate } from '../utils/collectionWears';
 import { getCollectionFolderBackground, getCollectionFolderColor } from '../utils/collectionColor';
 
@@ -232,7 +232,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
               </Text>
               {!isRemovingItems && (
                 <Text style={styles.lastWornText}>
-                  {lastWear ? `Last worn ${formatTimeStampNoTime(lastWear.date)}` : 'Never worn'}
+                  {lastWear ? `Last worn ${formatDate(lastWear.date)}` : 'Never worn'}
                 </Text>
               )}
             </View>
@@ -329,7 +329,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         ) : wearHistoryNewestFirst.length > 0 ? (
           <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
             {wearHistoryNewestFirst.map((event, index) => (
-              <View key={`${formatTimeStampNoTime(event.date)}-${index}`} style={styles.historyRow}>
+              <View key={`${formatDate(event.date)}-${index}`} style={styles.historyRow}>
                 <Text style={styles.historyDate}>{formatDateWithWeekday(event.date)}</Text>
               </View>
             ))}

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../theme/themeContext';
-import { formatDateShort, formatTimeStampNoTime } from '../utils/date';
+import { formatDate } from '../utils/date';
 import { useDispatch } from 'react-redux';
 import { setCurrentPurchase } from '../redux/actions/purchaseActions';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
@@ -65,13 +65,12 @@ const PurchaseList = ({
 
   const getLastWornText = (item) => {
     if (getOverlayText) return getOverlayText(item);
-    if (wornDate) return `Worn ${formatDateShort(wornDate)}`;
+    if (wornDate) return `Worn ${formatDate(wornDate)}`;
 
     const lastWear = item.wears?.[item.wears.length - 1];
 
     if (!lastWear) return 'Never worn';
-    if (lastWear.seconds) return `Last worn ${formatTimeStampNoTime(lastWear)}`;
-    return `Last worn ${formatDateShort(lastWear)}`;
+    return `Last worn ${formatDate(lastWear)}`;
   };
 
   const getCategoryLabel = (item) => {

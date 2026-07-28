@@ -1,11 +1,4 @@
-const timestampFromIso = (isoString) => {
-  const date = new Date(isoString);
-
-  return {
-    seconds: Math.floor(date.getTime() / 1000),
-    nanoseconds: date.getMilliseconds() * 1e6,
-  };
-};
+const timestampFromIso = (isoString) => new Date(isoString);
 
 const makeCategory = (category, subCategory) => ({
   category,
