@@ -130,12 +130,12 @@ const ItemsScreen = ({ navigation, route, selectedItems, setSelectedItems }) => 
 
       dispatch(setCollections(updatedCollections));
 
-      showBanner('Added items to collection', 'success');
+      showBanner('Added items to outfit', 'success');
       setCollectionSheetVisible(false);
       setSelectedItems([]);
     } catch (err) {
       console.error(err);
-      showBanner('Failed to add items to collection');
+      showBanner('Failed to add items to outfit');
     } finally {
       setIsAddingToCollection(false);
     }
@@ -262,7 +262,7 @@ const ItemsScreen = ({ navigation, route, selectedItems, setSelectedItems }) => 
       <BottomSheet
         visible={collectionSheetVisible}
         onClose={() => setCollectionSheetVisible(false)}
-        title="Add selected to collection"
+        title="Add selected to outfit"
         height="50%"
       >
         <ScrollView style={styles.scrollList}>

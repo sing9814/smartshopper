@@ -412,7 +412,7 @@ const HomeScreen = ({ navigation }) => {
                     });
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={`${collection.name} collection`}
+                  accessibilityLabel={`${collection.name} outfit`}
                 >
                   <View
                     style={[

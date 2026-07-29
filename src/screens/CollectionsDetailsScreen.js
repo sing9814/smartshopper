@@ -86,8 +86,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       }
       if (result.message) showBanner(result.message, 'success');
     } catch (error) {
-      console.error('Failed to wear collection:', error);
-      showBanner('Failed to add wears for this collection');
+      console.error('Failed to wear outfit:', error);
+      showBanner('Failed to add wear for this outfit');
     } finally {
       setIsAddingWears(false);
     }
@@ -103,8 +103,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       setModalVisible(false);
       returnToCollections();
     } catch (error) {
-      console.error('Failed to delete collection:', error);
-      showBanner('Failed to delete collection');
+      console.error('Failed to delete outfit:', error);
+      showBanner('Failed to delete outfit');
       setModalVisible(false);
     }
   };
@@ -148,6 +148,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       )}
       <ConfirmationModal
         visible={modalVisible}
+        title="Delete outfit"
         onConfirm={confirmDeleteCollection}
         onCancel={() => setModalVisible(false)}
         data={`"${currentCollection.name}"`}
@@ -173,7 +174,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         maximumDate={new Date()}
         mode="date"
         title={`When did you wear ${currentCollection.name}?`}
-        confirmText="Add wears"
+        confirmText="Add wear"
         onConfirm={(date) => {
           setIsWearDatePickerOpen(false);
           setSelectedWearDate(date);
@@ -190,7 +191,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
         <Text style={styles.topbarTitle} numberOfLines={1}>
-          Collection
+          Outfit
         </Text>
         <TouchableOpacity
           onPress={() => setActionSheetVisible(true)}
@@ -250,7 +251,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
           </View>
           {!isRemovingItems && itemCount > 0 && (
             <CustomButton
-              title={isAddingWears ? 'Adding...' : 'Add wears'}
+              title={isAddingWears ? 'Adding...' : 'Add wear'}
               onPress={() => {
                 setSelectedWearDate(new Date());
                 setIsWearDatePickerOpen(true);
@@ -268,7 +269,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             accessibilityState={{ selected: activeTab === 'items' }}
           >
             <Text style={[styles.tabText, activeTab === 'items' && styles.activeTabText]}>
-              In this collection ({itemCount})
+              In this outfit ({itemCount})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -313,7 +314,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
             ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyTitle}>No items here yet</Text>
-                <Text style={styles.emptyText}>Choose items to add to this collection.</Text>
+                <Text style={styles.emptyText}>Choose items to add to this outfit.</Text>
                 <CustomButton
                   title="Browse items"
                   onPress={() =>
@@ -337,7 +338,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>No wears logged yet</Text>
-            <Text style={styles.emptyText}>Add wears to start tracking this collection.</Text>
+            <Text style={styles.emptyText}>Add wears to start tracking this outfit.</Text>
           </View>
         )}
       </View>
@@ -345,7 +346,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       <OptionsSheet
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
-        title="Collection options"
+        title="Outfit options"
         options={[
           {
             label: 'Browse items to add',
@@ -369,7 +370,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
               ]
             : []),
           {
-            label: 'Delete collection',
+            label: 'Delete outfit',
             icon: <Ionicons name="trash-outline" size={20} color={colors.red} />,
             destructive: true,
             onPress: () => setModalVisible(true),

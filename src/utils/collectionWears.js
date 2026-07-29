@@ -47,12 +47,7 @@ export const isCollectionWornToday = ({ collection, purchases, timeZone }) => {
   );
 };
 
-export const addWearToCollectionDate = async ({
-  collection,
-  purchases,
-  timeZone,
-  wearDate,
-}) => {
+export const addWearToCollectionDate = async ({ collection, purchases, timeZone, wearDate }) => {
   const collectionPurchases = getCollectionPurchases(collection, purchases);
 
   if (collectionPurchases.length === 0) {
@@ -70,9 +65,7 @@ export const addWearToCollectionDate = async ({
   const updates = collectionPurchases
     .filter(
       (purchase) =>
-        !(purchase.wears || []).some(
-          (wear) => getDateKeyInTimeZone(wear, timeZone) === wearDateKey
-        )
+        !(purchase.wears || []).some((wear) => getDateKeyInTimeZone(wear, timeZone) === wearDateKey)
     )
     .map((purchase) => ({
       purchaseId: purchase.key,
@@ -86,9 +79,7 @@ export const addWearToCollectionDate = async ({
     return {
       updatedPurchases: purchases,
       didUpdate: false,
-      message: `Every item in this collection is already worn ${
-        isToday ? 'today' : 'on that date'
-      }`,
+      message: `Every item in this outfit is already worn ${isToday ? 'today' : 'on that date'}`,
     };
   }
 
@@ -117,9 +108,7 @@ export const addWearToCollectionDate = async ({
   const skippedCount = collectionPurchases.length - updates.length;
   const addedText = `${updates.length} wear${updates.length === 1 ? '' : 's'} added`;
   const skippedText =
-    skippedCount > 0
-      ? `, ${skippedCount} already worn ${isToday ? 'today' : 'on that date'}`
-      : '';
+    skippedCount > 0 ? `, ${skippedCount} already worn ${isToday ? 'today' : 'on that date'}` : '';
 
   return {
     updatedPurchases,

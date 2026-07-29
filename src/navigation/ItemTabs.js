@@ -23,8 +23,12 @@ const ItemTabs = () => {
         swipeEnabled: true,
       }}
     >
-      <Tab.Screen name="Items" children={renderItemsScreen} />
-      <Tab.Screen name="Collections" component={CollectionsScreen} />
+      <Tab.Screen name="Items" children={renderItemsScreen} options={{ tabBarLabel: 'Wardrobe' }} />
+      <Tab.Screen
+        name="Collections"
+        component={CollectionsScreen}
+        options={{ tabBarLabel: 'Outfits' }}
+      />
     </Tab.Navigator>
   );
 };

@@ -62,7 +62,7 @@ const CollectionsScreen = ({ navigation }) => {
     const trimmedName = collectionName.trim();
 
     if (!trimmedName) {
-      showBanner('Please enter a name for your collection.');
+      showBanner('Please enter a name for your outfit.');
       return;
     }
 
@@ -91,8 +91,8 @@ const CollectionsScreen = ({ navigation }) => {
       setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
       setCreateSheetVisible(false);
     } catch (error) {
-      console.error('Error adding collection:', error);
-      showBanner('An error occurred while creating the collection.');
+      console.error('Error adding outfit:', error);
+      showBanner('An error occurred while creating the outfit.');
     } finally {
       setIsCreatingCollection(false);
     }
@@ -124,8 +124,8 @@ const CollectionsScreen = ({ navigation }) => {
       }
       if (result.message) showBanner(result.message, 'success');
     } catch (error) {
-      console.error('Failed to wear collection:', error);
-      showBanner('Failed to add wears for this collection');
+      console.error('Failed to wear outfit:', error);
+      showBanner('Failed to add wear for this outfit');
     } finally {
       setAddingWearCollectionId(null);
     }
@@ -147,7 +147,7 @@ const CollectionsScreen = ({ navigation }) => {
     const previewText = itemCount > 0 ? itemNames.join(', ') : '';
 
     const isAddingWear = addingWearCollectionId === item.id;
-    let actionTitle = 'Add wears';
+    let actionTitle = 'Add wear';
     if (itemCount === 0) actionTitle = 'Add items';
     else if (isAddingWear) actionTitle = 'Adding';
 
@@ -223,9 +223,9 @@ const CollectionsScreen = ({ navigation }) => {
         title={
           wearDatePickerCollection
             ? `When did you wear ${wearDatePickerCollection.name}?`
-            : 'When did you wear this collection?'
+            : 'When did you wear this outfit?'
         }
-        confirmText="Add wears"
+        confirmText="Add wear"
         onConfirm={(date) => {
           const collection = wearDatePickerCollection;
           setWearDatePickerCollection(null);
@@ -242,8 +242,8 @@ const CollectionsScreen = ({ navigation }) => {
         contentContainerStyle={[styles.flatlist, collections.length === 0 && styles.emptyList]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No collections yet</Text>
-            <Text style={styles.emptyText}>Create collections to organize your items</Text>
+            <Text style={styles.emptyTitle}>No outfits yet</Text>
+            <Text style={styles.emptyText}>Create outfits from items you wear together</Text>
           </View>
         }
       />
@@ -253,12 +253,12 @@ const CollectionsScreen = ({ navigation }) => {
       <BottomSheet
         visible={createSheetVisible}
         onClose={closeCreateSheet}
-        title="Create collection"
+        title="Create outfit"
         height={350}
       >
         <View style={styles.sheetContent}>
           <CustomInput
-            placeholder="Enter collection name"
+            placeholder="Enter outfit name"
             value={collectionName}
             onChangeText={setCollectionName}
           />

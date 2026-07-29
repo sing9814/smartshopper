@@ -23,7 +23,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
 
   const collectionId = route.params?.addToCollectionId;
   const collection = collections.find((item) => item.id === collectionId);
-  const collectionName = route.params?.addToCollectionName || collection?.name || 'collection';
+  const collectionName = route.params?.addToCollectionName || collection?.name || 'outfit';
   const availablePurchases = purchases.filter(
     (purchase) => !(collection?.items || []).includes(purchase.key)
   );
@@ -58,8 +58,8 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
       );
       navigation.goBack();
     } catch (error) {
-      console.error('Failed to add items to collection:', error);
-      setBanner({ message: 'Failed to add items to this collection', type: 'error' });
+      console.error('Failed to add items to outfit:', error);
+      setBanner({ message: 'Failed to add items to this outfit', type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -102,7 +102,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
           onPress={saveItems}
           disabled={selectedItems.length === 0 || saving}
           accessibilityRole="button"
-          accessibilityLabel="Save selected items to collection"
+          accessibilityLabel="Save selected items to outfit"
         >
           <Text
             style={[
@@ -129,7 +129,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
         onItemToggle={toggleItem}
         selectionMode
         renderEndAction={renderSelectionIndicator}
-        emptyMessage={allItemsAdded ? 'All items are already in this collection' : 'No items found'}
+        emptyMessage={allItemsAdded ? 'All items are already in this outfit' : 'No items found'}
         emptyHint={allItemsAdded ? 'There are no more items to add' : undefined}
       />
     </View>

@@ -98,7 +98,7 @@ const OnboardingScreen = ({ route, navigation }) => {
       colors: [lightTheme.secondary, lightTheme.primary],
       icon: 'layers-outline',
       title: 'Wear more together',
-      description: 'Create collections from items you wear together and log them all in one tap',
+      description: 'Create outfits from items you wear together and log them all in one tap',
     },
     {
       colors: [lightTheme.primary, lightTheme.primaryDark],
