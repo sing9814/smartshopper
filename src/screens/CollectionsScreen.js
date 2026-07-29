@@ -22,6 +22,19 @@ import {
 } from '../utils/collectionColor';
 import { addWearToCollectionDate } from '../utils/collectionWears';
 
+const getDefaultOutfitName = (collections) => {
+  const existingNames = new Set(
+    collections.map((collection) => collection.name?.trim().toLowerCase()).filter(Boolean)
+  );
+  let number = 1;
+
+  while (existingNames.has(`outfit ${number}`)) {
+    number += 1;
+  }
+
+  return `Outfit ${number}`;
+};
+
 const CollectionsScreen = ({ navigation }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -58,13 +71,13 @@ const CollectionsScreen = ({ navigation }) => {
     setSelectedFolderColorName(DEFAULT_FOLDER_COLOR);
   };
 
-  const createCollection = async () => {
-    const trimmedName = collectionName.trim();
+  const openCreateSheet = () => {
+    setCollectionName(getDefaultOutfitName(collections));
+    setCreateSheetVisible(true);
+  };
 
-    if (!trimmedName) {
-      showBanner('Please enter a name for your outfit.');
-      return;
-    }
+  const createCollection = async () => {
+    const trimmedName = collectionName.trim() || getDefaultOutfitName(collections);
 
     setIsCreatingCollection(true);
 
@@ -248,7 +261,7 @@ const CollectionsScreen = ({ navigation }) => {
         }
       />
 
-      <AddButton onPress={() => setCreateSheetVisible(true)} scale={1.5} style={styles.button} />
+      <AddButton onPress={openCreateSheet} scale={1.5} style={styles.button} />
 
       <BottomSheet
         visible={createSheetVisible}
@@ -261,6 +274,7 @@ const CollectionsScreen = ({ navigation }) => {
             placeholder="Enter outfit name"
             value={collectionName}
             onChangeText={setCollectionName}
+            selectTextOnFocus
           />
 
           <View>

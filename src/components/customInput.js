@@ -14,6 +14,7 @@ const CustomInput = ({
   component,
   prefix,
   editable = true,
+  selectTextOnFocus = false,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -53,6 +54,7 @@ const CustomInput = ({
           secureTextEntry={secureTextEntry}
           multiline={multiline}
           editable={editable}
+          selectTextOnFocus={selectTextOnFocus}
           autoCapitalize={autoCapitalize}
           textAlignVertical={multiline ? 'top' : 'center'}
         />

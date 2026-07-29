@@ -65,8 +65,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const navigation = useNavigation();
 
   const [itemName, setItemName] = useState('');
-  const [dismissedSuggestedName, setDismissedSuggestedName] = useState('');
-  const [appliedSuggestedName, setAppliedSuggestedName] = useState('');
+  const [hasEditedItemName, setHasEditedItemName] = useState(false);
   const [category, setCategory] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const formattedDate = selectedDate ? dayjs.utc(selectedDate).format('ddd, MMM D') : null;
@@ -91,11 +90,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const displayItemColor = getCurrentItemColor(itemColor, colors);
 
   const suggestedName = getSuggestedItemName(category, itemColor);
-  const showNameSuggestion =
-    suggestedName &&
-    itemName !== suggestedName &&
-    dismissedSuggestedName !== suggestedName &&
-    appliedSuggestedName !== suggestedName;
 
   const showBanner = (message, type = 'error', onPress = null) => {
     setBanner(null);
@@ -107,6 +101,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   useEffect(() => {
     if (purchase) {
       setItemName(purchase.name);
+      setHasEditedItemName(true);
       setCategory(purchase.category);
       setSelectedDate(timestampToDate(purchase.datePurchased));
       setPaidPrice(purchase.paidPrice != null ? convertCentsToDollars(purchase.paidPrice) : null);
@@ -118,17 +113,21 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
     }
     if (name) {
       setItemName(name);
-      setDismissedSuggestedName('');
-      setAppliedSuggestedName('');
+      setHasEditedItemName(true);
     } else if (name === null) {
       setItemName('');
-      setDismissedSuggestedName('');
-      setAppliedSuggestedName('');
+      setHasEditedItemName(false);
     }
     if (date) {
       setSelectedDate(dayjs(date + 'T12:00:00').toDate());
     }
   }, [purchase, name, date]);
+
+  useEffect(() => {
+    if (!edit && !hasEditedItemName) {
+      setItemName(suggestedName);
+    }
+  }, [edit, hasEditedItemName, suggestedName]);
 
   useFocusEffect(
     useCallback(() => {
@@ -291,8 +290,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
   const resetFields = () => {
     setItemName('');
-    setDismissedSuggestedName('');
-    setAppliedSuggestedName('');
+    setHasEditedItemName(false);
     setCategory(null);
     setNote(null);
     setPaidPrice(null);
@@ -394,10 +392,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                       <View style={styles.noColorSlash} />
                     </View>
                     <Text
-                      style={[
-                        styles.colorOptionText,
-                        !itemColor && styles.colorOptionTextSelected,
-                      ]}
+                      style={[styles.colorOptionText, !itemColor && styles.colorOptionTextSelected]}
                     >
                       No color
                     </Text>
@@ -445,35 +440,11 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
               <CustomInput
                 placeholder="Item name"
                 value={itemName}
-                onChangeText={setItemName}
-                component={
-                  showNameSuggestion && (
-                    <View style={styles.nameSuggestion}>
-                      <TouchableOpacity
-                        style={styles.nameSuggestionApply}
-                        onPress={() => {
-                          setItemName(suggestedName);
-                          setAppliedSuggestedName(suggestedName);
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Use suggested name ${suggestedName}`}
-                      >
-                        <Text style={styles.nameSuggestionLabel} numberOfLines={1}>
-                          {suggestedName}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.nameSuggestionDismiss}
-                        onPress={() => setDismissedSuggestedName(suggestedName)}
-                        accessibilityRole="button"
-                        accessibilityLabel="Dismiss suggested name"
-                        hitSlop={8}
-                      >
-                        <Ionicons name="close" size={13} color={colors.gray} />
-                      </TouchableOpacity>
-                    </View>
-                  )
-                }
+                onChangeText={(value) => {
+                  setItemName(value);
+                  setHasEditedItemName(true);
+                }}
+                selectTextOnFocus={!edit && !hasEditedItemName && !!suggestedName}
               />
 
               <View style={styles.wearGoalField}>
@@ -720,36 +691,6 @@ const createStyles = (colors) =>
     },
     colorOptionTextSelected: {
       color: colors.primary,
-    },
-    nameSuggestion: {
-      maxWidth: 170,
-      minHeight: 28,
-      paddingVertical: 6,
-      paddingLeft: 9,
-      paddingRight: 4,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: colors.lightGrey,
-      backgroundColor: colors.bg,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      marginLeft: 8,
-    },
-    nameSuggestionApply: {
-      flexShrink: 1,
-    },
-    nameSuggestionLabel: {
-      color: colors.black,
-      fontSize: 13,
-      flexShrink: 1,
-    },
-    nameSuggestionDismiss: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     wearGoalField: {
       gap: 10,

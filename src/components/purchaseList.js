@@ -44,12 +44,6 @@ const PurchaseList = ({
 
   const dispatch = useDispatch();
 
-  const renderFooter = () => (
-    <View style={styles.footer}>
-      <Text style={styles.footerText}>End of list</Text>
-    </View>
-  );
-
   const onPress = (item) => {
     if (disableItemPress) return;
 
@@ -211,7 +205,6 @@ const PurchaseList = ({
         <FlatList
           data={purchases}
           contentContainerStyle={styles.list}
-          ListFooterComponent={renderFooter}
           refreshControl={
             onRefresh && <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -370,10 +363,6 @@ const createStyles = (colors) =>
     date: {
       fontSize: 14,
       color: colors.gray,
-    },
-    footer: {
-      padding: 8,
-      alignItems: 'center',
     },
     footerText: {
       color: colors.gray,

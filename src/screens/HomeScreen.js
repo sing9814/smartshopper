@@ -480,6 +480,8 @@ const HomeLoadingPlaceholders = ({ styles }) => {
         </View>
         <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
         <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
+        <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
+        <PlaceholderBlock styles={styles} style={styles.pCalendarLine} />
         <PlaceholderBlock styles={styles} style={styles.pCalendarShortLine} />
       </View>
     </>
@@ -589,6 +591,7 @@ const createStyles = (colors, tabBarHeight) =>
     pCalendarCard: {
       backgroundColor: colors.white,
       borderRadius: 10,
+      minHeight: 300,
       paddingHorizontal: 14,
       paddingTop: 16,
       paddingBottom: 18,
@@ -644,12 +647,12 @@ const createStyles = (colors, tabBarHeight) =>
     },
     pCalendarLine: {
       width: '100%',
-      height: 34,
+      height: 36,
       borderRadius: 8,
     },
     pCalendarShortLine: {
       width: '72%',
-      height: 28,
+      height: 34,
       borderRadius: 8,
     },
     totalWearsCard: {

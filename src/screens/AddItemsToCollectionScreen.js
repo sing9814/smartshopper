@@ -83,6 +83,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
+          style={[styles.headerActionContainer, styles.headerActionLeft]}
           onPress={() => navigation.goBack()}
           disabled={saving}
           accessibilityRole="button"
@@ -99,6 +100,7 @@ const AddItemsToCollectionScreen = ({ navigation, route }) => {
           </Text>
         </View>
         <TouchableOpacity
+          style={[styles.headerActionContainer, styles.headerActionRight]}
           onPress={saveItems}
           disabled={selectedItems.length === 0 || saving}
           accessibilityRole="button"
@@ -152,6 +154,15 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       paddingHorizontal: 12,
+    },
+    headerActionContainer: {
+      width: 58,
+    },
+    headerActionLeft: {
+      alignItems: 'flex-start',
+    },
+    headerActionRight: {
+      alignItems: 'flex-end',
     },
     headerTitle: {
       fontSize: 18,
