@@ -230,35 +230,48 @@ const HomeScreen = ({ navigation }) => {
     if (loading) return {};
 
     const dates = {};
+    const addDot = (dateKey, key, color) => {
+      const existingDots = dates[dateKey]?.dots || [];
+      if (existingDots.some((dot) => dot.color === color) || existingDots.length >= 3) return;
 
-    purchases.forEach((item) => {
-      const wears = item.wears || [];
-      const lastWearDateKey = getDateKeyInTimeZone(wears[wears.length - 1], timeZone);
-
-      wears.forEach((wear) => {
-        const dateKey = getDateKeyInTimeZone(wear, timeZone);
-        if (!dateKey) return;
-        const isLatestWear = dateKey === lastWearDateKey;
-
-        dates[dateKey] = {
-          ...dates[dateKey],
-          marked: true,
-          dotColor: isLatestWear ? colors.secondary : dates[dateKey]?.dotColor || colors.primary,
-        };
-      });
-    });
+      dates[dateKey] = {
+        ...dates[dateKey],
+        marked: true,
+        dots: [...existingDots, { key, color, selectedDotColor: color }],
+      };
+    };
+    const collectionEvents = [];
+    const collectionItemIdsByDate = {};
 
     collections.forEach((collection) => {
       (collection.wearHistory || []).forEach((event) => {
         const dateKey = getDateKeyInTimeZone(event.date, timeZone);
         if (!dateKey) return;
 
-        dates[dateKey] = {
-          ...dates[dateKey],
-          marked: true,
-          dotColor: dates[dateKey]?.dotColor || colors.primary,
-        };
+        collectionEvents.push({ collection, dateKey });
+        collectionItemIdsByDate[dateKey] ??= new Set();
+        (event.itemIds || []).forEach((itemId) => collectionItemIdsByDate[dateKey].add(itemId));
       });
+    });
+
+    purchases.forEach((item) => {
+      const wears = item.wears || [];
+
+      wears.forEach((wear) => {
+        const dateKey = getDateKeyInTimeZone(wear, timeZone);
+        if (!dateKey) return;
+        if (collectionItemIdsByDate[dateKey]?.has(item.key)) return;
+        addDot(dateKey, 'standalone-items', colors.primary);
+      });
+    });
+
+    collectionEvents.forEach(({ collection, dateKey }) => {
+      const folderColor = getCollectionFolderColor(collection.folderColor, colors);
+      const collectionColor =
+        collection.folderColor?.name === 'White' && colors.mode !== 'dark'
+          ? colors.gray
+          : folderColor;
+      addDot(dateKey, `collection-${collection.id}`, collectionColor);
     });
 
     if (selectedDate) {
@@ -267,16 +280,17 @@ const HomeScreen = ({ navigation }) => {
         selected: true,
         selectedColor: colors.primaryLight,
         selectedTextColor: colors.primaryDark,
-        selectedDotColor: dates[selectedDate]?.dotColor || colors.primary,
       };
     }
 
     return dates;
   }, [
+    colors.itemColorOptions,
+    colors.gray,
+    colors.mode,
     colors.primary,
     colors.primaryDark,
     colors.primaryLight,
-    colors.secondary,
     collections,
     loading,
     purchases,
@@ -354,6 +368,7 @@ const HomeScreen = ({ navigation }) => {
             <Calendar
               key={`${colors.mode}-${DISPLAY_LOCALE}-${firstDayOfWeek}`}
               firstDay={firstDayOfWeek}
+              markingType="multi-dot"
               theme={calendarTheme}
               style={styles.calendar}
               onDayPress={(day) => {
