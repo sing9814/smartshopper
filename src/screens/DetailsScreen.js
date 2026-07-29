@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
 import { updatePurchaseWears } from '../utils/firebase';
-import DetailsSheet from '../components/detailsSheet';
+import OptionsSheet from '../components/optionsSheet';
 import WearHistoryChart from '../components/WearHistoryChart';
 import { formatCentsAsCostPerWear, formatCentsAsCurrency } from '../utils/price';
 import { DEFAULT_WEAR_GOAL, getWearGoalProgress, getWearGoalProgressColors } from '../utils/wears';
@@ -511,17 +511,36 @@ const DetailsScreen = ({ navigation }) => {
         onCancel={() => setIsWearDatePickerOpen(false)}
       />
 
-      <DetailsSheet
+      <OptionsSheet
         visible={isSheetVisible}
         onClose={() => setIsSheetVisible(false)}
-        navigation={navigation}
-        currentPurchase={currentPurchase}
-        purchases={purchases}
-        dispatch={dispatch}
-        setPurchases={setPurchases}
-        setModalVisible={setModalVisible}
-        isEditingWearHistory={isEditingWearHistory}
-        onToggleWearHistoryEditing={() => setIsEditingWearHistory((isEditing) => !isEditing)}
+        title="Options"
+        options={[
+          {
+            label: 'Edit item details',
+            icon: <FontAwesome name="pencil" size={20} color={colors.black} />,
+            onPress: () => navigation.navigate('Edit', { purchase: currentPurchase }),
+          },
+          {
+            label: isEditingWearHistory ? 'Done editing wear history' : 'Edit wear history',
+            icon: <FontAwesome name="history" size={20} color={colors.black} />,
+            onPress: () => setIsEditingWearHistory((isEditing) => !isEditing),
+          },
+          {
+            label: 'Duplicate item',
+            icon: <FontAwesome name="copy" size={20} color={colors.black} />,
+            onPress: () =>
+              navigation.navigate('Add', {
+                purchase: { ...currentPurchase },
+              }),
+          },
+          {
+            label: 'Delete item',
+            icon: <FontAwesome name="trash" size={20} color={colors.red} />,
+            destructive: true,
+            onPress: () => setModalVisible(true),
+          },
+        ]}
       />
     </View>
   );

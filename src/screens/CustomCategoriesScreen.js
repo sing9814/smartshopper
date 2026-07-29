@@ -1,4 +1,4 @@
-import { FlatList, View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { FlatList, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/themeContext';
 import { useSelector } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -10,7 +10,7 @@ import ConfirmationModal from '../components/confirmationModal';
 import { deleteDoc } from '../utils/firebase';
 import { setCustomCategories, setCategories } from '../redux/actions/userActions';
 import { useDispatch } from 'react-redux';
-import BottomSheet from '../components/bottomSheet';
+import OptionsSheet from '../components/optionsSheet';
 import CustomButton from '../components/button';
 
 const CustomCategoriesScreen = ({ navigation }) => {
@@ -169,51 +169,32 @@ const CustomCategoriesScreen = ({ navigation }) => {
         }}
       />
 
-      <BottomSheet
+      <OptionsSheet
         visible={showMenuSheet}
         onClose={() => setShowMenuSheet(false)}
         title="Custom subcategories"
-        height={260}
-      >
-        <Pressable
-          style={styles.sheetRow}
-          onPress={() => {
-            setShowMenuSheet(false);
-            setEditingCategory(null);
-            setShowEditSheet(true);
-          }}
-        >
-          <Ionicons
-            name="add-circle-outline"
-            size={20}
-            color={colors.black}
-            style={styles.sheetIcon}
-          />
-          <Text style={styles.sheetText}>Add subcategory</Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.sheetRow}
-          onPress={() => {
-            setShowMenuSheet(false);
-            setManagementMode('edit');
-          }}
-        >
-          <FontAwesome name="pencil" size={20} color={colors.black} style={styles.sheetIcon} />
-          <Text style={styles.sheetText}>Edit subcategories</Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.sheetRow}
-          onPress={() => {
-            setShowMenuSheet(false);
-            setManagementMode('delete');
-          }}
-        >
-          <Ionicons name="trash-outline" size={20} color={colors.red} style={styles.sheetIcon} />
-          <Text style={styles.deleteText}>Delete subcategories</Text>
-        </Pressable>
-      </BottomSheet>
+        options={[
+          {
+            label: 'Add subcategory',
+            icon: <Ionicons name="add-circle-outline" size={20} color={colors.black} />,
+            onPress: () => {
+              setEditingCategory(null);
+              setShowEditSheet(true);
+            },
+          },
+          {
+            label: 'Edit subcategories',
+            icon: <FontAwesome name="pencil" size={20} color={colors.black} />,
+            onPress: () => setManagementMode('edit'),
+          },
+          {
+            label: 'Delete subcategories',
+            icon: <Ionicons name="trash-outline" size={20} color={colors.red} />,
+            destructive: true,
+            onPress: () => setManagementMode('delete'),
+          },
+        ]}
+      />
 
       <ConfirmationModal
         data={pendingDelete?.name}
@@ -353,23 +334,6 @@ const createStyles = (colors) =>
       textAlign: 'center',
       lineHeight: 21,
       marginBottom: 10,
-    },
-    sheetRow: {
-      width: '100%',
-      paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    sheetIcon: {
-      marginRight: 10,
-    },
-    sheetText: {
-      color: colors.black,
-      fontSize: 15,
-    },
-    deleteText: {
-      color: colors.red,
-      fontSize: 15,
     },
   });
 

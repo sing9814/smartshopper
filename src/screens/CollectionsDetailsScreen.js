@@ -10,7 +10,7 @@ import { deleteDoc, removeItemsFromCollection } from '../utils/firebase';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Banner from '../components/banner';
 import ConfirmationModal from '../components/confirmationModal';
-import BottomSheet from '../components/bottomSheet';
+import OptionsSheet from '../components/optionsSheet';
 import CustomButton from '../components/button';
 import DatePicker from 'react-native-date-picker';
 import { formatDate, formatDateWithWeekday, getDeviceTimeZone } from '../utils/date';
@@ -342,60 +342,40 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      <BottomSheet
+      <OptionsSheet
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
         title="Collection options"
-        height={280}
-      >
-        <TouchableOpacity
-          style={styles.sheetRow}
-          onPress={() => {
-            setActionSheetVisible(false);
-            navigation.navigate('AddItemsToCollection', {
-              addToCollectionId: currentCollection.id,
-              addToCollectionName: currentCollection.name,
-            });
-          }}
-        >
-          <Ionicons
-            name="shirt-outline"
-            size={20}
-            color={colors.primary}
-            style={styles.sheetIcon}
-          />
-          <Text style={styles.sheetText}>Browse items to add</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.sheetRow, itemCount === 0 && styles.sheetRowDisabled]}
-          disabled={itemCount === 0}
-          onPress={() => {
-            setActionSheetVisible(false);
-            setActiveTab('items');
-            setIsRemovingItems(true);
-          }}
-        >
-          <Ionicons
-            name="close-outline"
-            size={20}
-            color={itemCount === 0 ? colors.gray : colors.primary}
-            style={styles.sheetIcon}
-          />
-          <Text style={[styles.sheetText, itemCount === 0 && styles.sheetTextDisabled]}>
-            Remove items
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.sheetRow}
-          onPress={() => {
-            setActionSheetVisible(false);
-            setModalVisible(true);
-          }}
-        >
-          <Ionicons name="trash-outline" size={20} color={colors.red} style={styles.sheetIcon} />
-          <Text style={styles.deleteText}>Delete collection</Text>
-        </TouchableOpacity>
-      </BottomSheet>
+        options={[
+          {
+            label: 'Browse items to add',
+            icon: <Ionicons name="shirt-outline" size={20} color={colors.primary} />,
+            onPress: () =>
+              navigation.navigate('AddItemsToCollection', {
+                addToCollectionId: currentCollection.id,
+                addToCollectionName: currentCollection.name,
+              }),
+          },
+          ...(itemCount > 0
+            ? [
+                {
+                  label: 'Remove items',
+                  icon: <Ionicons name="close-outline" size={20} color={colors.primary} />,
+                  onPress: () => {
+                    setActiveTab('items');
+                    setIsRemovingItems(true);
+                  },
+                },
+              ]
+            : []),
+          {
+            label: 'Delete collection',
+            icon: <Ionicons name="trash-outline" size={20} color={colors.red} />,
+            destructive: true,
+            onPress: () => setModalVisible(true),
+          },
+        ]}
+      />
     </View>
   );
 };
@@ -564,31 +544,6 @@ const createStyles = (colors) =>
       textAlign: 'center',
       lineHeight: 26,
       marginBottom: 12,
-    },
-    sheetRow: {
-      width: '100%',
-      minHeight: 52,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    sheetRowDisabled: {
-      opacity: 0.5,
-    },
-    sheetIcon: {
-      marginRight: 10,
-    },
-    sheetText: {
-      color: colors.black,
-      fontSize: 15,
-      fontWeight: '500',
-    },
-    sheetTextDisabled: {
-      color: colors.gray,
-    },
-    deleteText: {
-      color: colors.red,
-      fontSize: 15,
-      fontWeight: '500',
     },
   });
 
