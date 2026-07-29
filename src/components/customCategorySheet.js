@@ -115,7 +115,7 @@ const CustomCategorySheet = ({
 
   return (
     <BottomSheet
-      title={editingCategory ? 'Edit Subcategory' : 'Add subcategory'}
+      title={editingCategory ? 'Edit category' : 'Add category'}
       visible={visible}
       onClose={onClose}
       height={420}
@@ -125,7 +125,7 @@ const CustomCategorySheet = ({
           <View style={styles.fields}>
             <CustomInput
               style={styles.sheetInput}
-              placeholder="Enter subcategory name"
+              placeholder="Enter category name"
               value={customName}
               onChangeText={setCustomName}
             />

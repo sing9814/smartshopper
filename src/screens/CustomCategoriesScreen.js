@@ -100,7 +100,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           <FontAwesome name="long-arrow-left" size={26} color="white" />
         </TouchableOpacity>
         <Text style={styles.topbarTitle} numberOfLines={1}>
-          Custom subcategories
+          Custom categories
         </Text>
         <TouchableOpacity
           onPress={() => {
@@ -113,9 +113,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           hitSlop={8}
           style={[styles.topbarAction, managementMode && styles.topbarDoneAction]}
           accessibilityRole="button"
-          accessibilityLabel={
-            managementMode ? `Done with ${managementMode} mode` : 'Subcategory menu'
-          }
+          accessibilityLabel={managementMode ? `Done with ${managementMode} mode` : 'Category menu'}
         >
           {managementMode ? (
             <Text style={styles.topbarDone}>Done</Text>
@@ -136,9 +134,9 @@ const CustomCategoriesScreen = ({ navigation }) => {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyTitle}>Nothing here yet</Text>
-              <Text style={styles.emptyText}>Create your own subcategories under a category.</Text>
+              <Text style={styles.emptyText}>Create your own categories.</Text>
               <CustomButton
-                title="Add subcategory"
+                title="Add category"
                 onPress={() => {
                   setEditingCategory(null);
                   setShowEditSheet(true);
@@ -160,9 +158,9 @@ const CustomCategoriesScreen = ({ navigation }) => {
         editingCategory={editingCategory}
         onSave={(_, wasSaved) => {
           if (wasSaved) {
-            showBanner(editingCategory ? 'Subcategory updated!' : 'Subcategory added!', 'success');
+            showBanner(editingCategory ? 'Category updated!' : 'Category added!', 'success');
           } else {
-            showBanner('Failed to update subcategory.');
+            showBanner('Failed to update category.');
           }
           setShowEditSheet(false);
           setEditingCategory(null);
@@ -172,10 +170,10 @@ const CustomCategoriesScreen = ({ navigation }) => {
       <OptionsSheet
         visible={showMenuSheet}
         onClose={() => setShowMenuSheet(false)}
-        title="Custom subcategories"
+        title="Custom categories"
         options={[
           {
-            label: 'Add subcategory',
+            label: 'Add category',
             icon: <Ionicons name="add-circle-outline" size={20} color={colors.black} />,
             onPress: () => {
               setEditingCategory(null);
@@ -183,12 +181,12 @@ const CustomCategoriesScreen = ({ navigation }) => {
             },
           },
           {
-            label: 'Edit subcategories',
+            label: 'Edit categories',
             icon: <FontAwesome name="pencil" size={20} color={colors.black} />,
             onPress: () => setManagementMode('edit'),
           },
           {
-            label: 'Delete subcategories',
+            label: 'Delete categories',
             icon: <Ionicons name="trash-outline" size={20} color={colors.red} />,
             destructive: true,
             onPress: () => setManagementMode('delete'),
@@ -216,9 +214,9 @@ const CustomCategoriesScreen = ({ navigation }) => {
             }));
             dispatch(setCategories(updatedCategories.filter((cat) => cat.id !== pendingDelete.id)));
 
-            showBanner('Subcategory deleted!', 'success');
+            showBanner('Category deleted!', 'success');
           } catch (err) {
-            showBanner('Failed to delete subcategory.');
+            showBanner('Failed to delete category.');
           }
 
           setShowDeletePopup(false);

@@ -277,7 +277,7 @@ const InsightsScreen = () => {
                       accessibilityState={{ expanded: showUnusedColors }}
                     >
                       <Text style={styles.legendGroupTitle}>
-                        {showUnusedColors ? 'Hide' : 'View'} unused colors ({unusedColors.length})
+                        Unused colors ({unusedColors.length})
                       </Text>
                       <Ionicons
                         name={showUnusedColors ? 'chevron-up' : 'chevron-down'}
@@ -333,7 +333,7 @@ const createStyles = (colors, tabBarHeight) =>
     },
     scrollView: {
       flexGrow: 1,
-      paddingTop: 10,
+      paddingTop: 16,
       paddingBottom: tabBarHeight + 16,
       paddingHorizontal: 16,
       gap: 10,

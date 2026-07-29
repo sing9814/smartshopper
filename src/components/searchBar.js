@@ -36,9 +36,9 @@ const SearchBar = ({ value, onChangeText, placeholder = 'Search', style }) => {
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
-      minHeight: 46,
-      borderRadius: 12,
-      paddingHorizontal: 12,
+      minHeight: 52,
+      borderRadius: 10,
+      paddingHorizontal: 14,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
@@ -49,7 +49,8 @@ const createStyles = (colors) =>
     input: {
       flex: 1,
       color: colors.black,
-      fontSize: 15,
+      lineHeight: 22,
+      paddingHorizontal: 0,
       paddingVertical: 0,
     },
     clearButton: {

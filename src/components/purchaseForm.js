@@ -566,10 +566,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
           dispatch(setCategories(updated));
           setCategory(newItem);
           setShowCustomSheet(false);
-          showBanner(
-            wasAdded ? 'Custom subcategory added!' : 'Subcategory already exists.',
-            'success'
-          );
+          showBanner(wasAdded ? 'Custom category added!' : 'Category already exists.', 'success');
         }}
       />
       <CategoryPickerSheet

@@ -310,7 +310,10 @@ const ProfileScreen = ({ navigation }) => {
                   color={colors.primary}
                   style={styles.rowIcon}
                 />
-                <Text style={styles.title}>Custom subcategories ({customCategories.length})</Text>
+                <View style={styles.categoryLabel}>
+                  <Text style={styles.title}>Custom categories</Text>
+                  <Text style={styles.categoryCount}>({customCategories.length})</Text>
+                </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </TouchableOpacity>
@@ -556,6 +559,14 @@ const createStyles = (colors, insets) =>
     title: {
       color: colors.black,
       fontSize: 15,
+    },
+    categoryLabel: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 6,
+    },
+    categoryCount: {
+      color: colors.gray,
     },
     cardContainer: {
       width: '100%',

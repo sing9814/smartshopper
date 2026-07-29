@@ -80,7 +80,13 @@ const CategoryPickerSheet = ({
           type: 'subcategory',
         }));
 
-      return categoryMatches ? [categoryRow, ...matchingSubcategories] : matchingSubcategories;
+      if (subCategories.length === 0) {
+        return categoryMatches ? [categoryRow] : [];
+      }
+
+      return matchingSubcategories.length > 0
+        ? [{ ...categoryRow, type: 'categoryHeader' }, ...matchingSubcategories]
+        : [];
     });
   };
 
@@ -102,6 +108,8 @@ const CategoryPickerSheet = ({
 
   const renderItem = ({ item, index }) => {
     const isCategory = item.type === 'category';
+    const isCategoryHeader = item.type === 'categoryHeader';
+    const isCategoryLabel = isCategory || isCategoryHeader;
     const isLast = index === visibleItems.length - 1;
 
     return (
@@ -112,6 +120,7 @@ const CategoryPickerSheet = ({
           item.type === 'subcategory' && styles.subcategoryItem,
           isLast && styles.lastItem,
         ]}
+        disabled={isCategoryHeader}
         onPress={() => {
           if (isCategory && item.hasSubcategories) {
             toggleCategory(item.category);
@@ -121,7 +130,7 @@ const CategoryPickerSheet = ({
         }}
       >
         <View style={styles.customLabelContainer}>
-          <Text style={[styles.itemText, item.type === 'subcategory' && styles.subcategoryText]}>
+          <Text style={[styles.itemText, isCategoryLabel && styles.categoryHeaderText]}>
             {item.subCategory?.name || item.category}
           </Text>
           {item.custom && <Text style={styles.customTag}>(custom)</Text>}
@@ -157,7 +166,7 @@ const CategoryPickerSheet = ({
               onClose();
               onOpenCustomSheet?.(search);
             }}
-            title="Create subcategory"
+            title="Create category"
           />
         </View>
       ) : (
@@ -180,6 +189,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     searchBar: {
       width: '100%',
+      marginTop: 8,
       marginBottom: 10,
     },
     list: {
@@ -218,6 +228,10 @@ const createStyles = (colors) =>
     subcategoryItem: {
       paddingLeft: 20,
     },
+    categoryHeaderText: {
+      color: colors.gray,
+      fontSize: 13,
+    },
     lastItem: {
       borderBottomWidth: 0,
     },
@@ -229,9 +243,6 @@ const createStyles = (colors) =>
     itemText: {
       fontSize: 15,
       color: colors.black,
-    },
-    subcategoryText: {
-      color: colors.gray,
     },
     customTag: {
       color: colors.gray,
