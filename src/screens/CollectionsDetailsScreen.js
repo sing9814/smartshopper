@@ -346,7 +346,6 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       <OptionsSheet
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
-        title="Outfit options"
         options={[
           {
             label: 'Browse items to add',

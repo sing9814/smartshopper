@@ -126,7 +126,7 @@ const BottomSheet = ({ title, visible, onClose, height = '40%', children }) => {
         <GestureDetector gesture={panGesture}>
           <View style={styles.draggableContainer}>
             <Animated.View style={styles.handle} />
-            <Text style={styles.title}>{title}</Text>
+            {!!title && <Text style={styles.title}>{title}</Text>}
           </View>
         </GestureDetector>
         {children}

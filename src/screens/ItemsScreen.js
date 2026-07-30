@@ -262,10 +262,10 @@ const ItemsScreen = ({ navigation, route, selectedItems, setSelectedItems }) => 
       <BottomSheet
         visible={collectionSheetVisible}
         onClose={() => setCollectionSheetVisible(false)}
-        title="Add selected to outfit"
+        title="Add to outfit"
         height="50%"
       >
-        <ScrollView style={styles.scrollList}>
+        <ScrollView style={styles.scrollList} contentContainerStyle={styles.scrollListContent}>
           {collections.map((collection) => {
             const itemNames = (collection.items || [])
               .map((itemId) => purchases.find((purchase) => purchase.key === itemId)?.name)
@@ -346,10 +346,12 @@ const createStyles = (colors) =>
       color: 'white',
     },
     scrollList: {
-      maxHeight: 200,
       alignSelf: 'stretch',
       marginHorizontal: -8,
       flex: 1,
+    },
+    scrollListContent: {
+      paddingBottom: 32,
     },
     sheetRow: {
       flexDirection: 'row',

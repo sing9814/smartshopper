@@ -289,7 +289,13 @@ const createStyles = (colors) =>
       paddingBottom: 8,
       gap: 10,
     },
-    searchBar: { flex: 1 },
+    searchBar: {
+      flex: 1,
+      minHeight: 46,
+      height: 46,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+    },
     filterButton: {
       width: 46,
       height: 46,

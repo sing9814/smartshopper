@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AuthStackNav from './src/navigation/AuthStackNav';
@@ -22,21 +22,16 @@ function AppWrapper() {
   const [isGuest, setIsGuest] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const userOnboardedRef = useRef(false);
 
   const userOnboarded = useSelector((state) => state.user.userOnboarded);
   const localUser = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    userOnboardedRef.current = userOnboarded;
-
     if (userOnboarded && auth().currentUser) {
       setIsAuthenticated(auth().currentUser);
     }
     setIsGuest(!auth().currentUser && localUser?.isGuest === true);
-
-    setIsOnboarded(userOnboarded);
   }, [localUser, userOnboarded]);
 
   useEffect(() => {
@@ -65,9 +60,10 @@ function AppWrapper() {
         }
 
         const onboarded = await getUserOnboardingStatus(user.uid);
+        dispatch(setUserOnboarded(onboarded === true));
         setIsAuthenticated(user);
         setIsGuest(false);
-        setIsOnboarded(onboarded);
+        setIsOnboarded(onboarded === true);
       } else {
         const guestData = await getGuestData();
         const hasActiveGuest = guestData.active && guestData.userData?.isGuest === true;
@@ -107,7 +103,7 @@ function AppWrapper() {
   return (
     <View style={{ flex: 1 }}>
       <NavigationContainer>
-        <StatusBar backgroundColor={lightTheme.primary} barStyle="light-content" />
+        <StatusBar barStyle="light-content" />
         {!isAuthenticated && !isGuest ? (
           <AuthStackNav />
         ) : isOnboarded || userOnboarded ? (

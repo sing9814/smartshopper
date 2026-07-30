@@ -170,7 +170,6 @@ const CustomCategoriesScreen = ({ navigation }) => {
       <OptionsSheet
         visible={showMenuSheet}
         onClose={() => setShowMenuSheet(false)}
-        title="Custom categories"
         options={[
           {
             label: 'Add category',

@@ -5,7 +5,7 @@ import { useTheme } from '../theme/themeContext';
 const OptionsSheet = ({ visible, onClose, title, options, height }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
-  const resolvedHeight = height ?? 124 + options.length * 46;
+  const resolvedHeight = height ?? (title ? 124 : 94) + options.length * 46;
 
   const selectOption = (option) => {
     onClose();

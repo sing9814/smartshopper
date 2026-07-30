@@ -514,7 +514,6 @@ const DetailsScreen = ({ navigation }) => {
       <OptionsSheet
         visible={isSheetVisible}
         onClose={() => setIsSheetVisible(false)}
-        title="Options"
         options={[
           {
             label: 'Edit item details',
