@@ -235,10 +235,10 @@ const CollectionsScreen = ({ navigation }) => {
         mode="date"
         title={
           wearDatePickerCollection
-            ? `When did you wear ${wearDatePickerCollection.name}?`
-            : 'When did you wear this outfit?'
+            ? `Add wear to ${wearDatePickerCollection.name}`
+            : 'Add wear to this outfit'
         }
-        confirmText="Add wear"
+        confirmText="Submit"
         onConfirm={(date) => {
           const collection = wearDatePickerCollection;
           setWearDatePickerCollection(null);

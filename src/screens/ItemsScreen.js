@@ -234,8 +234,8 @@ const ItemsScreen = ({ navigation, route, selectedItems, setSelectedItems }) => 
         date={selectedWearDate}
         maximumDate={new Date()}
         mode="date"
-        title="When did you wear it?"
-        confirmText="Add wear"
+        title={`Add wear to ${wearDatePickerItem?.name || 'this item'}`}
+        confirmText="Submit"
         onConfirm={(date) => {
           const item = wearDatePickerItem;
           setWearDatePickerItem(null);

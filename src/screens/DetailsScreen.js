@@ -256,17 +256,19 @@ const DetailsScreen = ({ navigation }) => {
                     <Text style={styles.titleLabel}>Wears</Text>
                   </View>
                   <View style={styles.wearProgressActionRow}>
-                    <Text
-                      style={[
-                        styles.wearProgress,
-                        {
-                          backgroundColor: wearProgressColors.bg,
-                          color: wearProgressColors.text,
-                        },
-                      ]}
-                    >
-                      {wearProgress.code === 'complete' ? 'Goal reached' : wearProgress.detailLabel}
-                    </Text>
+                    {wearProgress.code === 'complete' && (
+                      <Text
+                        style={[
+                          styles.wearProgress,
+                          {
+                            backgroundColor: wearProgressColors.bg,
+                            color: wearProgressColors.text,
+                          },
+                        ]}
+                      >
+                        Goal reached
+                      </Text>
+                    )}
                     <TouchableOpacity
                       onPress={onPressAddWear}
                       disabled={isAddingWear}
@@ -385,17 +387,6 @@ const DetailsScreen = ({ navigation }) => {
                 <Text style={styles.titleLabel}>Notes</Text>
                 <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
               </View>
-
-              <View style={styles.metaBlock}>
-                <Text style={styles.metaText}>
-                  Created: {formatDate(currentPurchase.dateCreated)}
-                </Text>
-                {currentPurchase.edited && (
-                  <Text style={styles.metaText}>
-                    Last edited: {formatDate(currentPurchase.edited)}
-                  </Text>
-                )}
-              </View>
             </ScrollView>
           )}
         </Tab.Screen>
@@ -501,8 +492,8 @@ const DetailsScreen = ({ navigation }) => {
         date={selectedWearDate}
         maximumDate={new Date()}
         mode="date"
-        title="When did you wear it?"
-        confirmText="Add wear"
+        title="Add wear"
+        confirmText="Submit"
         onConfirm={(date) => {
           setIsWearDatePickerOpen(false);
           setSelectedWearDate(date);
@@ -784,17 +775,6 @@ const createStyles = (colors, insets) =>
       color: colors.black,
       fontSize: 15,
       lineHeight: 22,
-    },
-    metaBlock: {
-      backgroundColor: colors.white,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginBottom: 2,
-      gap: 4,
-    },
-    metaText: {
-      color: colors.gray,
-      fontSize: 13,
     },
     historySummary: {
       backgroundColor: colors.white,

@@ -38,6 +38,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useNavigation } from '@react-navigation/native';
 import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
+import BottomSheet from './bottomSheet';
 
 dayjs.extend(utc);
 
@@ -73,6 +74,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
   const [paidPrice, setPaidPrice] = useState(null);
   const [wearGoal, setWearGoal] = useState(String(DEFAULT_WEAR_GOAL));
   const [customWearGoal, setCustomWearGoal] = useState(false);
+  const [focusCustomWearGoal, setFocusCustomWearGoal] = useState(false);
   const [itemColor, setItemColor] = useState(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [note, setNote] = useState(null);
@@ -350,7 +352,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
 
                 <TouchableOpacity
                   style={styles.colorSelector}
-                  onPress={() => setColorPickerOpen((prev) => !prev)}
+                  onPress={() => setColorPickerOpen(true)}
                   accessibilityRole="button"
                   accessibilityLabel="Choose item color"
                 >
@@ -377,66 +379,6 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 </TouchableOpacity>
               </View>
 
-              {colorPickerOpen && (
-                <View style={styles.colorOptions}>
-                  <TouchableOpacity
-                    style={[styles.colorOption, !itemColor && styles.colorOptionSelected]}
-                    onPress={() => {
-                      setItemColor(null);
-                      setColorPickerOpen(false);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel="No color"
-                  >
-                    <View style={[styles.noColorSwatch, styles.noColorOptionSwatch]}>
-                      <View style={styles.noColorSlash} />
-                    </View>
-                    <Text
-                      style={[styles.colorOptionText, !itemColor && styles.colorOptionTextSelected]}
-                    >
-                      No color
-                    </Text>
-                  </TouchableOpacity>
-                  {colors.itemColorOptions.map((option) => {
-                    const isSelected = itemColor?.name === option.name;
-
-                    return (
-                      <TouchableOpacity
-                        key={option.name}
-                        style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
-                        onPress={() => {
-                          setItemColor(option);
-                          setColorPickerOpen(false);
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${option.name} color`}
-                      >
-                        <View
-                          style={[
-                            styles.colorSwatch,
-                            {
-                              backgroundColor: option.hex,
-                              borderColor:
-                                option.name === 'White' || option.name === 'Black'
-                                  ? colors.gray
-                                  : option.hex,
-                            },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.colorOptionText,
-                            isSelected && styles.colorOptionTextSelected,
-                          ]}
-                        >
-                          {option.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
-
               <CustomInput
                 placeholder="Item name"
                 value={itemName}
@@ -460,6 +402,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                         onPress={() => {
                           setWearGoal(String(goal));
                           setCustomWearGoal(false);
+                          setFocusCustomWearGoal(false);
                         }}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
@@ -479,6 +422,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                     style={[styles.wearGoalOption, customWearGoal && styles.wearGoalOptionSelected]}
                     onPress={() => {
                       if (!customWearGoal) setWearGoal('');
+                      setFocusCustomWearGoal(true);
                       setCustomWearGoal(true);
                     }}
                     accessibilityRole="button"
@@ -500,6 +444,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                     value={wearGoal}
                     onChangeText={setWearGoal}
                     type="numeric"
+                    autoFocus={focusCustomWearGoal}
                   />
                 )}
               </View>
@@ -529,6 +474,8 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
                 modal
                 open={open}
                 date={selectedDate || new Date()}
+                title="Date purchased"
+                // maximumDate={new Date()}
                 onConfirm={(date) => {
                   setOpen(false);
                   setSelectedDate(date);
@@ -555,6 +502,63 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <BottomSheet
+        title="Select color"
+        visible={colorPickerOpen}
+        onClose={() => setColorPickerOpen(false)}
+        height={300}
+      >
+        <View style={styles.colorOptions}>
+          <TouchableOpacity
+            style={[styles.colorOption, !itemColor && styles.colorOptionSelected]}
+            onPress={() => {
+              setItemColor(null);
+              setColorPickerOpen(false);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="No color"
+          >
+            <View style={[styles.noColorSwatch, styles.noColorOptionSwatch]}>
+              <View style={styles.noColorSlash} />
+            </View>
+            <Text style={[styles.colorOptionText, !itemColor && styles.colorOptionTextSelected]}>
+              No color
+            </Text>
+          </TouchableOpacity>
+          {colors.itemColorOptions.map((option) => {
+            const isSelected = itemColor?.name === option.name;
+
+            return (
+              <TouchableOpacity
+                key={option.name}
+                style={[styles.colorOption, isSelected && styles.colorOptionSelected]}
+                onPress={() => {
+                  setItemColor(option);
+                  setColorPickerOpen(false);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`${option.name} color`}
+              >
+                <View
+                  style={[
+                    styles.colorSwatch,
+                    {
+                      backgroundColor: option.hex,
+                      borderColor: getItemColorBorder(option, colors),
+                    },
+                  ]}
+                />
+                <Text
+                  style={[styles.colorOptionText, isSelected && styles.colorOptionTextSelected]}
+                >
+                  {option.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </BottomSheet>
 
       <CustomCategorySheet
         visible={showCustomSheet}
@@ -661,6 +665,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 8,
+      marginTop: 8,
     },
     colorOption: {
       minHeight: 34,

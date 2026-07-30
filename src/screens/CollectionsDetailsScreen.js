@@ -173,8 +173,8 @@ const CollectionDetailScreen = ({ route, navigation }) => {
         date={selectedWearDate}
         maximumDate={new Date()}
         mode="date"
-        title={`When did you wear ${currentCollection.name}?`}
-        confirmText="Add wear"
+        title={`Add wear`}
+        confirmText="Submit"
         onConfirm={(date) => {
           setIsWearDatePickerOpen(false);
           setSelectedWearDate(date);
