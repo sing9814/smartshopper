@@ -38,6 +38,7 @@ const PurchaseList = ({
   renderEndAction,
   disableItemPress = false,
   selectionMode = false,
+  scrollEnabled = true,
 }) => {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -96,6 +97,7 @@ const PurchaseList = ({
 
     return (
       <TouchableOpacity
+        key={item.key}
         onPress={() => onPress(item)}
         onLongPress={() => {
           if (!disableItemPress) onItemLongPress?.(item);
@@ -201,6 +203,10 @@ const PurchaseList = ({
 
   const renderContent = () => {
     if (purchases.length > 0) {
+      if (!scrollEnabled) {
+        return <View style={styles.list}>{purchases.map((item) => renderItem({ item }))}</View>;
+      }
+
       return (
         <FlatList
           data={purchases}
@@ -209,6 +215,7 @@ const PurchaseList = ({
             onRefresh && <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           renderItem={renderItem}
+          keyExtractor={(item) => item.key}
         />
       );
     }

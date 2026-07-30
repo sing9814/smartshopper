@@ -103,6 +103,17 @@ const getWearNumberText = (item, dateKey, timeZone) => {
   return `Wears #${wearNumbers.join(', #')}`;
 };
 
+const getPreviousDateKey = (dateKey) => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const previousDate = new Date(Date.UTC(year, month - 1, day - 1));
+
+  return [
+    previousDate.getUTCFullYear(),
+    String(previousDate.getUTCMonth() + 1).padStart(2, '0'),
+    String(previousDate.getUTCDate()).padStart(2, '0'),
+  ].join('-');
+};
+
 const HomeScreen = ({ navigation }) => {
   const colors = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
@@ -298,10 +309,28 @@ const HomeScreen = ({ navigation }) => {
     timeZone,
   ]);
 
-  const totalWears = useMemo(
-    () => purchases.reduce((total, item) => total + (item.wears?.length || 0), 0),
-    [purchases]
-  );
+  const wearStreak = useMemo(() => {
+    const wornDateKeys = new Set(
+      purchases.flatMap((item) =>
+        (item.wears || []).map((wear) => getDateKeyInTimeZone(wear, timeZone)).filter(Boolean)
+      )
+    );
+    const todayKey = getDateKeyInTimeZone(new Date(), timeZone);
+    const yesterdayKey = getPreviousDateKey(todayKey);
+    let currentDateKey = wornDateKeys.has(todayKey)
+      ? todayKey
+      : wornDateKeys.has(yesterdayKey)
+      ? yesterdayKey
+      : null;
+    let streak = 0;
+
+    while (currentDateKey && wornDateKeys.has(currentDateKey)) {
+      streak += 1;
+      currentDateKey = getPreviousDateKey(currentDateKey);
+    }
+
+    return streak;
+  }, [purchases, timeZone]);
   const canAddWearForSelectedDate =
     selectedDate && selectedDate <= getDateKeyInTimeZone(new Date(), timeZone);
   const selectedCollectionWears = useMemo(() => {
@@ -358,11 +387,17 @@ const HomeScreen = ({ navigation }) => {
         ) : (
           <>
             <View style={styles.totalWearsCard}>
-              <View style={styles.totalWearsIcon}>
-                <Ionicons name="shirt-outline" size={20} color={colors.primary} />
+              <View style={styles.analyticsValueRow}>
+                <Text style={styles.analyticsValue}>
+                  {wearStreak} {wearStreak === 1 ? 'day' : 'days'}
+                </Text>
+                <Ionicons
+                  name="flame-outline"
+                  size={30}
+                  color={wearStreak > 0 ? colors.secondary : colors.gray}
+                />
               </View>
-              <Text style={styles.analyticsValue}>{totalWears}</Text>
-              <Text style={styles.analyticsSubtext}>Total wears</Text>
+              <Text style={styles.analyticsSubtext}>Wear streak</Text>
             </View>
 
             <Calendar
@@ -391,7 +426,12 @@ const HomeScreen = ({ navigation }) => {
         height={'50%'}
       >
         <View style={styles.sheetContainer}>
-          <View style={styles.list}>
+          <ScrollView
+            style={styles.list}
+            contentContainerStyle={styles.sheetScrollContent}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
             {selectedCollectionWears.map(({ collection, event }, index) => {
               const folderColor = getCollectionFolderColor(collection.folderColor, colors);
               const itemNames = (collection.items || [])
@@ -450,9 +490,10 @@ const HomeScreen = ({ navigation }) => {
                 itemContainerStyle={styles.calendarListItem}
                 navigation={navigation}
                 onItemLongPress={() => {}}
+                scrollEnabled={false}
               />
             )}
-          </View>
+          </ScrollView>
         </View>
       </BottomSheet>
     </View>
@@ -502,6 +543,8 @@ const createStyles = (colors, tabBarHeight) =>
     list: {
       flex: 1,
       width: '100%',
+    },
+    sheetScrollContent: {
       paddingBottom: 40,
     },
     calendarListItem: {
@@ -659,27 +702,22 @@ const createStyles = (colors, tabBarHeight) =>
       backgroundColor: colors.white,
       marginBottom: 10,
       borderRadius: 10,
-      padding: 18,
+      padding: 16,
       elevation: 1,
       borderLeftWidth: 4,
       borderLeftColor: colors.primary,
-    },
-    totalWearsIcon: {
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      // backgroundColor: colors.primaryLight,
+      gap: 4,
     },
     analyticsValue: {
       color: colors.black,
-      fontSize: 38,
+      fontSize: 28,
       fontWeight: '700',
-      lineHeight: 44,
+    },
+    analyticsValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
     },
     analyticsSubtext: {
       color: colors.gray,
