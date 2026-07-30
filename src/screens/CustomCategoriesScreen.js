@@ -12,6 +12,10 @@ import { setCustomCategories, setCategories } from '../redux/actions/userActions
 import { useDispatch } from 'react-redux';
 import OptionsSheet from '../components/optionsSheet';
 import CustomButton from '../components/button';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
+
+const CATEGORY_LONG_PRESS_HINT_KEY = '@smartshopper/category-long-press-hint-seen-v3';
 
 const CustomCategoriesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -20,8 +24,8 @@ const CustomCategoriesScreen = ({ navigation }) => {
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [managementMode, setManagementMode] = useState(null);
-  const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showLongPressHint, setShowLongPressHint] = useState(false);
 
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -37,8 +41,31 @@ const CustomCategoriesScreen = ({ navigation }) => {
   const customCategories = useSelector((state) => state.user.customCategories);
   const categories = useSelector((state) => state.user.categories);
 
+  useEffect(() => {
+    AsyncStorage.getItem(CATEGORY_LONG_PRESS_HINT_KEY)
+      .then((hasSeenHint) => setShowLongPressHint(hasSeenHint !== 'true'))
+      .catch(() => setShowLongPressHint(true));
+  }, []);
+
+  const openCategoryOptions = (category) => {
+    setSelectedCategory(category);
+
+    if (showLongPressHint) {
+      setShowLongPressHint(false);
+      AsyncStorage.setItem(CATEGORY_LONG_PRESS_HINT_KEY, 'true').catch(() => {});
+    }
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.categoryRow}>
+    <TouchableOpacity
+      style={styles.categoryRow}
+      onLongPress={() => openCategoryOptions(item)}
+      delayLongPress={350}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      accessibilityHint="Long press to edit or delete this category"
+    >
       <View style={styles.categoryInfo}>
         <View style={styles.categoryTextBlock}>
           <Text style={styles.categoryName} numberOfLines={1}>
@@ -51,39 +78,7 @@ const CustomCategoriesScreen = ({ navigation }) => {
           )}
         </View>
       </View>
-
-      {managementMode && (
-        <View style={styles.rowActions}>
-          {managementMode === 'edit' ? (
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => {
-                setEditingCategory(item);
-                setShowEditSheet(true);
-              }}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${item.name}`}
-            >
-              <FontAwesome name="pencil" size={20} color={colors.black} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => {
-                setPendingDelete(item);
-                setShowDeletePopup(true);
-              }}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Delete ${item.name}`}
-            >
-              <Ionicons name="close" size={22} color={colors.red} />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -104,25 +99,23 @@ const CustomCategoriesScreen = ({ navigation }) => {
         </Text>
         <TouchableOpacity
           onPress={() => {
-            if (managementMode) {
-              setManagementMode(null);
-            } else {
-              setShowMenuSheet(true);
-            }
+            setEditingCategory(null);
+            setShowEditSheet(true);
           }}
           hitSlop={8}
-          style={[styles.topbarAction, managementMode && styles.topbarDoneAction]}
+          style={styles.topbarAction}
           accessibilityRole="button"
-          accessibilityLabel={managementMode ? `Done with ${managementMode} mode` : 'Category menu'}
+          accessibilityLabel="Add category"
         >
-          {managementMode ? (
-            <Text style={styles.topbarDone}>Done</Text>
-          ) : (
-            <Ionicons name="ellipsis-horizontal" size={24} color="white" />
-          )}
+          <Ionicons name="add" size={26} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
+        {customCategories.length > 0 && showLongPressHint && (
+          <View style={styles.listHint} pointerEvents="none">
+            <Text style={styles.listHintText}>Press and hold a category for options.</Text>
+          </View>
+        )}
         <FlatList
           data={customCategories}
           keyExtractor={(item) => item.id}
@@ -157,38 +150,33 @@ const CustomCategoriesScreen = ({ navigation }) => {
         initialSubcategoryName={editingCategory?.name || ''}
         editingCategory={editingCategory}
         onSave={(_, wasSaved) => {
-          if (wasSaved) {
-            showBanner(editingCategory ? 'Category updated!' : 'Category added!', 'success');
-          } else {
-            showBanner('Failed to update category.');
-          }
+          if (!wasSaved) showBanner('Failed to save category.');
           setShowEditSheet(false);
           setEditingCategory(null);
         }}
       />
 
       <OptionsSheet
-        visible={showMenuSheet}
-        onClose={() => setShowMenuSheet(false)}
+        visible={!!selectedCategory}
+        onClose={() => setSelectedCategory(null)}
+        title={selectedCategory?.name}
         options={[
           {
-            label: 'Add category',
-            icon: <Ionicons name="add-circle-outline" size={20} color={colors.black} />,
+            label: 'Edit',
+            icon: <FontAwesome name="pencil" size={20} color={colors.black} />,
             onPress: () => {
-              setEditingCategory(null);
+              setEditingCategory(selectedCategory);
               setShowEditSheet(true);
             },
           },
           {
-            label: 'Edit categories',
-            icon: <FontAwesome name="pencil" size={20} color={colors.black} />,
-            onPress: () => setManagementMode('edit'),
-          },
-          {
-            label: 'Delete categories',
+            label: 'Delete',
             icon: <Ionicons name="trash-outline" size={20} color={colors.red} />,
             destructive: true,
-            onPress: () => setManagementMode('delete'),
+            onPress: () => {
+              setPendingDelete(selectedCategory);
+              setShowDeletePopup(true);
+            },
           },
         ]}
       />
@@ -212,8 +200,6 @@ const CustomCategoriesScreen = ({ navigation }) => {
               subCategories: (cat.subCategories || []).filter((sub) => sub.id !== pendingDelete.id),
             }));
             dispatch(setCategories(updatedCategories.filter((cat) => cat.id !== pendingDelete.id)));
-
-            showBanner('Category deleted!', 'success');
           } catch (err) {
             showBanner('Failed to delete category.');
           }
@@ -249,15 +235,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    topbarDoneAction: {
-      width: 48,
-      marginLeft: -20,
-    },
-    topbarDone: {
-      color: 'white',
-      fontSize: 15,
-      fontWeight: '500',
-    },
     topbarTitle: {
       color: 'white',
       flex: 1,
@@ -267,6 +244,21 @@ const createStyles = (colors) =>
     listContent: {
       paddingTop: 2,
       paddingBottom: 32,
+    },
+    listHint: {
+      position: 'absolute',
+      bottom: 72,
+      alignSelf: 'center',
+      zIndex: 2,
+      elevation: 3,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 8,
+      backgroundColor: colors.black,
+    },
+    listHintText: {
+      color: colors.white,
+      fontSize: 13,
     },
     emptyListContent: {
       flexGrow: 1,
@@ -302,17 +294,6 @@ const createStyles = (colors) =>
     },
     categoryParent: {
       color: colors.gray,
-    },
-    rowActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    iconButton: {
-      width: 32,
-      height: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     emptyState: {
       alignItems: 'center',
