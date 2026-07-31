@@ -710,7 +710,7 @@ const createStyles = (colors, tabBarHeight) =>
     },
     analyticsValue: {
       color: colors.black,
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: '700',
     },
     analyticsValueRow: {

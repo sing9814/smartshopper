@@ -14,6 +14,7 @@ import {
 } from '../utils/date';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPurchases, setCurrentPurchase } from '../redux/actions/purchaseActions';
 import Banner from '../components/banner';
@@ -27,6 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 import CustomTabBar from '../navigation/CustomTabBar';
 import { getCurrentItemColor, getItemColorBorder } from '../utils/itemColor';
+import { getCollectionFolderColor } from '../utils/collectionColor';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -56,6 +58,7 @@ const DetailsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const purchases = useSelector((state) => state.purchase.purchases);
+  const collections = useSelector((state) => state.purchase.collections);
   const currentPurchase = useSelector((state) => state.purchase.currentPurchase);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -168,6 +171,11 @@ const DetailsScreen = ({ navigation }) => {
   const wearHistory = useMemo(
     () => sortWearsByDate(currentPurchase.wears || []).reverse(),
     [currentPurchase.wears]
+  );
+  const itemCollections = useMemo(
+    () =>
+      collections.filter((collection) => (collection.items || []).includes(currentPurchase.key)),
+    [collections, currentPurchase.key]
   );
   const renderTabBar = useCallback(
     (props) => <CustomTabBar {...props} backgroundColor={colors.primary} />,
@@ -307,6 +315,13 @@ const DetailsScreen = ({ navigation }) => {
 
               <WearHistoryChart wears={currentPurchase.wears} timeZone={timeZone} />
 
+              {!!currentPurchase.note?.trim() && (
+                <View style={styles.noteBlock}>
+                  <Text style={styles.titleLabel}>Notes</Text>
+                  <Text style={styles.note}>{currentPurchase.note}</Text>
+                </View>
+              )}
+
               <View>
                 <View style={styles.listRow}>
                   <View style={styles.rowText}>
@@ -316,27 +331,6 @@ const DetailsScreen = ({ navigation }) => {
                     </Text>
                   </View>
                 </View>
-
-                {paidPrice != null && (
-                  <View style={styles.listRow}>
-                    <View style={styles.rowText}>
-                      <Text style={styles.titleLabel}>Price</Text>
-                      <View style={styles.priceContainerInline}>
-                        <Text style={styles.valueText}>{formatCentsAsCurrency(paidPrice)}</Text>
-                        {regularPrice && (
-                          <Text style={styles.regularPrice}>
-                            {formatCentsAsCurrency(regularPrice)}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={styles.rowMeta}>
-                      <Text style={styles.titleLabel}>Cost per wear</Text>
-                      <Text style={styles.valueText}>{costPerWear}</Text>
-                    </View>
-                  </View>
-                )}
 
                 <View style={styles.listRow}>
                   <View style={[styles.rowText, styles.categoryTextBlock]}>
@@ -371,10 +365,31 @@ const DetailsScreen = ({ navigation }) => {
                   </View>
                 </View>
 
+                {paidPrice != null && (
+                  <View style={styles.listRow}>
+                    <View style={styles.rowText}>
+                      <Text style={styles.titleLabel}>Price</Text>
+                      <View style={styles.priceContainerInline}>
+                        <Text style={styles.valueText}>{formatCentsAsCurrency(paidPrice)}</Text>
+                        {regularPrice && (
+                          <Text style={styles.regularPrice}>
+                            {formatCentsAsCurrency(regularPrice)}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    <View style={styles.rowMeta}>
+                      <Text style={styles.titleLabel}>Cost per wear</Text>
+                      <Text style={styles.valueText}>{costPerWear}</Text>
+                    </View>
+                  </View>
+                )}
+
                 {hasPurchaseDate && (
                   <View style={styles.listRow}>
                     <View style={styles.rowText}>
-                      <Text style={styles.titleLabel}>Purchased</Text>
+                      <Text style={styles.titleLabel}>Purchase date</Text>
                       <Text style={styles.valueText}>
                         {formatDate(currentPurchase.datePurchased)}
                       </Text>
@@ -383,10 +398,45 @@ const DetailsScreen = ({ navigation }) => {
                 )}
               </View>
 
-              <View style={styles.noteBlock}>
-                <Text style={styles.titleLabel}>Notes</Text>
-                <Text style={styles.note}>{currentPurchase.note || 'No notes yet.'}</Text>
-              </View>
+              {itemCollections.length > 0 && (
+                <View style={styles.outfitsBlock}>
+                  <View style={styles.outfitsHeader}>
+                    <View style={styles.outfitsTitle}>
+                      <Text style={styles.titleLabel}>Outfits ({itemCollections.length})</Text>
+                    </View>
+                  </View>
+                  {itemCollections.map((collection) => (
+                    <TouchableOpacity
+                      key={collection.id}
+                      style={styles.outfitRow}
+                      onPress={() =>
+                        navigation.push('CollectionDetail', {
+                          collection,
+                          animationEnabled: false,
+                        })
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open ${collection.name} outfit`}
+                    >
+                      <View style={styles.outfitName}>
+                        <Ionicons
+                          name="folder-outline"
+                          size={17}
+                          color={
+                            collection.folderColor?.name === 'White'
+                              ? colors.lightGrey
+                              : getCollectionFolderColor(collection.folderColor, colors)
+                          }
+                        />
+                        <Text style={styles.outfitText} numberOfLines={1}>
+                          {collection.name}
+                        </Text>
+                      </View>
+                      <FontAwesome name="angle-right" size={20} color={colors.gray} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </ScrollView>
           )}
         </Tab.Screen>
@@ -630,7 +680,7 @@ const createStyles = (colors, insets) =>
       backgroundColor: colors.white,
       paddingHorizontal: 16,
       paddingVertical: 16,
-      marginTop: 10,
+      marginTop: 12,
       marginHorizontal: 12,
       marginBottom: 12,
       borderRadius: 12,
@@ -770,6 +820,43 @@ const createStyles = (colors, insets) =>
       paddingVertical: 12,
       marginBottom: 1,
       gap: 4,
+    },
+    outfitsBlock: {
+      backgroundColor: colors.white,
+      paddingHorizontal: 16,
+      marginBottom: 1,
+    },
+    outfitsHeader: {
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    outfitsTitle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+    },
+    outfitRow: {
+      minHeight: 56,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderTopWidth: 1,
+      borderTopColor: colors.bg,
+    },
+    outfitName: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginRight: 12,
+    },
+    outfitText: {
+      flex: 1,
+      color: colors.black,
+      fontSize: 15,
+      fontWeight: '500',
     },
     note: {
       color: colors.black,

@@ -147,7 +147,7 @@ const CategoryPickerSheet = ({
   };
 
   return (
-    <BottomSheet title="Choose category" visible={visible} onClose={onClose} height="72%">
+    <BottomSheet title="Category" visible={visible} onClose={onClose} height="72%">
       <SearchBar
         value={search}
         onChangeText={setSearch}
@@ -190,7 +190,6 @@ const createStyles = (colors) =>
     searchBar: {
       width: '100%',
       marginTop: 8,
-      marginBottom: 10,
     },
     list: {
       flex: 1,

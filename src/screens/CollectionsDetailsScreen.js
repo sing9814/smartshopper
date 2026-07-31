@@ -44,6 +44,14 @@ const CollectionDetailScreen = ({ route, navigation }) => {
     navigation.navigate('ItemTabs', { screen: 'Collections' });
   };
 
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      returnToCollections();
+    }
+  };
+
   useStatusBar(colors.primaryDark);
 
   const dispatch = useDispatch();
@@ -184,7 +192,7 @@ const CollectionDetailScreen = ({ route, navigation }) => {
       />
       <View style={styles.topbar}>
         <TouchableOpacity
-          onPress={returnToCollections}
+          onPress={handleBack}
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
           style={styles.topbarButton}
         >

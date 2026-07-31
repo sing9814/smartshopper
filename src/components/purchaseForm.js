@@ -504,7 +504,7 @@ const PurchaseForm = ({ purchase, name, date, edit }) => {
       </KeyboardAvoidingView>
 
       <BottomSheet
-        title="Select color"
+        title="Item color"
         visible={colorPickerOpen}
         onClose={() => setColorPickerOpen(false)}
         height={300}
