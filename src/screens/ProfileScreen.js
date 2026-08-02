@@ -458,7 +458,7 @@ const createStyles = (colors, insets) =>
       color: colors.gray,
       fontSize: 13,
       marginBottom: 4,
-      paddingHorizontal: 22,
+      paddingHorizontal: 16,
     },
     sectionGroup: {
       backgroundColor: colors.white,
@@ -469,7 +469,7 @@ const createStyles = (colors, insets) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 22,
+      paddingHorizontal: 16,
       paddingVertical: 8,
       backgroundColor: colors.white,
     },
@@ -529,7 +529,7 @@ const createStyles = (colors, insets) =>
       gap: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 20,
+      marginTop: 16,
       elevation: 1,
     },
     amount: {

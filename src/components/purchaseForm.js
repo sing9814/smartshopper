@@ -599,28 +599,26 @@ const createStyles = (colors) =>
     },
     container: {
       flexGrow: 1,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: 20,
     },
     formCard: {
       width: '100%',
-      gap: 18,
+      gap: 12,
     },
     section: {
-      gap: 10,
+      gap: 12,
     },
     sectionTitle: {
       color: colors.gray,
       fontSize: 13,
-      marginBottom: 2,
-      marginTop: -6,
     },
     categoryColorRow: {
       width: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      gap: 12,
     },
     colorSelector: {
       width: 64,
@@ -695,8 +693,7 @@ const createStyles = (colors) =>
       color: colors.primary,
     },
     wearGoalField: {
-      gap: 10,
-      paddingTop: 8,
+      gap: 12,
     },
     wearGoalOptions: {
       flexDirection: 'row',
@@ -733,7 +730,7 @@ const createStyles = (colors) =>
     actionArea: {
       width: '100%',
       gap: 12,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
       paddingTop: 10,
       backgroundColor: colors.white,
       borderTopWidth: 1,

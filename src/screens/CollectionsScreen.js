@@ -341,8 +341,8 @@ const createStyles = (colors) =>
     card: {
       minHeight: 106,
       backgroundColor: colors.white,
-      marginHorizontal: 12,
-      marginBottom: 10,
+      marginHorizontal: 16,
+      marginBottom: 12,
       paddingVertical: 15,
       paddingHorizontal: 14,
       gap: 12,
@@ -391,10 +391,9 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
-      paddingTop: 2,
     },
     flatlist: {
-      paddingTop: 12,
+      paddingTop: 16,
       paddingBottom: 140,
     },
     emptyList: {

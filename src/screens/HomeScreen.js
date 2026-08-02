@@ -700,7 +700,7 @@ const createStyles = (colors, tabBarHeight) =>
     },
     totalWearsCard: {
       backgroundColor: colors.white,
-      marginBottom: 10,
+      marginBottom: 12,
       borderRadius: 10,
       padding: 16,
       elevation: 1,

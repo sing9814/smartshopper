@@ -336,7 +336,7 @@ const createStyles = (colors, tabBarHeight) =>
       paddingTop: 16,
       paddingBottom: tabBarHeight + 16,
       paddingHorizontal: 16,
-      gap: 10,
+      gap: 12,
     },
     analyticsCard: {
       backgroundColor: colors.white,
@@ -543,7 +543,7 @@ const createStyles = (colors, tabBarHeight) =>
     },
     summaryRow: {
       flexDirection: 'row',
-      gap: 10,
+      gap: 12,
     },
     metricCard: {
       flex: 1,
